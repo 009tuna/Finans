@@ -1,7 +1,6 @@
-// Tüm pazarları çeker → OHLC serisi → indikatörler → skor/yorum → data/latest.json + history.
+// Tüm pazarları çeker → OHLC serisi → indikatörler → skor/yorum → Supabase'e yazar.
 // US: Yahoo (fiyat+seri) + Finnhub (temel/analist). BIST: Yahoo. Kripto: CoinGecko.
 'use strict';
-const fs = require('fs');
 const path = require('path');
 const { fetchManySeries } = require('./yahoo');
 const { fetchManyFundamentals } = require('./finnhub');
@@ -9,17 +8,23 @@ const { fetchCryptoFull } = require('./coingecko');
 const { computeIndicators } = require('./indicators');
 const { scoreAsset } = require('./analyze');
 const { attachDecisionMetadata } = require('./decision');
+const { saveSnapshot, appendHistory, getHistory } = require('./db');
+const { fetchFxRates } = require('./fx');
 
 const ROOT = path.join(__dirname, '..');
-const DATA = path.join(ROOT, 'data');
+const fs = require('fs');
+
 
 function loadConfig() {
-  return JSON.parse(fs.readFileSync(path.join(ROOT, 'config.json'), 'utf8'));
+  const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'config.json'), 'utf8'));
+  // Env var varsa config.json'daki token'ı override et (GitHub Actions + Vercel için)
+  if (process.env.FINNHUB_TOKEN) cfg.finnhubToken = process.env.FINNHUB_TOKEN;
+  return cfg;
 }
 
-function loadHistory() {
+async function loadHistory() {
   try {
-    const hist = JSON.parse(fs.readFileSync(path.join(DATA, 'history.json'), 'utf8'));
+    const hist = await getHistory();
     return Array.isArray(hist) ? hist : [];
   } catch (e) {
     return [];
@@ -83,11 +88,12 @@ async function runAll() {
   const cfg = loadConfig();
   const token = cfg.finnhubToken;
 
-  const [usSeries, usFund, bistSeries, crypto] = await Promise.all([
+  const [usSeries, usFund, bistSeries, crypto, fx] = await Promise.all([
     fetchManySeries(cfg.watchlists.us),
     fetchManyFundamentals(cfg.watchlists.us, token),
     fetchManySeries(cfg.watchlists.bist, (s) => s + '.IS'),
     fetchCryptoFull(cfg.watchlists.crypto),
+    fetchFxRates(),
   ]);
 
   const fundBy = {};
@@ -138,6 +144,7 @@ async function runAll() {
     generatedAt: new Date().toISOString(),
     counts: { us: scored(us).length, bist: scored(bist).length, crypto: scored(cryptoArr).length },
     market: { usAsOf: maxTime(us), bistAsOf: maxTime(bist), cryptoAsOf: maxTime(cryptoArr) },
+    fx,
     topPicks,
     allocation,
     us,
@@ -146,45 +153,17 @@ async function runAll() {
     errors: errs,
   };
 
-  attachDecisionMetadata(snapshot, loadHistory(), cfg);
+  const history = await loadHistory();
+  attachDecisionMetadata(snapshot, history, cfg);
 
-  fs.mkdirSync(DATA, { recursive: true });
-  fs.writeFileSync(path.join(DATA, 'latest.json'), JSON.stringify(snapshot));
-  appendHistory(snapshot);
-  fs.appendFileSync(
-    path.join(DATA, 'run.log'),
-    snapshot.generatedAt + ` | ABD:${snapshot.counts.us} BIST:${snapshot.counts.bist} Kripto:${snapshot.counts.crypto}` + (errs.length ? ` | hata:${errs.length}` : '') + '\n'
-  );
+  // Supabase'e yaz (latest + history)
+  await saveSnapshot(snapshot);
+  await appendHistory(snapshot);
+
+  const logLine = snapshot.generatedAt + ` | ABD:${snapshot.counts.us} BIST:${snapshot.counts.bist} Kripto:${snapshot.counts.crypto}` + (errs.length ? ` | hata:${errs.length}` : '');
+  console.log('[fetch-all]', logLine);
+
   return snapshot;
-}
-
-function appendHistory(snapshot) {
-  const file = path.join(DATA, 'history.json');
-  let hist = [];
-  try {
-    hist = JSON.parse(fs.readFileSync(file, 'utf8'));
-    if (!Array.isArray(hist)) hist = [];
-  } catch (e) {
-    hist = [];
-  }
-  const date = snapshot.generatedAt.slice(0, 10);
-  const scores = {};
-  const prices = {};
-  const collect = (arr, pfx) => arr.forEach((x) => {
-    if (!x.analysis || x.analysis.score == null) return;
-    const k = pfx + x.symbol;
-    scores[k] = x.analysis.score;
-    if (typeof x.price === 'number') prices[k] = x.price;
-  });
-  collect(snapshot.us, 'US:');
-  collect(snapshot.bist, 'BIST:');
-  collect(snapshot.crypto, 'CRYPTO:');
-  const entry = { date, t: snapshot.generatedAt, scores, prices };
-  const idx = hist.findIndex((h) => h.date === date);
-  if (idx >= 0) hist[idx] = entry;
-  else hist.push(entry);
-  if (hist.length > 120) hist = hist.slice(hist.length - 120);
-  fs.writeFileSync(file, JSON.stringify(hist));
 }
 
 if (require.main === module) {

@@ -1,10 +1,10 @@
 // Normalized OHLCV chart data for browser charts.
 'use strict';
 
-const { fetchJson } = require('./util');
+const util = require('./util');
+const db = require('./db');
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)';
-const cache = new Map();
 
 const YAHOO_INTERVALS = new Set(['1d', '1h', '30m', '15m', '5m']);
 const YAHOO_RANGES = new Set(['5d', '1mo', '3mo', '6mo', '1y', '2y', '5y']);
@@ -129,41 +129,56 @@ async function fetchAssetChart({ market, symbol, interval, range, limit }) {
       : sourceSymbol;
 
   const key = [normalizedMarket, displaySymbol, defaults.interval, defaults.range, defaults.limit].join(':');
-  const cached = cache.get(key);
-  if (cached && Date.now() - cached.t < ttlFor(defaults.interval)) {
-    return Object.assign({}, cached.value, { cache: 'hit' });
+  
+  // 1. Supabase önbellek kontrolü (async — await şart; yoksa cache hiç tutmaz)
+  const cachedEntry = await db.getCache(key);
+  if (cachedEntry && (Date.now() - cachedEntry.updatedAt) < ttlFor(defaults.interval)) {
+    return Object.assign({}, cachedEntry.value, { cache: 'hit' });
   }
 
   let value;
-  if (normalizedMarket === 'crypto') {
-    const url = 'https://data-api.binance.vision/api/v3/klines?symbol=' +
-      encodeURIComponent(sourceSymbol) + '&interval=' + encodeURIComponent(defaults.interval) +
-      '&limit=' + defaults.limit;
-    const data = await fetchJson(url, { retries: 2 });
-    if (data && data.__error) throw new Error(data.__error);
-    value = normalizeBinanceKlines(data, {
-      market: normalizedMarket,
-      symbol: displaySymbol,
-      sourceSymbol,
-      interval: defaults.interval,
-    });
-  } else {
-    const url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sourceSymbol) +
-      '?interval=' + encodeURIComponent(defaults.interval) +
-      '&range=' + encodeURIComponent(defaults.range);
-    const data = await fetchJson(url, { headers: { 'User-Agent': UA, Accept: 'application/json' }, retries: 2 });
-    if (data && data.__error) throw new Error(data.__error);
-    value = normalizeYahooChart(data, {
-      market: normalizedMarket,
-      symbol: displaySymbol,
-      sourceSymbol,
-      interval: defaults.interval,
-      range: defaults.range,
-    });
-  }
+  try {
+    if (normalizedMarket === 'crypto') {
+      const url = 'https://data-api.binance.vision/api/v3/klines?symbol=' +
+        encodeURIComponent(sourceSymbol) + '&interval=' + encodeURIComponent(defaults.interval) +
+        '&limit=' + defaults.limit;
+      const data = await util.fetchJson(url, { retries: 2 });
+      if (data && data.__error) throw new Error(data.__error);
+      value = normalizeBinanceKlines(data, {
+        market: normalizedMarket,
+        symbol: displaySymbol,
+        sourceSymbol,
+        interval: defaults.interval,
+      });
+    } else {
+      const url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sourceSymbol) +
+        '?interval=' + encodeURIComponent(defaults.interval) +
+        '&range=' + encodeURIComponent(defaults.range);
+      const data = await util.fetchJson(url, { headers: { 'User-Agent': UA, Accept: 'application/json' }, retries: 2 });
+      if (data && data.__error) throw new Error(data.__error);
+      value = normalizeYahooChart(data, {
+        market: normalizedMarket,
+        symbol: displaySymbol,
+        sourceSymbol,
+        interval: defaults.interval,
+        range: defaults.range,
+      });
+    }
 
-  cache.set(key, { t: Date.now(), value });
-  return Object.assign({}, value, { cache: 'miss' });
+    // Supabase önbelleğe kaydet
+    await db.setCache(key, value);
+    return Object.assign({}, value, { cache: 'miss' });
+    
+  } catch (err) {
+    console.warn(`⚠️ [API Hatası] ${displaySymbol} için canlı veri çekilemedi: ${err.message}. Önbellek aranıyor...`);
+    // Fallback: API başarısız olursa, süresi dolmuş olsa dahi eski veriyi dön
+    if (cachedEntry) {
+      console.log(`✔ [Fallback] ${displaySymbol} için önbellekten eski veri kurtarıldı.`);
+      return Object.assign({}, cachedEntry.value, { cache: 'fallback', fallback: true });
+    }
+    // Önbellek de yoksa hatayı fırlat
+    throw err;
+  }
 }
 
 module.exports = {

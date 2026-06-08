@@ -13,21 +13,34 @@ function labelFor(score) {
   return { label: 'SAT', tone: 'sell' };
 }
 
-// --- MOMENTUM: RSI + MACD + kısa vadeli getiri (kısa vadeci için en yüksek ağırlık) ---
-function momentumScore(ind) {
+// RSI alt-skoru REJİME GÖRE değişir (raporların ana dersi):
+//  - Yatay (range) rejimde mean-reversion: DÜŞÜK RSI = alım, YÜKSEK RSI = satış.
+//  - Trend rejiminde momentum: yüksek RSI cezalandırılmaz (trend devam edebilir), düşük RSI = zayıflık.
+function rsiSubScore(rsi, regime) {
+  if (rsi == null) return [0.5, null];
+  const isRange = regime && regime.type === 'range';
+  if (isRange) {
+    if (rsi <= 25) return [0.9, ['pos', `RSI ${rsi} — yatay piyasada aşırı satım, tepki/alım bölgesi`]];
+    if (rsi <= 35) return [0.72, ['pos', `RSI ${rsi} — yatay piyasada zayıf, dönüş potansiyeli`]];
+    if (rsi >= 75) return [0.12, ['neg', `RSI ${rsi} — yatay piyasada aşırı alım, geri çekilme riski`]];
+    if (rsi >= 65) return [0.32, ['neg', `RSI ${rsi} — yatay piyasada pahalı bölge`]];
+    return [0.55, ['neutral', `RSI ${rsi} — yatay piyasada nötr`]];
+  }
+  // Trend rejimi (veya rejim bilinmiyorsa momentum yorumu)
+  if (rsi >= 80) return [0.6, ['neutral', `RSI ${rsi} — trendde güçlü ama çok gergin (≥80)`]];
+  if (rsi >= 60) return [1.0, ['pos', `RSI ${rsi} — trend yönünde sağlıklı güç`]];
+  if (rsi >= 50) return [0.8, ['pos', `RSI ${rsi} — trend yönünde momentum`]];
+  if (rsi >= 40) return [0.45, ['neutral', `RSI ${rsi} — trendde zayıflama`]];
+  return [0.25, ['neg', `RSI ${rsi} — trend yönü zayıf (RSI<40)`]];
+}
+
+// --- MOMENTUM: RSI(rejime duyarlı) + MACD + kısa vadeli getiri ---
+function momentumScore(ind, regime) {
   const reasons = [];
-  let rsiS = 0.5;
+  const [rsiS, rsiReason] = rsiSubScore(ind.rsi, regime);
+  if (rsiReason) reasons.push(rsiReason);
   let macdS = 0.5;
   let rocS = 0.5;
-  const rsi = ind.rsi;
-  if (rsi != null) {
-    if (rsi >= 80) { rsiS = 0.35; reasons.push(['neg', `RSI ${rsi} — aşırı alım (≥80), kısa vadeli geri çekilme riski yüksek`]); }
-    else if (rsi >= 70) { rsiS = 0.7; reasons.push(['neutral', `RSI ${rsi} — güçlü ama aşırı alıma yakın (70-80)`]); }
-    else if (rsi >= 55) { rsiS = 1.0; reasons.push(['pos', `RSI ${rsi} — sağlıklı yükseliş momentumu (ideal 55-70 bölgesi)`]); }
-    else if (rsi >= 45) { rsiS = 0.6; reasons.push(['neutral', `RSI ${rsi} — nötr momentum`]); }
-    else if (rsi >= 30) { rsiS = 0.4; reasons.push(['neg', `RSI ${rsi} — zayıf momentum`]); }
-    else { rsiS = 0.5; reasons.push(['neutral', `RSI ${rsi} — aşırı satım (≤30), tepki yükselişi gelebilir`]); }
-  }
   const m = ind.macd;
   if (m && m.histogram != null) {
     const rising = m.prevHistogram != null && m.histogram > m.prevHistogram;
@@ -40,7 +53,10 @@ function momentumScore(ind) {
     rocS = clamp(0.5 + ind.ret1w / 10, 0, 1);
     reasons.push([ind.ret1w >= 0 ? 'pos' : 'neg', `Son 1 hafta getiri: %${ind.ret1w}`]);
   }
-  return { score: 0.45 * rsiS + 0.4 * macdS + 0.15 * rocS, reasons };
+  // Yatay rejimde RSI(mean-reversion) ağırlığı artar, MACD/ROC(trend-takip) azalır.
+  const isRange = regime && regime.type === 'range';
+  const w = isRange ? { rsi: 0.6, macd: 0.2, roc: 0.2 } : { rsi: 0.45, macd: 0.4, roc: 0.15 };
+  return { score: w.rsi * rsiS + w.macd * macdS + w.roc * rocS, reasons };
 }
 
 // --- TREND: fiyatın hareketli ortalamalara konumu + kesişimler ---
@@ -64,10 +80,10 @@ function trendScore(ind) {
   return { score: clamp(sc, 0, 1), reasons };
 }
 
-// --- HACİM: OBV yönü + hacim patlaması (kısa vadede teyit için kritik) ---
+// --- HACİM: OBV yönü + hacim patlaması + MFI (para akışı) ---
 function volumeScore(ind) {
   const reasons = [];
-  if (!ind.obv && ind.volSpike == null) return { score: 0.5, reasons: [['neutral', 'Hacim verisi yetersiz']] };
+  if (!ind.obv && ind.volSpike == null && ind.mfi == null) return { score: 0.5, reasons: [['neutral', 'Hacim verisi yetersiz']] };
   let sc = 0.5;
   if (ind.obv) {
     sc = ind.obv.rising ? 0.6 : 0.35;
@@ -77,6 +93,11 @@ function volumeScore(ind) {
     sc = clamp(sc + (ind.volSpike - 1) * 0.3, 0, 1);
     if (ind.volSpike >= 1.5) reasons.push(['pos', `Hacim patlaması: 20g ortalamanın %${Math.round(ind.volSpike * 100)}'i — güçlü ilgi`]);
     else if (ind.volSpike < 0.6) reasons.push(['neutral', `Düşük hacim (ort. %${Math.round(ind.volSpike * 100)}) — hareket teyitsiz`]);
+  }
+  if (ind.mfi != null) {
+    // MFI hacim-ağırlıklı para akışı (OBV'yi teyit/çeler); skoru harmanla
+    sc = clamp(sc * 0.7 + (ind.mfi / 100) * 0.3, 0, 1);
+    reasons.push([ind.mfi >= 55 ? 'pos' : ind.mfi <= 45 ? 'neg' : 'neutral', `MFI ${ind.mfi} — para akışı ${ind.mfi >= 55 ? 'pozitif (alım baskısı)' : ind.mfi <= 45 ? 'negatif (satış baskısı)' : 'nötr'}`]);
   }
   return { score: clamp(sc, 0, 1), reasons };
 }
@@ -126,20 +147,37 @@ function buildSummary(ind, score, label) {
   return bits.join(' · ');
 }
 
+// Rejime + temel-veri varlığına göre alt-skor ağırlıkları (toplam=1).
+// Yatay: mean-reversion (RSI/Bollinger) öne; Trend: trend+momentum öne.
+function weightsFor(regime, hasFund) {
+  const type = regime && regime.type;
+  if (type === 'range') {
+    return hasFund ? { mom: 0.34, tr: 0.10, vol: 0.20, vlt: 0.21, fnd: 0.15 }
+                   : { mom: 0.40, tr: 0.13, vol: 0.24, vlt: 0.23, fnd: 0 };
+  }
+  if (type === 'trend' || type === 'strong-trend') {
+    return hasFund ? { mom: 0.34, tr: 0.30, vol: 0.16, vlt: 0.05, fnd: 0.15 }
+                   : { mom: 0.40, tr: 0.34, vol: 0.20, vlt: 0.06, fnd: 0 };
+  }
+  // Rejim bilinmiyor → varsayılan ağırlıklar
+  return hasFund ? { mom: 0.32, tr: 0.20, vol: 0.18, vlt: 0.15, fnd: 0.15 }
+                 : { mom: 0.38, tr: 0.24, vol: 0.21, vlt: 0.17, fnd: 0 };
+}
+
 // Ana fonksiyon. market: 'us' | 'bist' | 'crypto'
 function scoreAsset(ind, fund, market) {
   if (!ind || ind.__insufficient) {
-    return { score: null, label: 'VERİ YOK', tone: 'hold', sub: {}, reasons: [{ sentiment: 'neutral', text: 'Yeterli fiyat geçmişi yok' }], summary: 'İndikatör hesaplamak için yeterli veri yok.' };
+    return { score: null, label: 'VERİ YOK', tone: 'hold', sub: {}, reasons: [{ sentiment: 'neutral', text: 'Yeterli fiyat geçmişi yok' }], summary: 'İndikatör hesaplamak için yeterli veri yok.', regime: null };
   }
-  const mom = momentumScore(ind);
+  const regime = ind.regime || null;
+  const mom = momentumScore(ind, regime);
   const tr = trendScore(ind);
   const vol = volumeScore(ind);
   const vlt = volatilityScore(ind);
   const fnd = market === 'us' ? fundamentalScore(fund) : { score: 0.5, reasons: [], na: true };
+  const hasFund = market === 'us' && !fnd.na;
 
-  let w;
-  if (market === 'us' && !fnd.na) w = { mom: 0.32, tr: 0.2, vol: 0.18, vlt: 0.15, fnd: 0.15 };
-  else w = { mom: 0.38, tr: 0.24, vol: 0.21, vlt: 0.17, fnd: 0 };
+  const w = weightsFor(regime, hasFund);
 
   const composite = w.mom * mom.score + w.tr * tr.score + w.vol * vol.score + w.vlt * vlt.score + w.fnd * fnd.score;
   const score = Math.round(composite * 100);
@@ -161,6 +199,7 @@ function scoreAsset(ind, fund, market) {
     },
     reasons,
     summary: buildSummary(ind, score, lab.label),
+    regime,
   };
 }
 

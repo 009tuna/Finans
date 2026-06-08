@@ -1,0 +1,39 @@
+name: Günlük Piyasa Verisi Güncelleme
+
+on:
+  # Her hafta içi sabah 09:00 TR saati (UTC+3) = UTC 06:00
+  schedule:
+    - cron: '0 6 * * 1-5'
+
+  # Manuel tetikleme (test için)
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    name: Piyasa Verilerini Çek ve Supabase'e Yaz
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Kodu al
+        uses: actions/checkout@v4
+
+      - name: Node.js kurulumu
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Bağımlılıkları yükle
+        run: npm ci
+
+      - name: Piyasa verilerini çek
+        run: node src/fetch-all.js
+        env:
+          SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY:         ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          FINNHUB_TOKEN:             ${{ secrets.FINNHUB_TOKEN }}
+
+      - name: Tamamlandı
+        run: echo "✅ Veriler güncellendi - $(date '+%Y-%m-%d %H:%M:%S UTC')"

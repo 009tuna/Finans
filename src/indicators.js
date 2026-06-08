@@ -142,6 +142,75 @@ function obv(closes, volumes) {
   return { value: last(series), rising: last(series) > ref };
 }
 
+// ADX(14) — Wilder. Trend GÜCÜ (yön değil) ölçer + son DI+/DI- (yön için).
+// Rejim filtresinin temeli: ADX<20 yatay, 20-40 trend, >40 güçlü trend.
+function adx(highs, lows, closes, period = 14) {
+  const n = Math.min(highs.length, lows.length, closes.length);
+  if (n < 2 * period + 1) return null;
+  const trs = [], pdm = [], mdm = [];
+  for (let i = 1; i < n; i++) {
+    const upMove = highs[i] - highs[i - 1];
+    const downMove = lows[i - 1] - lows[i];
+    pdm.push(upMove > downMove && upMove > 0 ? upMove : 0);
+    mdm.push(downMove > upMove && downMove > 0 ? downMove : 0);
+    trs.push(Math.max(
+      highs[i] - lows[i],
+      Math.abs(highs[i] - closes[i - 1]),
+      Math.abs(lows[i] - closes[i - 1])
+    ));
+  }
+  // Wilder yumuşatması (toplam bazlı)
+  let atrW = trs.slice(0, period).reduce((a, b) => a + b, 0);
+  let pdmW = pdm.slice(0, period).reduce((a, b) => a + b, 0);
+  let mdmW = mdm.slice(0, period).reduce((a, b) => a + b, 0);
+  const dxs = [];
+  let lastPlusDI = null, lastMinusDI = null;
+  for (let i = period; i < trs.length; i++) {
+    atrW = atrW - atrW / period + trs[i];
+    pdmW = pdmW - pdmW / period + pdm[i];
+    mdmW = mdmW - mdmW / period + mdm[i];
+    const plusDI = atrW ? (100 * pdmW) / atrW : 0;
+    const minusDI = atrW ? (100 * mdmW) / atrW : 0;
+    lastPlusDI = plusDI; lastMinusDI = minusDI;
+    const sum = plusDI + minusDI;
+    dxs.push(sum ? (100 * Math.abs(plusDI - minusDI)) / sum : 0);
+  }
+  if (dxs.length < period) return null;
+  let adxVal = dxs.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  for (let i = period; i < dxs.length; i++) adxVal = (adxVal * (period - 1) + dxs[i]) / period;
+  return { adx: adxVal, plusDI: lastPlusDI, minusDI: lastMinusDI };
+}
+
+// MFI(14) — Para Akışı Endeksi (hacim-ağırlıklı RSI). 0–100. OBV'yi tamamlar.
+function mfi(highs, lows, closes, volumes, period = 14) {
+  const n = Math.min(highs.length, lows.length, closes.length, volumes.length);
+  if (n < period + 1) return null;
+  const tp = (i) => (highs[i] + lows[i] + closes[i]) / 3;
+  let posFlow = 0, negFlow = 0;
+  for (let i = n - period; i < n; i++) {
+    const tpNow = tp(i), tpPrev = tp(i - 1);
+    const rawFlow = tpNow * (volumes[i] || 0);
+    if (tpNow > tpPrev) posFlow += rawFlow;
+    else if (tpNow < tpPrev) negFlow += rawFlow;
+  }
+  if (negFlow === 0) return posFlow > 0 ? 100 : 50;
+  const mr = posFlow / negFlow;
+  return 100 - 100 / (1 + mr);
+}
+
+// Rejim sınıflandırması: ADX gücü + DI yönü → { adx, type, direction, label }
+function classifyRegime(adxObj, price, sma50) {
+  if (!adxObj || adxObj.adx == null) return null;
+  const a = adxObj.adx;
+  const type = a < 20 ? 'range' : a < 40 ? 'trend' : 'strong-trend';
+  let direction;
+  if (adxObj.plusDI != null && adxObj.minusDI != null) direction = adxObj.plusDI >= adxObj.minusDI ? 'up' : 'down';
+  else direction = sma50 != null && price > sma50 ? 'up' : 'down';
+  const base = type === 'range' ? 'Yatay' : type === 'strong-trend' ? 'Güçlü trend' : 'Trend';
+  const label = type === 'range' ? base : base + (direction === 'up' ? ' (yukarı)' : ' (aşağı)');
+  return { adx: round(a, 1), type, direction, label };
+}
+
 // Tüm indikatörleri tek seferde hesapla. Girdi: {closes, highs, lows, volumes}
 function computeIndicators(series) {
   const closes = (series.closes || []).filter((x) => typeof x === 'number');
@@ -162,6 +231,8 @@ function computeIndicators(series) {
   const bb = bollinger(closes);
   const rsiV = rsi(closes);
   const atrV = highs.length === n && lows.length === n ? atr(highs, lows, closes) : null;
+  const adxV = highs.length === n && lows.length === n ? adx(highs, lows, closes) : null;
+  const mfiV = highs.length === n && lows.length === n && volumes.length === n ? mfi(highs, lows, closes, volumes) : null;
   const obvV = volumes.length === n ? obv(closes, volumes) : null;
   const avgVol = volumes.length >= 20 ? sma(volumes, 20) : null;
   const lastVol = last(volumes);
@@ -194,6 +265,9 @@ function computeIndicators(series) {
       : null,
     atr: round(atrV),
     atrPct: atrV && price ? round((atrV / price) * 100, 2) : null,
+    adx: round(adxV ? adxV.adx : null, 1),
+    mfi: round(mfiV, 1),
+    regime: classifyRegime(adxV, price, s50),
     volatility: round(volatility(closes), 1),
     ret1w: round(roc(closes, 5), 1),
     ret1m: round(roc(closes, 21), 1),
@@ -222,4 +296,4 @@ function computeIndicators(series) {
   };
 }
 
-module.exports = { computeIndicators, sma, ema, rsi, macd, bollinger, atr, volatility, roc, obv };
+module.exports = { computeIndicators, sma, ema, rsi, macd, bollinger, atr, volatility, roc, obv, adx, mfi, classifyRegime };

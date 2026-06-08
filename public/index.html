@@ -83,6 +83,11 @@
             <div class="card-head"><h2>📊 En İyi Fırsatlar (tüm pazarlar)</h2><span class="card-sub">Bileşik teknik puana göre ilk 12</span></div>
             <div class="chart-box tall"><canvas id="moversChart"></canvas></div>
           </div>
+          <!-- Döviz Kurları Widget -->
+          <div class="card reveal">
+            <div class="card-head"><h2>💱 Döviz Kurları</h2><span class="card-sub">Yahoo Finance • Anlık</span></div>
+            <div id="fxWidget" class="fx-grid"></div>
+          </div>
         </section>
 
         <!-- PAZAR GÖRÜNÜMÜ (us/bist/crypto) -->
@@ -94,17 +99,34 @@
                 <h2 id="deskTitle">Varlık Grafiği</h2>
                 <span id="deskMeta" class="card-sub">Sembol seçildiğinde OHLCV chart yüklenir</span>
               </div>
-              <div class="desk-controls">
+              <div class="desk-controls" style="display: flex; gap: 8px; align-items: center;">
                 <div class="segmented" aria-label="Grafik tipi">
                   <button type="button" class="seg active" data-desk-mode="candles">Mum</button>
                   <button type="button" class="seg" data-desk-mode="line">Çizgi</button>
                 </div>
+                
+                <button type="button" class="btn" id="deskSmaToggleBtn" style="padding: 6px 10px; font-size: 11px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;" data-active="false">
+                  SMA 20/50: <span id="deskSmaStatusText" style="font-weight:700; color:var(--muted);">KAPALI</span>
+                </button>
+
                 <label class="sortlbl">Periyot:
                   <select id="deskIntervalSel"></select>
                 </label>
               </div>
             </div>
-            <div id="assetChart" class="asset-chart"></div>
+            
+            <div style="position: relative;">
+              <div id="assetChart" class="asset-chart"></div>
+              
+              <!-- Technical Indicators Overlay Panel -->
+              <div id="desk-indicators-panel" style="position: absolute; top: 12px; right: 12px; z-index: 10; background: oklch(14.5% 0.012 250 / 0.85); backdrop-filter: blur(4px); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-family: monospace; font-size: 11.5px; display: flex; flex-direction: column; gap: 4px; pointer-events: none; transition: opacity 150ms var(--ease-out); opacity: 0; min-width: 140px;">
+                <div style="display:flex; justify-content:space-between; gap:16px;"><span>RSI (14):</span><b id="ind-rsi-val" style="color:var(--text);">–</b></div>
+                <div style="display:flex; justify-content:space-between; gap:16px;"><span>MACD:</span><b id="ind-macd-val" style="color:var(--text);">–</b></div>
+                <div style="display:flex; justify-content:space-between; gap:16px;"><span>SMA 20:</span><b id="ind-sma20-val" style="color:var(--text);">–</b></div>
+                <div style="display:flex; justify-content:space-between; gap:16px;"><span>SMA 50:</span><b id="ind-sma50-val" style="color:var(--text);">–</b></div>
+              </div>
+            </div>
+            
             <div id="assetChartNote" class="desk-note"></div>
           </div>
           <div class="card reveal">
@@ -462,7 +484,7 @@
           <div class="card reveal">
             <div class="card-head">
               <h2>⚡ Makro Stres Testi Senaryoları</h2>
-              <span class="card-sub">Güncel portföyünüzün makroekonomik şok senaryolarındaki olası değişimi (Sanal Kur: 1 USD = 32.5 TRY).</span>
+              <span class="card-sub">Güncel portföyünüzün makroekonomik şok senaryolarındaki olası değişimi (Anlık USD/TRY kuru baz alınır).</span>
             </div>
             <div class="table-wrap">
               <table>
@@ -634,6 +656,25 @@
                 </div>
                 <div style="font-size: 11px; color: var(--muted-2); margin-top: 14px; text-align: center; font-style: italic;">
                   Değerleme modeli varsayımlarınıza karşı son derece hassastır.
+              </div>
+            </div>
+
+            <!-- Değerleme Hassasiyet (Sensitivity) Matrisi -->
+            <div id="valuation-sensitivity-container" style="margin-top: 24px; padding: 16px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px;">
+              <h3 style="margin: 0 0 4px; font-size: 14.5px;">📊 Değerleme Hassasiyet Matrisi</h3>
+              <p style="font-size: 11.5px; color: var(--muted); margin: 0 0 16px;">Girdi varyasyonlarına göre adil değer değişim tablosu. Hücre arka planları, güncel fiyata göre güvenlik marjını temsil eder.</p>
+              
+              <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px; font-size: 11px;">
+                <span style="color: var(--muted);">Renk İndeksi:</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: rgba(5, 150, 105, 0.35);"></span> Güçlü Al (>%20)</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: rgba(5, 150, 105, 0.18);"></span> Al (0 - %20)</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: rgba(217, 119, 6, 0.22);"></span> Azalt (-20% - 0)</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: rgba(220, 38, 38, 0.25);"></span> Sat (<-%20)</span>
+              </div>
+              
+              <div class="table-wrap" style="overflow-x: auto;">
+                <div id="valuation-sensitivity-grid" style="display: flex; justify-content: center; padding: 10px 0;">
+                  <!-- Dinamik 5x5 tablo buraya çizilecek -->
                 </div>
               </div>
             </div>
@@ -664,6 +705,9 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="insights.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -197,6 +197,68 @@ async function runMonteCarlo({ assets, horizon = 365, monthlySaving = 0, numPath
 }
 
 /**
+ * DCF hesaplaması için sadece adil değeri döndüren yardımcı matematik fonksiyonu.
+ */
+function runDCFMath({
+  revenue,
+  sharesOutstanding,
+  revenueGrowthY1Y5,
+  revenueGrowthY6Y10,
+  ebitMargin,
+  taxRate,
+  capexAsPctOfRev = 5,
+  daAsPctOfRev = 3,
+  nwcChangeAsPctOfRev = 1,
+  wacc,
+  terminalGrowthRate,
+  netDebt
+}) {
+  const g1 = parseFloat(revenueGrowthY1Y5) / 100;
+  const g2 = parseFloat(revenueGrowthY6Y10) / 100;
+  const opMargin = parseFloat(ebitMargin) / 100;
+  const tax = parseFloat(taxRate) / 100;
+  const capexPct = parseFloat(capexAsPctOfRev) / 100;
+  const daPct = parseFloat(daAsPctOfRev) / 100;
+  const nwcPct = parseFloat(nwcChangeAsPctOfRev) / 100;
+  const dRate = parseFloat(wacc) / 100;
+  const tg = parseFloat(terminalGrowthRate) / 100;
+  const nd = parseFloat(netDebt);
+
+  if (dRate <= tg) return 0;
+
+  let prevRevenue = revenue;
+  let sumPV = 0;
+  const forecast = [];
+
+  for (let year = 1; year <= 10; year++) {
+    const growth = year <= 5 ? g1 : g2;
+    const rev = prevRevenue * (1 + growth);
+    const ebit = rev * opMargin;
+    const taxes = ebit * tax;
+    const ebiat = ebit - taxes;
+    const capex = rev * capexPct;
+    const da = rev * daPct;
+    const nwcChange = rev * nwcPct;
+    
+    const fcf = ebiat + da - capex - nwcChange;
+    const discountFactor = Math.pow(1 + dRate, -year);
+    const pv = fcf * discountFactor;
+    
+    forecast.push({ fcf, pv });
+    sumPV += pv;
+    prevRevenue = rev;
+  }
+
+  const lastFCF = forecast[9].fcf;
+  const terminalValue = (lastFCF * (1 + tg)) / (dRate - tg);
+  const pvTerminalValue = terminalValue * Math.pow(1 + dRate, -10);
+
+  const enterpriseValue = sumPV + pvTerminalValue;
+  const equityValue = enterpriseValue - nd;
+  return sharesOutstanding > 0 ? (equityValue / sharesOutstanding) : 0;
+}
+
+/**
  * Dinamik DCF (İndirgenmiş Nakit Akışı) Adil Değer Hesaplayıcısı
  */
 function calculateDCF({
@@ -280,6 +342,39 @@ function calculateDCF({
   const fairValue = sharesOutstanding > 0 ? (equityValue / sharesOutstanding) : 0;
   const marginOfSafety = fairValue > 0 ? ((fairValue - currentPrice) / fairValue) * 100 : 0;
 
+  // 5x5 Hassasiyet Matrisi (WACC vs Büyüme Oranı)
+  const waccBase = parseFloat(wacc);
+  const growthBase = parseFloat(revenueGrowthY1Y5);
+  
+  const waccs = [waccBase - 2.0, waccBase - 1.0, waccBase, waccBase + 1.0, waccBase + 2.0];
+  const growths = [growthBase - 4.0, growthBase - 2.0, growthBase, growthBase + 2.0, growthBase + 4.0];
+  
+  const sensitivityMatrix = [];
+  waccs.forEach(w => {
+    const row = [];
+    growths.forEach(g => {
+      let val = 0;
+      if (w > parseFloat(terminalGrowthRate)) {
+        val = runDCFMath({
+          revenue,
+          sharesOutstanding,
+          revenueGrowthY1Y5: g,
+          revenueGrowthY6Y10: revenueGrowthY6Y10 * (g / (growthBase || 1)),
+          ebitMargin,
+          taxRate,
+          capexAsPctOfRev,
+          daAsPctOfRev,
+          nwcChangeAsPctOfRev,
+          wacc: w,
+          terminalGrowthRate,
+          netDebt
+        });
+      }
+      row.push(Math.round(val * 100) / 100);
+    });
+    sensitivityMatrix.push(row);
+  });
+
   return {
     forecast,
     sumPV: Math.round(sumPV * 100) / 100,
@@ -289,6 +384,13 @@ function calculateDCF({
     equityValue: Math.round(equityValue * 100) / 100,
     fairValue: Math.round(fairValue * 100) / 100,
     marginOfSafety: Math.round(marginOfSafety * 100) / 100,
+    sensitivity: {
+      rows: waccs.map(w => `${w.toFixed(1)}%`),
+      cols: growths.map(g => `${g.toFixed(1)}%`),
+      matrix: sensitivityMatrix,
+      rowLabel: 'WACC',
+      colLabel: 'Büyüme'
+    },
     parameters: {
       currentPrice,
       sharesOutstanding,
@@ -330,10 +432,14 @@ const STRESS_SCENARIOS = {
 /**
  * Portföye makro stres testleri uygular
  */
-function runStressTest(portfolio, latestData) {
+function runStressTest(portfolio, latestData, usdtry) {
   if (!portfolio || (!portfolio.us && !portfolio.bist && !portfolio.crypto)) {
     return { error: 'Portföy verisi bulunamadı' };
   }
+  // USD/TRY kuru: önce latestData.fx'ten, sonra parametre, son olarak sabit
+  const FX = usdtry ||
+    (latestData && latestData.fx && latestData.fx.usdtry) ||
+    38.0;
 
   // Fiyat sözlüğü oluştur
   const priceMap = {};
@@ -378,10 +484,9 @@ function runStressTest(portfolio, latestData) {
         value: val
       });
 
-      // Basit kur dönüşümü: TL -> USD için kabaca 32.5 alalım, USD -> TL için 32.5
-      // (Daha doğru kur bilgisi dashboard verilerinden çekilebilir ama basitlik adına sabit kur iş görür)
-      const usdVal = currency === 'TRY' ? val / 32.5 : val;
-      const tryVal = currency === 'USD' ? val * 32.5 : val;
+      // USD/TRY kuru: snapshot.fx'ten alınan dinamik değer
+      const usdVal = currency === 'TRY' ? val / FX : val;
+      const tryVal = currency === 'USD' ? val * FX : val;
       
       totalUSDValue += usdVal;
       totalTRYValue += tryVal;
@@ -406,8 +511,9 @@ function runStressTest(portfolio, latestData) {
       const newValue = item.value * shockCoeff;
       const pnl = newValue - item.value;
 
-      const usdVal = item.currency === 'TRY' ? newValue / 32.5 : newValue;
-      const tryVal = item.currency === 'USD' ? newValue * 32.5 : newValue;
+      const usdVal = item.currency === 'TRY' ? newValue / FX : newValue;
+      const tryVal = item.currency === 'USD' ? newValue * FX : newValue;
+
       
       newTotalUSD += usdVal;
       newTotalTRY += tryVal;
@@ -589,9 +695,36 @@ function calculateGraham({
   const fairValue = (epsVal * (8.5 + 2 * g) * 4.4) / Y;
   const marginOfSafety = fairValue > 0 ? ((fairValue - currentPrice) / fairValue) * 100 : 0;
 
+  // 5x5 Hassasiyet Matrisi (AAA Faiz vs Büyüme Oranı)
+  const aaaBase = parseFloat(aaaBondYield);
+  const grBase = parseFloat(growthRate);
+  
+  const yields = [aaaBase - 1.0, aaaBase - 0.5, aaaBase, aaaBase + 0.5, aaaBase + 1.0];
+  const growths = [grBase - 4.0, grBase - 2.0, grBase, grBase + 2.0, grBase + 4.0];
+  
+  const sensitivityMatrix = [];
+  yields.forEach(y => {
+    const row = [];
+    growths.forEach(gr => {
+      let val = 0;
+      if (y > 0) {
+        val = (epsVal * (8.5 + 2 * gr) * 4.4) / y;
+      }
+      row.push(Math.round(Math.max(0, val) * 100) / 100);
+    });
+    sensitivityMatrix.push(row);
+  });
+
   return {
     fairValue: Math.round(fairValue * 100) / 100,
     marginOfSafety: Math.round(marginOfSafety * 100) / 100,
+    sensitivity: {
+      rows: yields.map(y => `${y.toFixed(1)}%`),
+      cols: growths.map(gr => `${gr.toFixed(1)}%`),
+      matrix: sensitivityMatrix,
+      rowLabel: 'AAA Faiz',
+      colLabel: 'Büyüme'
+    },
     parameters: {
       currentPrice,
       eps: epsVal,
@@ -623,9 +756,38 @@ function calculateDDM({
   const fairValue = (D0 * (1 + g)) / (r - g);
   const marginOfSafety = fairValue > 0 ? ((fairValue - currentPrice) / fairValue) * 100 : 0;
 
+  // 5x5 Hassasiyet Matrisi (WACC vs Temettü Büyüme Oranı)
+  const waccBase = parseFloat(wacc);
+  const divGrowthBase = parseFloat(dividendGrowthRate);
+  
+  const waccs = [waccBase - 2.0, waccBase - 1.0, waccBase, waccBase + 1.0, waccBase + 2.0];
+  const growths = [divGrowthBase - 2.0, divGrowthBase - 1.0, divGrowthBase, divGrowthBase + 1.0, divGrowthBase + 2.0];
+  
+  const sensitivityMatrix = [];
+  waccs.forEach(w => {
+    const row = [];
+    growths.forEach(dg => {
+      let val = 0;
+      const wCoeff = w / 100;
+      const dgCoeff = dg / 100;
+      if (wCoeff > dgCoeff) {
+        val = (D0 * (1 + dgCoeff)) / (wCoeff - dgCoeff);
+      }
+      row.push(Math.round(Math.max(0, val) * 100) / 100);
+    });
+    sensitivityMatrix.push(row);
+  });
+
   return {
     fairValue: Math.round(fairValue * 100) / 100,
     marginOfSafety: Math.round(marginOfSafety * 100) / 100,
+    sensitivity: {
+      rows: waccs.map(w => `${w.toFixed(1)}%`),
+      cols: growths.map(dg => `${dg.toFixed(1)}%`),
+      matrix: sensitivityMatrix,
+      rowLabel: 'WACC',
+      colLabel: 'T.Büyüme'
+    },
     parameters: {
       currentPrice,
       recentDividend,

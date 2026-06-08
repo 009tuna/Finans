@@ -1,10 +1,12 @@
-// Basit, bagimliliksiz web sunucusu: dashboard'u sunar + veri uclari saglar.
+// Basit web sunucusu: dashboard'u sunar + veri uclari saglar.
 // /            -> panel (public/index.html)
-// /api/data    -> en son veri (data/latest.json)
-// /api/history -> gunluk trend gecmisi
+// /api/data    -> en son veri (Supabase market_snapshots)
+// /api/history -> gunluk trend gecmisi (Supabase market_history)
 // /api/chart   -> sembol bazli OHLCV mum verisi
 // /api/refresh -> verileri yeniden ceker (POST)
 'use strict';
+// Local dev icin .env.local yukle
+try { require('dotenv').config({ path: require('path').join(__dirname, '.env.local') }); } catch (_) {}
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -12,6 +14,8 @@ const { runAll } = require('./src/fetch-all');
 const { runBacktest } = require('./src/backtest-engine');
 const { fetchAssetChart } = require('./src/chart-data');
 const { runMonteCarlo, calculateDCF, runStressTest, calculateCorrelationMatrix, calculateGraham, calculateDDM } = require('./src/forecast');
+const { getPortfolio, savePortfolio, getLatestSnapshot, getHistory } = require('./src/db');
+const { isAuthorized } = require('./src/admin-auth');
 
 const ROOT = __dirname;
 
@@ -26,7 +30,7 @@ function readBody(req) {
 const PUB = path.join(ROOT, 'public');
 const DATA = path.join(ROOT, 'data');
 const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'config.json'), 'utf8'));
-const PORT = cfg.port || 5174;
+const PORT = process.env.PORT || cfg.port || 5174;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -58,19 +62,27 @@ const server = http.createServer(async (req, res) => {
   let p = decodeURIComponent(url.pathname);
   try {
     if (p === '/api/data') {
-      return sendFile(res, path.join(DATA, 'latest.json'), MIME['.json'], '{"empty":true}');
+      const data = await getLatestSnapshot();
+      res.writeHead(200, { 'Content-Type': MIME['.json'] });
+      return res.end(JSON.stringify(data || { empty: true }));
     }
     if (p === '/api/history') {
-      return sendFile(res, path.join(DATA, 'history.json'), MIME['.json'], '[]');
+      const hist = await getHistory();
+      res.writeHead(200, { 'Content-Type': MIME['.json'] });
+      return res.end(JSON.stringify(Array.isArray(hist) ? hist : []));
     }
     if (p === '/api/report') {
       const readJson = (f) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { return null; } };
       const base = readJson(path.join(DATA, 'report', 'base.json'));
-      const ai = readJson(path.join(DATA, 'report', 'ai.json'));
+      const ai   = readJson(path.join(DATA, 'report', 'ai.json'));
       res.writeHead(200, { 'Content-Type': MIME['.json'] });
       return res.end(JSON.stringify({ base, ai }));
     }
     if (p === '/api/refresh' && req.method === 'POST') {
+      if (!isAuthorized(req)) {
+        res.writeHead(401, { 'Content-Type': MIME['.json'] });
+        return res.end(JSON.stringify({ error: 'Yetkisiz: admin parolası gerekli' }));
+      }
       const snap = await runAll();
       res.writeHead(200, { 'Content-Type': MIME['.json'] });
       return res.end(JSON.stringify(snap));
@@ -92,19 +104,20 @@ const server = http.createServer(async (req, res) => {
       }
     }
     if (p === '/api/portfolio') {
-      const pFile = path.join(DATA, 'portfolio.json');
       if (req.method === 'GET') {
-        if (!fs.existsSync(pFile)) {
-          const defaultPortfolio = { us: [], bist: [], crypto: [] };
-          fs.writeFileSync(pFile, JSON.stringify(defaultPortfolio, null, 2));
-        }
-        return sendFile(res, pFile, MIME['.json']);
+        const portfolio = await getPortfolio();
+        res.writeHead(200, { 'Content-Type': MIME['.json'] });
+        return res.end(JSON.stringify(portfolio));
       }
       if (req.method === 'POST') {
+        if (!isAuthorized(req)) {
+          res.writeHead(401, { 'Content-Type': MIME['.json'] });
+          return res.end(JSON.stringify({ error: 'Yetkisiz: admin parolası gerekli' }));
+        }
         const bodyStr = await readBody(req);
         try {
           const parsed = JSON.parse(bodyStr);
-          fs.writeFileSync(pFile, JSON.stringify(parsed, null, 2));
+          await savePortfolio(parsed);
           res.writeHead(200, { 'Content-Type': MIME['.json'] });
           return res.end(JSON.stringify({ success: true }));
         } catch (e) {
@@ -158,17 +171,9 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/forecast/scenarios' && req.method === 'GET') {
       try {
-        const pFile = path.join(DATA, 'portfolio.json');
-        let portfolio = { us: [], bist: [], crypto: [] };
-        if (fs.existsSync(pFile)) {
-          portfolio = JSON.parse(fs.readFileSync(pFile, 'utf8'));
-        }
-        const latestFile = path.join(DATA, 'latest.json');
-        let latestData = null;
-        if (fs.existsSync(latestFile)) {
-          latestData = JSON.parse(fs.readFileSync(latestFile, 'utf8'));
-        }
-        const result = runStressTest(portfolio, latestData);
+        const [portfolio, latestData] = await Promise.all([getPortfolio(), getLatestSnapshot()]);
+        const usdtry = latestData && latestData.fx && latestData.fx.usdtry;
+        const result = runStressTest(portfolio, latestData, usdtry);
         res.writeHead(200, { 'Content-Type': MIME['.json'] });
         return res.end(JSON.stringify(result));
       } catch (e) {

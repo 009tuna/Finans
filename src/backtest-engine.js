@@ -6,6 +6,7 @@ const { fetchSeries: fetchYahooSeries } = require('./yahoo');
 const { fetchSeries: fetchBinanceSeries } = require('./coingecko');
 const { computeIndicators } = require('./indicators');
 const { scoreAsset } = require('./analyze');
+const { oneWayCost, roundTripCost } = require('./costs');
 
 async function runBacktest({ symbol, market, buyThreshold = 70, sellThreshold = 45, stopLoss = null, takeProfit = null }) {
   let series = null;
@@ -69,6 +70,7 @@ async function runBacktest({ symbol, market, buyThreshold = 70, sellThreshold = 
   let buyPrice = 0;
   const trades = [];
   const equityCurve = [];
+  const owc = oneWayCost(market); // her al/sat'ta düşülen tek-yön işlem maliyeti (gerçekçilik)
 
   for (let i = 0; i < dailyScores.length; i++) {
     const idx = i + startDay;
@@ -89,7 +91,7 @@ async function runBacktest({ symbol, market, buyThreshold = 70, sellThreshold = 
       }
 
       if (exitReason) {
-        capital = position * currentPrice;
+        capital = position * currentPrice * (1 - owc); // satışta maliyet düş
         trades.push({
           type: 'SELL',
           day: idx - startDay + 1,
@@ -103,7 +105,7 @@ async function runBacktest({ symbol, market, buyThreshold = 70, sellThreshold = 
     } else {
       // Pozisyonda değiliz, Alış Koşullarını Denetle
       if (score >= buyThreshold) {
-        position = capital / currentPrice;
+        position = (capital * (1 - owc)) / currentPrice; // alışta maliyet düş
         buyPrice = currentPrice;
         trades.push({
           type: 'BUY',
@@ -128,7 +130,7 @@ async function runBacktest({ symbol, market, buyThreshold = 70, sellThreshold = 
   // Son gün pozisyon açıksa kapat
   if (position > 0) {
     const finalPrice = closes[n - 1];
-    capital = position * finalPrice;
+    capital = position * finalPrice * (1 - owc); // vade sonu satışında maliyet düş
     const pnlPct = ((finalPrice - buyPrice) / buyPrice) * 100;
     trades.push({
       type: 'SELL',
@@ -157,6 +159,7 @@ async function runBacktest({ symbol, market, buyThreshold = 70, sellThreshold = 
     stopLoss,
     takeProfit,
     currency,
+    roundTripCostPct: Math.round(roundTripCost(market) * 10000) / 100, // % (her işlemde uygulandı)
     initialCapital,
     finalCapital: Math.round(finalCapital * 100) / 100,
     strategyReturn: Math.round(strategyReturn * 100) / 100,
