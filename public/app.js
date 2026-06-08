@@ -434,7 +434,7 @@ function renderAlloc() {
   if (!window.Chart || !alloc.length) return;
   allocChart = new Chart($('#allocChart'), {
     type: 'doughnut',
-    data: { labels: alloc.map((a) => a.label), datasets: [{ data: alloc.map((a) => a.weight), backgroundColor: ['#4382ff', '#28d793', '#eab308', '#f97316', '#a78bfa', '#ef4444'], borderColor: '#12151b', borderWidth: 2 }] },
+    data: { labels: alloc.map((a) => a.label), datasets: [{ data: alloc.map((a) => a.weight), backgroundColor: ['#1e222b', '#2d323f', '#525866', '#7f8798', '#b5bac9', '#f1f3f6'], borderColor: '#12151b', borderWidth: 2 }] },
     options: { responsive: true, maintainAspectRatio: false, animation: { duration: reduceMotion ? 0 : 700 }, cutout: '62%', plugins: { legend: { position: 'right', labels: { color: '#7d8590', boxWidth: 12, font: { size: 11, family: 'Plus Jakarta Sans' } } }, tooltip: { callbacks: { label: (x) => x.label + ': %' + x.raw } } } },
   });
 }
@@ -445,11 +445,11 @@ function renderMovers() {
   if (!window.Chart || !all.length) return;
   moversChart = new Chart($('#moversChart'), {
     type: 'bar',
-    data: { labels: all.map((x) => x.symbol), datasets: [{ data: all.map((x) => x.analysis.score), backgroundColor: all.map((x) => toneColor(x.analysis.tone)), borderRadius: 6 }] },
+    data: { labels: all.map((x) => x.symbol), datasets: [{ data: all.map((x) => x.analysis.score), backgroundColor: all.map((x, i) => i === 0 ? '#f1f3f6' : '#2d323f'), hoverBackgroundColor: '#525866', borderRadius: 6 }] },
     options: {
       responsive: true, maintainAspectRatio: false, animation: { duration: reduceMotion ? 0 : 750, easing: 'easeOutQuart' },
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: (x) => { const a = all[x.dataIndex]; return a.market + ' · puan ' + x.raw + ' — ' + a.analysis.label; } } } },
-      scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(30, 34, 43, 0.4)' }, ticks: { color: '#7d8590', font: { family: 'Plus Jakarta Sans' } } }, x: { grid: { display: false }, ticks: { color: '#f1f3f6', font: { size: 11, family: 'Plus Jakarta Sans' } } } },
+      scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255, 255, 255, 0.02)' }, ticks: { color: '#7d8590', font: { family: 'Plus Jakarta Sans' } } }, x: { grid: { display: false }, ticks: { color: '#f1f3f6', font: { size: 11, family: 'Plus Jakarta Sans' } } } },
     },
   });
 }
@@ -471,11 +471,11 @@ function renderScoreChart() {
   if (!window.Chart || !list.length) return;
   scoreChart = new Chart($('#scoreChart'), {
     type: 'bar',
-    data: { labels: list.map((x) => x.symbol), datasets: [{ data: list.map((x) => x.analysis.score), backgroundColor: list.map((x) => toneColor(x.analysis.tone)), borderRadius: 6 }] },
+    data: { labels: list.map((x) => x.symbol), datasets: [{ data: list.map((x) => x.analysis.score), backgroundColor: list.map((x, i) => i === 0 ? '#f1f3f6' : '#2d323f'), hoverBackgroundColor: '#525866', borderRadius: 6 }] },
     options: {
       responsive: true, maintainAspectRatio: false, animation: { duration: reduceMotion ? 0 : 700, easing: 'easeOutQuart' },
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: (x) => 'Puan ' + x.raw + ' — ' + list[x.dataIndex].analysis.label } } },
-      scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(30, 34, 43, 0.4)' }, ticks: { color: '#7d8590', font: { family: 'Plus Jakarta Sans' } } }, x: { grid: { display: false }, ticks: { color: '#f1f3f6', font: { size: 11, family: 'Plus Jakarta Sans' } } } },
+      scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255, 255, 255, 0.02)' }, ticks: { color: '#7d8590', font: { family: 'Plus Jakarta Sans' } } }, x: { grid: { display: false }, ticks: { color: '#f1f3f6', font: { size: 11, family: 'Plus Jakarta Sans' } } } },
     },
   });
 }
@@ -555,27 +555,27 @@ function drawAssetDeskChart(payload, asset) {
     width: container.clientWidth,
     height: container.clientHeight || 360,
     layout: {
-      background: { type: lw.ColorType ? lw.ColorType.Solid : 'solid', color: '#11141a' },
+      background: { type: lw.ColorType ? lw.ColorType.Solid : 'solid', color: '#0f1115' },
       textColor: '#7d8590',
       fontFamily: 'Plus Jakarta Sans',
     },
     grid: {
-      vertLines: { color: 'rgba(30, 34, 43, 0.45)' },
-      horzLines: { color: 'rgba(30, 34, 43, 0.45)' },
+      vertLines: { color: 'rgba(255, 255, 255, 0.02)' },
+      horzLines: { color: 'rgba(255, 255, 255, 0.02)' },
     },
-    rightPriceScale: { borderColor: 'rgba(255,255,255,.08)' },
-    timeScale: { borderColor: 'rgba(255,255,255,.08)', timeVisible: assetDeskState.interval !== '1d' },
+    rightPriceScale: { borderColor: 'rgba(255,255,255,.04)' },
+    timeScale: { borderColor: 'rgba(255,255,255,.04)', timeVisible: assetDeskState.interval !== '1d' },
     crosshair: { mode: 0 },
   });
   const volumeData = bars.map((b) => ({
     time: b.time,
     value: b.volume || 0,
-    color: b.close >= b.open ? 'rgba(40, 215, 147, 0.28)' : 'rgba(239, 68, 68, 0.25)',
+    color: b.close >= b.open ? 'rgba(241, 243, 246, 0.15)' : 'rgba(82, 88, 102, 0.15)',
   }));
   const vol = addLwSeries(chart, 'HistogramSeries', {
     priceFormat: { type: 'volume' },
     priceScaleId: 'volume',
-    color: 'rgba(125, 133, 144, 0.25)',
+    color: 'rgba(125, 133, 144, 0.15)',
   });
   if (vol) {
     vol.setData(volumeData);
@@ -585,13 +585,15 @@ function drawAssetDeskChart(payload, asset) {
   }
 
   const mainOptions = assetDeskState.mode === 'line'
-    ? { color: '#4382ff', lineWidth: 2, priceLineVisible: false }
+    ? { color: '#f1f3f6', lineWidth: 1.8, priceLineVisible: false }
     : {
-        upColor: '#28d793',
-        downColor: '#ef4444',
-        borderVisible: false,
-        wickUpColor: '#28d793',
-        wickDownColor: '#ef4444',
+        upColor: '#f1f3f6',
+        downColor: '#1c1f26',
+        borderVisible: true,
+        borderUpColor: '#f1f3f6',
+        borderDownColor: '#2d323f',
+        wickUpColor: '#7f8798',
+        wickDownColor: '#7f8798',
       };
   const main = addLwSeries(chart, assetDeskState.mode === 'line' ? 'LineSeries' : 'CandlestickSeries', mainOptions);
   if (!main) {
@@ -1115,7 +1117,7 @@ function renderPortfolioChart(usVal, cryptoVal, bistVal) {
       labels: data.map(x => x.label),
       datasets: [{
         data: data.map(x => x.val),
-        backgroundColor: ['#4382ff', '#a78bfa', '#28d793'],
+        backgroundColor: ['#2d323f', '#7f8798', '#f1f3f6'],
         borderColor: '#12151b',
         borderWidth: 2
       }]
@@ -1404,8 +1406,8 @@ function drawBacktestChart(res) {
         {
           label: 'Strateji Getirisi',
           data: strategyData,
-          borderColor: '#4382ff',
-          backgroundColor: 'rgba(67, 130, 255, 0.05)',
+          borderColor: '#f1f3f6',
+          backgroundColor: 'rgba(241, 243, 246, 0.02)',
           borderWidth: 2,
           pointRadius: 0,
           fill: true,
@@ -1414,7 +1416,7 @@ function drawBacktestChart(res) {
         {
           label: 'Al-Tut Getirisi (Normalleştirilmiş)',
           data: bhData,
-          borderColor: '#7d8590',
+          borderColor: '#525866',
           borderDash: [5, 5],
           borderWidth: 1.5,
           pointRadius: 0,
@@ -1432,7 +1434,7 @@ function drawBacktestChart(res) {
       },
       scales: {
         y: {
-          grid: { color: 'rgba(30, 34, 43, 0.4)' },
+          grid: { color: 'rgba(255, 255, 255, 0.02)' },
           ticks: { color: '#7d8590', font: { family: 'Plus Jakarta Sans' } }
         },
         x: {
@@ -1470,6 +1472,9 @@ function renderForecastView() {
 
   // Stres testlerini yukle
   loadStressScenarios();
+
+  // Korelasyon matrisini yukle
+  loadCorrelationMatrix();
   
   // Ilk DCF yuklemesi
   if (dcfSel && dcfSel.value) {
@@ -1515,6 +1520,149 @@ async function loadStressScenarios() {
     tbody.innerHTML = h || '<tr><td colspan="7" class="muted" style="text-align:center;">Senaryo sonucu üretilemedi.</td></tr>';
   } catch (e) {
     tbody.innerHTML = `<tr><td colspan="7" class="muted" style="text-align:center;padding:16px;">Veri bağlantı hatası.</td></tr>`;
+  }
+}
+
+async function loadCorrelationMatrix() {
+  const loadingDiv = $('#correlation-loading');
+  const container = $('#correlation-heatmap-container');
+  if (!loadingDiv || !container) return;
+
+  const corrAssets = [];
+  const addCorrAssets = (list, market) => {
+    (list || []).forEach(p => {
+      const source = DATA[market].find(x => x.symbol === p.symbol);
+      corrAssets.push({
+        symbol: p.symbol,
+        market,
+        amount: p.amount,
+        price: source ? source.price : p.avgPrice
+      });
+    });
+  };
+  
+  if (portfolioData) {
+    addCorrAssets(portfolioData.us || [], 'us');
+    addCorrAssets(portfolioData.bist || [], 'bist');
+    addCorrAssets(portfolioData.crypto || [], 'crypto');
+  }
+
+  if (corrAssets.length <= 1) {
+    loadingDiv.textContent = 'Korelasyon matrisi çizmek için portföyünüzde en az 2 farklı varlık bulunmalıdır.';
+    loadingDiv.style.display = 'block';
+    container.style.display = 'none';
+    return;
+  }
+
+  try {
+    loadingDiv.textContent = 'Tarihsel veriler hizalanıyor ve matris hesaplanıyor...';
+    loadingDiv.style.display = 'block';
+    container.style.display = 'none';
+
+    const res = await fetch('/api/forecast/correlation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ assets: corrAssets })
+    });
+    const result = await res.json();
+    if (result.error) {
+      loadingDiv.textContent = 'Korelasyon hesaplama hatası: ' + result.error;
+      return;
+    }
+
+    const { symbols, matrix } = result;
+    if (!symbols || !symbols.length || !matrix || !matrix.length) {
+      loadingDiv.textContent = 'Korelasyon verisi hesaplanamadı.';
+      return;
+    }
+
+    loadingDiv.style.display = 'none';
+    container.style.display = 'flex';
+
+    // Heatmap table oluştur
+    let h = '<table style="border-collapse: collapse; width: auto; margin: 0 auto;"><thead><tr><th></th>';
+    symbols.forEach(s => {
+      h += `<th style="text-align: center; padding: 12px; font-size: 12.5px; font-weight: 700; color: var(--muted); border: 1px solid var(--border);">${esc(s)}</th>`;
+    });
+    h += '</tr></thead><tbody>';
+
+    matrix.forEach((row, rIdx) => {
+      const rowSymbol = symbols[rIdx];
+      h += `<tr><td style="font-weight: 700; font-size: 12.5px; padding: 12px; text-align: left; color: var(--text); border: 1px solid var(--border); background: var(--bg-2); min-width: 80px;">${esc(rowSymbol)}</td>`;
+      row.forEach((val, cIdx) => {
+        const colSymbol = symbols[cIdx];
+        let bgStyle = '';
+        let textStyle = 'color: var(--text);';
+        
+        if (rIdx === cIdx) {
+          bgStyle = 'background-color: oklch(25% 0.02 250); font-weight: 700;';
+        } else if (val > 0) {
+          const intensity = Math.round(val * 100) / 100;
+          bgStyle = `background-color: oklch(62% 0.16 250 / ${intensity * 0.45});`;
+        } else if (val < 0) {
+          const intensity = Math.abs(Math.round(val * 100) / 100);
+          bgStyle = `background-color: oklch(64% 0.18 25 / ${intensity * 0.35});`;
+        } else {
+          bgStyle = 'background-color: var(--bg-2);';
+        }
+
+        h += `
+          <td class="corr-cell" 
+              data-row="${esc(rowSymbol)}" 
+              data-col="${esc(colSymbol)}" 
+              data-val="${val}"
+              style="${bgStyle} ${textStyle} font-size: 13px; text-align: center; width: 64px; height: 50px; cursor: pointer; transition: all 150ms var(--ease-out); border: 1px solid var(--border); font-family: monospace;">
+            ${val.toFixed(2)}
+          </td>
+        `;
+      });
+      h += '</tr>';
+    });
+    h += '</tbody></table>';
+
+    container.innerHTML = h;
+
+    // Hücre hover olayları
+    const cells = container.querySelectorAll('.corr-cell');
+    cells.forEach(cell => {
+      cell.addEventListener('mouseenter', (e) => {
+        // Hover style: outline glow
+        e.target.style.outline = '2px solid var(--text)';
+        e.target.style.zIndex = '10';
+        e.target.style.position = 'relative';
+        
+        const row = e.target.dataset.row;
+        const col = e.target.dataset.col;
+        const val = parseFloat(e.target.dataset.val);
+        
+        let desc = '';
+        if (row === col) {
+          desc = `<b>${esc(row)}</b> kendisiyle tam korelasyona sahiptir (1.00).`;
+        } else {
+          let strength = '';
+          const absVal = Math.abs(val);
+          if (absVal >= 0.7) strength = 'Güçlü';
+          else if (absVal >= 0.4) strength = 'Orta Düzey';
+          else if (absVal >= 0.1) strength = 'Zayıf';
+          else strength = 'Neredeyse İlişkisiz';
+
+          const direction = val > 0 ? 'pozitif yönlü' : (val < 0 ? 'negatif yönlü' : 'yönü bulunmayan');
+          desc = `<b>${esc(row)}</b> ve <b>${esc(col)}</b> arasında <b>${strength} ${direction}</b> ilişki bulunmaktadır (korelasyon katsayısı: <b>${val.toFixed(2)}</b>).`;
+        }
+        
+        $('#correlation-info-text').innerHTML = desc;
+      });
+
+      cell.addEventListener('mouseleave', (e) => {
+        e.target.style.outline = 'none';
+        e.target.style.zIndex = '1';
+        e.target.style.position = 'static';
+        $('#correlation-info-text').innerHTML = 'İlişkileri incelemek için hücrelerin üzerine gelin.';
+      });
+    });
+
+  } catch (err) {
+    loadingDiv.textContent = 'Bağlantı hatası: Korelasyon verileri çekilemedi.';
   }
 }
 
@@ -1589,6 +1737,34 @@ function initForecastEventListeners() {
     dcfSel.addEventListener('change', loadDCFDefaults);
   }
 
+  // Model Type Selection change
+  const modelSel = $('#valuation-model-type-sel');
+  if (modelSel) {
+    modelSel.addEventListener('change', () => {
+      const model = modelSel.value;
+      
+      // Hide all input groups first, then show active one
+      $('#dcf-inputs-group').style.display = model === 'dcf' ? 'flex' : 'none';
+      $('#graham-inputs-group').style.display = model === 'graham' ? 'flex' : 'none';
+      $('#ddm-inputs-group').style.display = model === 'ddm' ? 'flex' : 'none';
+      
+      // Toggle projection table and detail rows
+      $('#dcf-table-container').style.display = model === 'dcf' ? 'block' : 'none';
+      $('#dcf-ev-detail-row').style.display = model === 'dcf' ? 'flex' : 'none';
+      $('#dcf-eq-detail-row').style.display = model === 'dcf' ? 'flex' : 'none';
+      $('#dcf-ttm-detail-row').style.display = model === 'dcf' ? 'flex' : 'none';
+      
+      const assumptionsTitle = $('#valuation-assumptions-title');
+      if (assumptionsTitle) {
+        if (model === 'dcf') assumptionsTitle.textContent = 'DCF Model Varsayımları';
+        else if (model === 'graham') assumptionsTitle.textContent = 'Graham Formülü Varsayımları';
+        else assumptionsTitle.textContent = 'DDM Model Varsayımları';
+      }
+      
+      runDCFCalculation();
+    });
+  }
+
   // DCF Sliders & Inputs
   const dcfSliders = [
     'growth-1-5', 'growth-6-10', 'ebit-margin', 'wacc', 'terminal-growth'
@@ -1614,6 +1790,43 @@ function initForecastEventListeners() {
       el.addEventListener('keyup', runDCFCalculation);
     }
   });
+
+  // Graham inputs & slider
+  const grahamGrowthInput = $('#graham-growth');
+  if (grahamGrowthInput) {
+    grahamGrowthInput.addEventListener('input', (e) => {
+      $('#lbl-graham-growth').textContent = `%${parseFloat(e.target.value).toFixed(1)}`;
+      runDCFCalculation();
+    });
+  }
+  ['graham-eps', 'graham-aaa-yield'].forEach(id => {
+    const el = $('#' + id);
+    if (el) {
+      el.addEventListener('change', runDCFCalculation);
+      el.addEventListener('keyup', runDCFCalculation);
+    }
+  });
+
+  // DDM inputs & sliders
+  const ddmGrowthInput = $('#ddm-growth');
+  if (ddmGrowthInput) {
+    ddmGrowthInput.addEventListener('input', (e) => {
+      $('#lbl-ddm-growth').textContent = `%${parseFloat(e.target.value).toFixed(1)}`;
+      runDCFCalculation();
+    });
+  }
+  const ddmWaccInput = $('#ddm-wacc');
+  if (ddmWaccInput) {
+    ddmWaccInput.addEventListener('input', (e) => {
+      $('#lbl-ddm-wacc').textContent = `%${parseFloat(e.target.value).toFixed(1)}`;
+      runDCFCalculation();
+    });
+  }
+  const ddmDivInput = $('#ddm-dividend');
+  if (ddmDivInput) {
+    ddmDivInput.addEventListener('change', runDCFCalculation);
+    ddmDivInput.addEventListener('keyup', runDCFCalculation);
+  }
 
   // Defaults button
   const defaultsBtn = $('#dcf-load-defaults-btn');
@@ -1663,17 +1876,17 @@ function drawMCChart(res) {
         {
           label: 'Optimistik (%90 Olasılık Üst Sınır)',
           data: res.percentiles.optimistic,
-          borderColor: '#28d793',
+          borderColor: '#f1f3f6',
           backgroundColor: 'transparent',
-          borderWidth: 2,
+          borderWidth: 1.8,
           pointRadius: 0,
           tension: 0.1
         },
         {
           label: 'Medyan (%50 Beklenen Gidişat)',
           data: res.percentiles.median,
-          borderColor: '#4382ff',
-          backgroundColor: 'rgba(67, 130, 255, 0.04)',
+          borderColor: '#7f8798',
+          backgroundColor: 'rgba(127, 135, 152, 0.03)',
           borderWidth: 2,
           pointRadius: 0,
           tension: 0.1,
@@ -1682,9 +1895,10 @@ function drawMCChart(res) {
         {
           label: 'Pessimistik (%10 Olasılık Alt Sınır)',
           data: res.percentiles.pessimistic,
-          borderColor: '#ef4444',
+          borderColor: '#2d323f',
+          borderDash: [4, 4],
           backgroundColor: 'transparent',
-          borderWidth: 2,
+          borderWidth: 1.5,
           pointRadius: 0,
           tension: 0.1
         }
@@ -1699,7 +1913,7 @@ function drawMCChart(res) {
       },
       scales: {
         y: {
-          grid: { color: 'rgba(30, 34, 43, 0.4)' },
+          grid: { color: 'rgba(255, 255, 255, 0.02)' },
           ticks: { color: '#7d8590', font: { family: 'Plus Jakarta Sans' }, callback: (value) => '$' + fmtNum(value, 0) }
         },
         x: {
@@ -1741,6 +1955,7 @@ function loadDCFDefaults() {
   
   const def = defaults[market] || defaults.us;
 
+  // DCF Defaults Set
   $('#dcf-growth-1-5').value = def.growth1_5;
   $('#lbl-growth-1-5').textContent = `%${def.growth1_5}`;
 
@@ -1761,6 +1976,25 @@ function loadDCFDefaults() {
   $('#dcf-revenue').value = Math.round(revenue);
   $('#dcf-shares').value = Math.round(shares);
 
+  // Graham Defaults Set
+  const calculatedEps = stock.pe ? (stock.price / stock.pe) : (stock.price * 0.06);
+  $('#graham-eps').value = calculatedEps.toFixed(2);
+  const grahamGrowth = market === 'bist' ? 15 : 8;
+  $('#graham-growth').value = grahamGrowth;
+  $('#lbl-graham-growth').textContent = `%${grahamGrowth}`;
+  $('#graham-aaa-yield').value = market === 'bist' ? 18.0 : 4.5;
+
+  // DDM Defaults Set
+  const calculatedDividend = stock.price * 0.025;
+  $('#ddm-dividend').value = calculatedDividend.toFixed(2);
+  const ddmGrowth = market === 'bist' ? 8.0 : 4.5;
+  $('#ddm-growth').value = ddmGrowth;
+  $('#lbl-ddm-growth').textContent = `%${ddmGrowth.toFixed(1)}`;
+  
+  const ddmWacc = market === 'bist' ? 16.0 : 9.5;
+  $('#ddm-wacc').value = ddmWacc;
+  $('#lbl-ddm-wacc').textContent = `%${ddmWacc.toFixed(1)}`;
+
   runDCFCalculation();
 }
 
@@ -1777,19 +2011,32 @@ async function runDCFCalculation() {
   if (!stock) return;
 
   const currencySym = stock.currency === 'TRY' ? '₺' : '$';
+  const modelType = $('#valuation-model-type-sel')?.value || 'dcf';
   
-  const params = {
-    currentPrice: parseFloat(stock.price),
-    revenue: parseFloat($('#dcf-revenue').value) || 0,
-    sharesOutstanding: parseFloat($('#dcf-shares').value) || 1,
-    revenueGrowthY1Y5: parseFloat($('#dcf-growth-1-5').value),
-    revenueGrowthY6Y10: parseFloat($('#dcf-growth-6-10').value),
-    ebitMargin: parseFloat($('#dcf-ebit-margin').value),
-    taxRate: parseFloat($('#dcf-tax-rate').value) || 0,
-    wacc: parseFloat($('#dcf-wacc').value),
-    terminalGrowthRate: parseFloat($('#dcf-terminal-growth').value),
-    netDebt: parseFloat($('#dcf-net-debt').value) || 0
+  let params = {
+    modelType,
+    currentPrice: parseFloat(stock.price)
   };
+
+  if (modelType === 'dcf') {
+    params.revenue = parseFloat($('#dcf-revenue').value) || 0;
+    params.sharesOutstanding = parseFloat($('#dcf-shares').value) || 1;
+    params.revenueGrowthY1Y5 = parseFloat($('#dcf-growth-1-5').value);
+    params.revenueGrowthY6Y10 = parseFloat($('#dcf-growth-6-10').value);
+    params.ebitMargin = parseFloat($('#dcf-ebit-margin').value);
+    params.taxRate = parseFloat($('#dcf-tax-rate').value) || 0;
+    params.wacc = parseFloat($('#dcf-wacc').value);
+    params.terminalGrowthRate = parseFloat($('#dcf-terminal-growth').value);
+    params.netDebt = parseFloat($('#dcf-net-debt').value) || 0;
+  } else if (modelType === 'graham') {
+    params.eps = parseFloat($('#graham-eps').value) || 0;
+    params.growthRate = parseFloat($('#graham-growth').value);
+    params.aaaBondYield = parseFloat($('#graham-aaa-yield').value) || 4.5;
+  } else if (modelType === 'ddm') {
+    params.recentDividend = parseFloat($('#ddm-dividend').value) || 0;
+    params.dividendGrowthRate = parseFloat($('#ddm-growth').value);
+    params.wacc = parseFloat($('#ddm-wacc').value);
+  }
 
   try {
     const res = await fetch('/api/forecast/dcf', {
@@ -1821,9 +2068,6 @@ async function runDCFCalculation() {
     // countUp count-up!
     countUp($('#dcf-fair-val-num'), result.fairValue, { decimals: 2 });
     countUp($('#dcf-safety-num'), result.marginOfSafety, { decimals: 1 });
-    countUp($('#dcf-ev-val-num'), result.enterpriseValue, { decimals: 0 });
-    countUp($('#dcf-eq-val-num'), result.equityValue, { decimals: 0 });
-    countUp($('#dcf-ttm-val-num'), params.revenue, { decimals: 0 });
 
     const badge = $('#dcf-margin-safety-badge');
     const mos = result.marginOfSafety;
@@ -1840,19 +2084,25 @@ async function runDCFCalculation() {
 
     $('#dcf-current-price').textContent = fmtPrice(params.currentPrice, stock.currency);
 
-    const tbody = $('#dcf-table-body');
-    tbody.innerHTML = result.forecast.map(f => `
-      <tr>
-        <td>Yıl ${f.year}</td>
-        <td>${currencySym}${fmtNum(f.revenue, 0)}</td>
-        <td>${currencySym}${fmtNum(f.ebit, 0)}</td>
-        <td>${currencySym}${fmtNum(f.fcf, 0)}</td>
-        <td><b>${currencySym}${fmtNum(f.pv, 0)}</b></td>
-      </tr>
-    `).join('');
+    if (modelType === 'dcf') {
+      countUp($('#dcf-ev-val-num'), result.enterpriseValue, { decimals: 0 });
+      countUp($('#dcf-eq-val-num'), result.equityValue, { decimals: 0 });
+      countUp($('#dcf-ttm-val-num'), params.revenue, { decimals: 0 });
+
+      const tbody = $('#dcf-table-body');
+      tbody.innerHTML = result.forecast.map(f => `
+        <tr>
+          <td>Yıl ${f.year}</td>
+          <td>${currencySym}${fmtNum(f.revenue, 0)}</td>
+          <td>${currencySym}${fmtNum(f.ebit, 0)}</td>
+          <td>${currencySym}${fmtNum(f.fcf, 0)}</td>
+          <td><b>${currencySym}${fmtNum(f.pv, 0)}</b></td>
+        </tr>
+      `).join('');
+    }
 
   } catch (e) {
-    console.error('DCF hesaplama hatası:', e);
+    console.error('Değerleme hesaplama hatası:', e);
   }
 }
 
@@ -1875,6 +2125,44 @@ $('#deskIntervalSel').addEventListener('change', (e) => {
   const asset = list.find((x) => x.symbol === assetDeskState.symbol) || list[0];
   renderAssetDesk(asset);
 });
+
+/* ---------- Tema Seçici İşlemleri ---------- */
+function initThemeSelector() {
+  const btns = document.querySelectorAll('.theme-btn');
+  const savedTheme = localStorage.getItem('finans-theme') || 'carbon';
+  
+  const applyTheme = (theme) => {
+    // Remove old themes
+    document.body.classList.remove('theme-carbon', 'theme-silver', 'theme-amber', 'theme-green');
+    // Add new theme
+    document.body.classList.add('theme-' + theme);
+    // Save to localStorage
+    localStorage.setItem('finans-theme', theme);
+    
+    // Update active button state
+    btns.forEach(btn => {
+      if (btn.dataset.theme === theme) {
+        btn.classList.add('active');
+        btn.style.borderColor = 'var(--text)';
+      } else {
+        btn.classList.remove('active');
+        btn.style.borderColor = 'transparent';
+      }
+    });
+  };
+
+  // Bind click events
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyTheme(btn.dataset.theme);
+    });
+  });
+
+  // Apply default/saved theme
+  applyTheme(savedTheme);
+}
+
+initThemeSelector();
 
 setView('overview');
 load();

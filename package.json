@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "fetch": "node src/fetch-all.js",
-    "test": "node test/decision.test.js && node test/chart-data.test.js && node test/ui-contract.test.js"
+    "test": "node test/decision.test.js && node test/chart-data.test.js && node test/ui-contract.test.js && node test/forecast.test.js && node test/forecast-extended.test.js"
   },
   "license": "MIT",
   "dependencies": {

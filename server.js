@@ -11,7 +11,7 @@ const path = require('path');
 const { runAll } = require('./src/fetch-all');
 const { runBacktest } = require('./src/backtest-engine');
 const { fetchAssetChart } = require('./src/chart-data');
-const { runMonteCarlo, calculateDCF, runStressTest } = require('./src/forecast');
+const { runMonteCarlo, calculateDCF, runStressTest, calculateCorrelationMatrix, calculateGraham, calculateDDM } = require('./src/forecast');
 
 const ROOT = __dirname;
 
@@ -125,16 +125,35 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify({ error: (e && e.message) || 'Monte Carlo hatasi' }));
       }
     }
-    if (p === '/api/forecast/dcf' && req.method === 'POST') {
+    if (p === '/api/forecast/correlation' && req.method === 'POST') {
       const bodyStr = await readBody(req);
       try {
         const params = JSON.parse(bodyStr);
-        const result = calculateDCF(params);
+        const result = await calculateCorrelationMatrix(params);
         res.writeHead(200, { 'Content-Type': MIME['.json'] });
         return res.end(JSON.stringify(result));
       } catch (e) {
         res.writeHead(400, { 'Content-Type': MIME['.json'] });
-        return res.end(JSON.stringify({ error: (e && e.message) || 'DCF hatasi' }));
+        return res.end(JSON.stringify({ error: (e && e.message) || 'Korelasyon matrisi hatasi' }));
+      }
+    }
+    if (p === '/api/forecast/dcf' && req.method === 'POST') {
+      const bodyStr = await readBody(req);
+      try {
+        const params = JSON.parse(bodyStr);
+        let result;
+        if (params.modelType === 'graham') {
+          result = calculateGraham(params);
+        } else if (params.modelType === 'ddm') {
+          result = calculateDDM(params);
+        } else {
+          result = calculateDCF(params);
+        }
+        res.writeHead(200, { 'Content-Type': MIME['.json'] });
+        return res.end(JSON.stringify(result));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': MIME['.json'] });
+        return res.end(JSON.stringify({ error: (e && e.message) || 'Değerleme hatası' }));
       }
     }
     if (p === '/api/forecast/scenarios' && req.method === 'GET') {

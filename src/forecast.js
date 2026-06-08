@@ -448,9 +448,199 @@ function runStressTest(portfolio, latestData) {
   };
 }
 
+function pearsonCorrelation(x, y) {
+  const n = x.length;
+  if (n <= 1) return 0;
+  const muX = mean(x);
+  const muY = mean(y);
+  let num = 0;
+  let denX = 0;
+  let denY = 0;
+  for (let i = 0; i < n; i++) {
+    const dx = x[i] - muX;
+    const dy = y[i] - muY;
+    num += dx * dy;
+    denX += dx * dx;
+    denY += dy * dy;
+  }
+  if (denX === 0 || denY === 0) return 0;
+  return num / Math.sqrt(denX * denY);
+}
+
+/**
+ * Portföy varlıkları arasında Pearson korelasyon matrisi hesaplar.
+ */
+async function calculateCorrelationMatrix({ assets }) {
+  if (!assets || assets.length <= 1) {
+    return { symbols: (assets || []).map(a => a.symbol), matrix: assets && assets.length ? [[1.0]] : [] };
+  }
+
+  // 1. Tarihsel verileri çek
+  const fetchPromises = assets.map(async (asset) => {
+    try {
+      const chart = await fetchAssetChart({
+        market: asset.market,
+        symbol: asset.symbol,
+        interval: '1d',
+        range: '1y'
+      });
+      return {
+        symbol: asset.symbol,
+        currentPrice: parseFloat(asset.price || chart.bars[chart.bars.length - 1].close),
+        bars: chart.bars || []
+      };
+    } catch (e) {
+      console.error(`Korelasyon veri hatası (${asset.symbol}):`, e.message);
+      return null;
+    }
+  });
+
+  const loadedAssets = (await Promise.all(fetchPromises)).filter(x => x !== null && x.bars.length > 5);
+  
+  if (loadedAssets.length <= 1) {
+    return { symbols: loadedAssets.map(a => a.symbol), matrix: loadedAssets.length ? [[1.0]] : [] };
+  }
+
+  // 2. Tarih bazlı hizalama
+  const allDatesSet = new Set();
+  loadedAssets.forEach(asset => {
+    asset.bars.forEach(b => {
+      const dateStr = new Date(b.time * 1000).toISOString().slice(0, 10);
+      allDatesSet.add(dateStr);
+    });
+  });
+
+  const sortedDates = Array.from(allDatesSet).sort();
+  const dateMap = {};
+  sortedDates.forEach((d, idx) => { dateMap[d] = idx; });
+  const nDays = sortedDates.length;
+
+  // Fiyat dolgusu (forward-fill)
+  const assetPrices = loadedAssets.map(asset => {
+    const prices = new Array(nDays).fill(null);
+    asset.bars.forEach(b => {
+      const dateStr = new Date(b.time * 1000).toISOString().slice(0, 10);
+      prices[dateMap[dateStr]] = b.close;
+    });
+
+    let lastPrice = asset.currentPrice;
+    for (let i = nDays - 1; i >= 0; i--) {
+      if (prices[i] === null) prices[i] = lastPrice;
+      else lastPrice = prices[i];
+    }
+    lastPrice = prices[0];
+    for (let i = 0; i < nDays; i++) {
+      if (prices[i] === null) prices[i] = lastPrice;
+      else lastPrice = prices[i];
+    }
+    return prices;
+  });
+
+  // Günlük getirileri hesapla
+  const assetReturns = assetPrices.map(prices => {
+    const rets = new Array(nDays - 1);
+    for (let i = 0; i < nDays - 1; i++) {
+      const prev = prices[i] || 1;
+      rets[i] = (prices[i + 1] - prev) / prev;
+    }
+    return rets;
+  });
+
+  // 3. Matris oluştur
+  const m = loadedAssets.length;
+  const matrix = Array.from({ length: m }, () => new Array(m).fill(0));
+  const symbols = loadedAssets.map(a => a.symbol);
+
+  for (let i = 0; i < m; i++) {
+    matrix[i][i] = 1.0; // Diyagonal elemanlar her zaman 1.0'dir.
+    for (let j = i + 1; j < m; j++) {
+      const corr = pearsonCorrelation(assetReturns[i], assetReturns[j]);
+      const roundedCorr = Math.round(corr * 100) / 100;
+      matrix[i][j] = roundedCorr;
+      matrix[j][i] = roundedCorr;
+    }
+  }
+
+  return {
+    symbols,
+    matrix
+  };
+}
+
+/**
+ * Benjamin Graham Değerleme Formülü
+ */
+function calculateGraham({
+  currentPrice,
+  eps,
+  growthRate = 10,
+  aaaBondYield = 4.5
+}) {
+  currentPrice = parseFloat(currentPrice);
+  const epsVal = parseFloat(eps) || 0;
+  const g = parseFloat(growthRate);
+  const Y = parseFloat(aaaBondYield);
+
+  if (Y <= 0) {
+    throw new Error('AAA kurumsal tahvil faizi sıfırdan büyük olmalıdır.');
+  }
+
+  // Graham Formülü: V = (EPS * (8.5 + 2 * g) * 4.4) / Y
+  const fairValue = (epsVal * (8.5 + 2 * g) * 4.4) / Y;
+  const marginOfSafety = fairValue > 0 ? ((fairValue - currentPrice) / fairValue) * 100 : 0;
+
+  return {
+    fairValue: Math.round(fairValue * 100) / 100,
+    marginOfSafety: Math.round(marginOfSafety * 100) / 100,
+    parameters: {
+      currentPrice,
+      eps: epsVal,
+      growthRate,
+      aaaBondYield
+    }
+  };
+}
+
+/**
+ * Temettü İndirgeme Modeli (DDM - Gordon Growth)
+ */
+function calculateDDM({
+  currentPrice,
+  recentDividend,
+  dividendGrowthRate = 5,
+  wacc = 9.5
+}) {
+  currentPrice = parseFloat(currentPrice);
+  const D0 = parseFloat(recentDividend) || 0;
+  const g = parseFloat(dividendGrowthRate) / 100;
+  const r = parseFloat(wacc) / 100;
+
+  if (r <= g) {
+    throw new Error('İskonto oranı (WACC), temettü büyüme oranından büyük olmalıdır.');
+  }
+
+  // DDM Gordon Büyüme: P = (D0 * (1 + g)) / (r - g)
+  const fairValue = (D0 * (1 + g)) / (r - g);
+  const marginOfSafety = fairValue > 0 ? ((fairValue - currentPrice) / fairValue) * 100 : 0;
+
+  return {
+    fairValue: Math.round(fairValue * 100) / 100,
+    marginOfSafety: Math.round(marginOfSafety * 100) / 100,
+    parameters: {
+      currentPrice,
+      recentDividend,
+      dividendGrowthRate,
+      wacc
+    }
+  };
+}
+
 module.exports = {
   runMonteCarlo,
   calculateDCF,
   runStressTest,
+  calculateCorrelationMatrix,
+  calculateGraham,
+  calculateDDM,
   STRESS_SCENARIOS
 };

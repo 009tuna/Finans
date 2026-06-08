@@ -50,8 +50,17 @@
           <h1 id="viewTitle">Genel Bakış</h1>
           <p id="viewSub" class="viewsub">Tüm pazarların özeti ve öne çıkan fırsatlar</p>
         </div>
-        <div class="topbar-right">
+        <div class="topbar-right" style="display: flex; align-items: center; gap: 12px;">
           <span id="updated" class="updated"><span class="fresh"><span class="dot"></span>Yükleniyor…</span></span>
+          
+          <!-- Tema Seçici -->
+          <div class="theme-selector" style="display: flex; gap: 6px; align-items: center; background: var(--bg-2); border: 1px solid var(--border); padding: 5px 8px; border-radius: 20px;">
+            <button class="theme-btn active" data-theme="carbon" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--text); background: #1a1e26; cursor: pointer; padding: 0;" title="Carbon Black"></button>
+            <button class="theme-btn" data-theme="silver" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid transparent; background: #e2e8f0; cursor: pointer; padding: 0;" title="Titanium Silver"></button>
+            <button class="theme-btn" data-theme="amber" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid transparent; background: #d97706; cursor: pointer; padding: 0;" title="Retro Amber"></button>
+            <button class="theme-btn" data-theme="green" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid transparent; background: #059669; cursor: pointer; padding: 0;" title="Matrix Green"></button>
+          </div>
+
           <button id="refreshBtn" class="btn"><span class="btn-ic">↻</span> Yenile</button>
         </div>
       </header>
@@ -470,71 +479,135 @@
                 </thead>
                 <tbody id="stress-table-body">
                   <tr><td colspan="7" class="muted" style="text-align:center;padding:16px;">Portföy bilgileri yükleniyor...</td></tr>
-                </tbody>
+                 </tbody>
               </table>
+            </div>
+          </div>
+
+          <!-- Portföy Korelasyon Matrisi -->
+          <div class="card reveal">
+            <div class="card-head">
+              <h2>📊 Varlık Korelasyon Matrisi (Heatmap)</h2>
+              <span class="card-sub">Portföyünüzdeki varlıkların 1 yıllık günlük getiri verileri arasındaki Pearson korelasyon katsayıları (-1.0 ile +1.0).</span>
+            </div>
+            
+            <div id="correlation-info-panel" style="margin-bottom: 16px; padding: 10px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); font-size: 12.5px; display: flex; align-items: center; gap: 8px; transition: opacity 150ms var(--ease-out);">
+              <span class="btn-ic" style="font-size: 14px;">ℹ️</span>
+              <span id="correlation-info-text" style="color: var(--muted);">İlişkileri incelemek için hücrelerin üzerine gelin.</span>
+            </div>
+
+            <div class="table-wrap" style="overflow-x: auto; padding: 10px 0;">
+              <div id="correlation-matrix-wrapper" style="min-width: 320px; max-width: 100%; width: 100%;">
+                <div id="correlation-loading" class="muted" style="text-align:center; padding:16px;">
+                  Varlık verileri yükleniyor...
+                </div>
+                <div id="correlation-heatmap-container" style="display:none; overflow-x: auto; display: flex; justify-content: center;">
+                  <!-- Dinamik olarak tablo şeklinde çizilecek -->
+                </div>
+              </div>
             </div>
           </div>
 
           <!-- DCF Değerleme Modeli -->
           <div class="card reveal">
             <div class="card-head">
-              <h2>🧮 Etkileşimli DCF (İndirgenmiş Nakit Akışı) Analizi</h2>
-              <span class="card-sub">Hisse senetlerinin 10 yıllık serbest nakit akışlarını ve indirgenmiş adil değerini hesaplayın.</span>
+              <h2>🧮 Etkileşimli Şirket Değerleme Suite'i</h2>
+              <span class="card-sub">DCF (İndirgenmiş Nakit Akışı), Benjamin Graham Formülü veya Dividend Discount Model (DDM) ile hisselerin adil değerini hesaplayın.</span>
             </div>
-            <div class="form-row-3" style="margin-bottom: 20px;">
-              <label>Hisse Seçimi (İncelemek için):
+            <div class="form-row-3" style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; align-items: end;">
+              <label>Hisse Seçimi:
                 <select id="dcf-asset-sel"></select>
               </label>
+              <label>Değerleme Modeli:
+                <select id="valuation-model-type-sel">
+                  <option value="dcf" selected>İndirgenmiş Nakit Akışı (DCF)</option>
+                  <option value="graham">Benjamin Graham Formülü</option>
+                  <option value="ddm">Temettü İndirgeme Modeli (DDM)</option>
+                </select>
+              </label>
               <div class="btn-wrap">
-                <button type="button" id="dcf-load-defaults-btn" class="btn"><span class="btn-ic">⚡</span> Varsayılanları Yükle</button>
+                <button type="button" id="dcf-load-defaults-btn" class="btn" style="width: 100%;"><span class="btn-ic">⚡</span> Varsayılanları Yükle</button>
               </div>
             </div>
             <div class="grid-2">
               <!-- Girdiler (Sürgüler ve inputlar) -->
               <div class="card-2" style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
-                <h3 style="margin: 0 0 10px; font-size: 15px;">Model Varsayımları</h3>
+                <h3 style="margin: 0 0 10px; font-size: 15px;" id="valuation-assumptions-title">Model Varsayımları</h3>
                 
-                <div class="range-group">
-                  <div class="range-lbl"><span>Gelir Büyüme Oranı (1-5 Yıl)</span><b id="lbl-growth-1-5">%10</b></div>
-                  <input type="range" id="dcf-growth-1-5" min="-20" max="60" value="10" />
-                </div>
-                
-                <div class="range-group">
-                  <div class="range-lbl"><span>Gelir Büyüme Oranı (6-10 Yıl)</span><b id="lbl-growth-6-10">%6</b></div>
-                  <input type="range" id="dcf-growth-6-10" min="-20" max="40" value="6" />
+                <!-- DCF Inputs Group -->
+                <div id="dcf-inputs-group" style="display: flex; flex-direction: column; gap: 14px;">
+                  <div class="range-group">
+                    <div class="range-lbl"><span>Gelir Büyüme Oranı (1-5 Yıl)</span><b id="lbl-growth-1-5">%10</b></div>
+                    <input type="range" id="dcf-growth-1-5" min="-20" max="60" value="10" />
+                  </div>
+                  
+                  <div class="range-group">
+                    <div class="range-lbl"><span>Gelir Büyüme Oranı (6-10 Yıl)</span><b id="lbl-growth-6-10">%6</b></div>
+                    <input type="range" id="dcf-growth-6-10" min="-20" max="40" value="6" />
+                  </div>
+
+                  <div class="range-group">
+                    <div class="range-lbl"><span>EBIT (Operasyonel Kâr) Marjı</span><b id="lbl-ebit-margin">%25</b></div>
+                    <input type="range" id="dcf-ebit-margin" min="1" max="80" value="25" />
+                  </div>
+
+                  <div class="range-group">
+                    <div class="range-lbl"><span>WACC (İskonto Oranı)</span><b id="lbl-wacc">%9.5</b></div>
+                    <input type="range" id="dcf-wacc" min="4" max="25" step="0.5" value="9.5" />
+                  </div>
+
+                  <div class="range-group">
+                    <div class="range-lbl"><span>Uç Büyüme Oranı (Terminal Growth)</span><b id="lbl-terminal-growth">%2.5</b></div>
+                    <input type="range" id="dcf-terminal-growth" min="0" max="6" step="0.1" value="2.5" />
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Vergi Oranı (%):
+                      <input type="number" id="dcf-tax-rate" value="21" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
+                    </label>
+                    <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Net Borç ($ / ₺):
+                      <input type="number" id="dcf-net-debt" value="0" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
+                    </label>
+                  </div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Yıllık Gelir (TTM):
+                      <input type="number" id="dcf-revenue" value="100000000" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
+                    </label>
+                    <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Hisse Adedi:
+                      <input type="number" id="dcf-shares" value="1000000" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
+                    </label>
+                  </div>
                 </div>
 
-                <div class="range-group">
-                  <div class="range-lbl"><span>EBIT (Operasyonel Kâr) Marjı</span><b id="lbl-ebit-margin">%25</b></div>
-                  <input type="range" id="dcf-ebit-margin" min="1" max="80" value="25" />
+                <!-- Graham Inputs Group -->
+                <div id="graham-inputs-group" style="display: none; flex-direction: column; gap: 14px;">
+                  <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Hisse Başına Kazanç (EPS - TTM):
+                    <input type="number" id="graham-eps" value="5.00" step="any" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
+                  </label>
+                  <div class="range-group">
+                    <div class="range-lbl"><span>Beklenen Yıllık Büyüme Oranı (5-10 Yıl)</span><b id="lbl-graham-growth">%10</b></div>
+                    <input type="range" id="graham-growth" min="-10" max="40" step="0.5" value="10" />
+                  </div>
+                  <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">AAA Kurumsal Tahvil Faizi (Y - %):
+                    <input type="number" id="graham-aaa-yield" value="4.5" step="0.1" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
+                  </label>
                 </div>
 
-                <div class="range-group">
-                  <div class="range-lbl"><span>WACC (İskonto Oranı)</span><b id="lbl-wacc">%9.5</b></div>
-                  <input type="range" id="dcf-wacc" min="4" max="25" step="0.5" value="9.5" />
+                <!-- DDM Inputs Group -->
+                <div id="ddm-inputs-group" style="display: none; flex-direction: column; gap: 14px;">
+                  <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Son Yıllık Temettü Ödemesi (D0):
+                    <input type="number" id="ddm-dividend" value="2.00" step="any" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
+                  </label>
+                  <div class="range-group">
+                    <div class="range-lbl"><span>Temettü Yıllık Büyüme Oranı (g)</span><b id="lbl-ddm-growth">%5</b></div>
+                    <input type="range" id="ddm-growth" min="0" max="25" step="0.5" value="5" />
+                  </div>
+                  <div class="range-group">
+                    <div class="range-lbl"><span>Gerekli Getiri Oranı / İskonto (r)</span><b id="lbl-ddm-wacc">%9.5</b></div>
+                    <input type="range" id="ddm-wacc" min="4" max="25" step="0.5" value="9.5" />
+                  </div>
                 </div>
 
-                <div class="range-group">
-                  <div class="range-lbl"><span>Uç Büyüme Oranı (Terminal Growth)</span><b id="lbl-terminal-growth">%2.5</b></div>
-                  <input type="range" id="dcf-terminal-growth" min="0" max="6" step="0.1" value="2.5" />
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                  <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Vergi Oranı (%):
-                    <input type="number" id="dcf-tax-rate" value="21" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
-                  </label>
-                  <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Net Borç ($ / ₺):
-                    <input type="number" id="dcf-net-debt" value="0" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
-                  </label>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-                  <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Yıllık Gelir (TTM):
-                    <input type="number" id="dcf-revenue" value="100000000" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
-                  </label>
-                  <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Hisse Adedi:
-                    <input type="number" id="dcf-shares" value="1000000" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
-                  </label>
-                </div>
               </div>
 
               <!-- Sonuçlar -->
@@ -554,9 +627,9 @@
                   
                   <div style="border-top: 1px solid var(--border); padding-top: 14px; display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
                     <div style="display:flex; justify-content:space-between;"><span>Güncel Fiyat:</span><b id="dcf-current-price">–</b></div>
-                    <div style="display:flex; justify-content:space-between;"><span>Kurumsal Değer (EV):</span><div><span id="dcf-ev-cur">$</span><b id="dcf-ev-val-num">0</b></div></div>
-                    <div style="display:flex; justify-content:space-between;"><span>Özsermaye Değeri:</span><div><span id="dcf-eq-cur">$</span><b id="dcf-eq-val-num">0</b></div></div>
-                    <div style="display:flex; justify-content:space-between;"><span>Gelir (TTM):</span><div><span id="dcf-ttm-cur">$</span><b id="dcf-ttm-val-num">0</b></div></div>
+                    <div id="dcf-ev-detail-row" style="display:flex; justify-content:space-between;"><span>Kurumsal Değer (EV):</span><div><span id="dcf-ev-cur">$</span><b id="dcf-ev-val-num">0</b></div></div>
+                    <div id="dcf-eq-detail-row" style="display:flex; justify-content:space-between;"><span>Özsermaye Değeri:</span><div><span id="dcf-eq-cur">$</span><b id="dcf-eq-val-num">0</b></div></div>
+                    <div id="dcf-ttm-detail-row" style="display:flex; justify-content:space-between;"><span>Gelir (TTM):</span><div><span id="dcf-ttm-cur">$</span><b id="dcf-ttm-val-num">0</b></div></div>
                   </div>
                 </div>
                 <div style="font-size: 11px; color: var(--muted-2); margin-top: 14px; text-align: center; font-style: italic;">
@@ -566,7 +639,7 @@
             </div>
 
             <!-- DCF 10 Yıllık Projeksiyon Tablosu -->
-            <div style="margin-top: 24px;">
+            <div id="dcf-table-container" style="margin-top: 24px;">
               <h3 style="margin: 0 0 10px; font-size: 14px;">10 Yıllık Projeksiyon Detayı</h3>
               <div class="table-wrap max-height-300">
                 <table>

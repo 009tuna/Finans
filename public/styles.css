@@ -1041,3 +1041,74 @@ tr.row:hover { background: rgba(255,255,255,.025); }
   transform: scale(1.005) translateX(2px);
 }
 
+/* ============================================================
+   Visual Themes (Carbon, Silver, Amber, Green)
+   ============================================================ */
+body.theme-carbon {
+  --bg: oklch(11% 0.007 250);
+  --bg-2: oklch(13% 0.009 250);
+  --sidebar: oklch(10% 0.006 250);
+  --card: oklch(14.5% 0.012 250);
+  --card-2: oklch(12.5% 0.008 250);
+  --border: oklch(19% 0.014 250);
+  --border-2: oklch(25% 0.02 250);
+  --text: oklch(95% 0.008 250);
+  --muted: oklch(68% 0.015 250);
+  --muted-2: oklch(48% 0.012 250);
+  --accent: oklch(62% 0.16 250);
+  --accent-soft: oklch(62% 0.16 250 / 0.12);
+}
+
+body.theme-silver {
+  --bg: oklch(8% 0 0);
+  --bg-2: oklch(10% 0 0);
+  --sidebar: oklch(7% 0 0);
+  --card: oklch(12% 0 0);
+  --card-2: oklch(10.5% 0 0);
+  --border: oklch(20% 0 0);
+  --border-2: oklch(28% 0 0);
+  --text: oklch(94% 0.002 0);
+  --muted: oklch(65% 0.002 0);
+  --muted-2: oklch(45% 0.002 0);
+  --accent: oklch(95% 0 0);
+  --accent-soft: oklch(95% 0 0 / 0.08);
+}
+
+body.theme-amber {
+  --bg: oklch(8% 0.005 80);
+  --bg-2: oklch(10% 0.006 80);
+  --sidebar: oklch(7% 0.004 80);
+  --card: oklch(12.5% 0.01 80);
+  --card-2: oklch(10.5% 0.007 80);
+  --border: oklch(18% 0.015 80);
+  --border-2: oklch(24% 0.025 80);
+  --text: oklch(88% 0.07 80);
+  --muted: oklch(65% 0.05 80);
+  --muted-2: oklch(45% 0.03 80);
+  --accent: oklch(78% 0.14 80); /* Amber Phosphor */
+  --accent-soft: oklch(78% 0.14 80 / 0.1);
+}
+
+body.theme-green {
+  --bg: oklch(8% 0.005 140);
+  --bg-2: oklch(10% 0.006 140);
+  --sidebar: oklch(7% 0.004 140);
+  --card: oklch(12.5% 0.01 140);
+  --card-2: oklch(10.5% 0.007 140);
+  --border: oklch(18% 0.015 140);
+  --border-2: oklch(24% 0.025 140);
+  --text: oklch(88% 0.08 140);
+  --muted: oklch(65% 0.06 140);
+  --muted-2: oklch(45% 0.04 140);
+  --accent: oklch(82% 0.17 140); /* Green Phosphor */
+  --accent-soft: oklch(82% 0.17 140 / 0.1);
+}
+
+/* Global Transition for Theme Switching */
+body {
+  transition: background-color 300ms var(--ease-out), color 300ms var(--ease-out);
+}
+.card, .sidebar, .topbar, .btn, input, select {
+  transition: background 300ms var(--ease-out), border-color 300ms var(--ease-out), color 300ms var(--ease-out);
+}
+
