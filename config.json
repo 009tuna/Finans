@@ -1,0 +1,20 @@
+{
+  "finnhubToken": "d8iq0h1r01qtcvnt4vn0d8iq0h1r01qtcvnt4vng",
+  "port": 5174,
+  "watchlists": {
+    "us": [
+      "AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA",
+      "AMD", "AVGO", "NFLX", "PLTR", "COIN"
+    ],
+    "bist": [
+      "THYAO", "ASELS", "KCHOL", "GARAN", "AKBNK", "ISCTR", "BIMAS",
+      "FROTO", "TUPRS", "SAHOL", "TCELL", "EREGL", "SISE", "YKBNK",
+      "ENKAI", "TTKOM", "PGSUS", "ASTOR", "TOASO", "SASA"
+    ],
+    "crypto": [
+      "bitcoin", "ethereum", "solana", "binancecoin", "ripple",
+      "cardano", "avalanche-2", "dogecoin", "chainlink", "polkadot",
+      "tron", "sui"
+    ]
+  }
+}

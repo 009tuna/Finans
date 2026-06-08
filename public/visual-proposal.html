@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finans Otomasyonu - Trading Desk Taslak</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #151820;
+      --panel-2: #111319;
+      --border: #1e222b;
+      --border-2: #2d323f;
+      --text: #f1f3f6;
+      --muted: #7f8798;
+      --muted-2: #525866;
+      --accent: #4382ff;
+      --green: #28d793;
+      --red: #ef4444;
+      --yellow: #eab308;
+      --violet: #a78bfa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 1440px; margin: 0 auto; padding: 28px; }
+    .top {
+      display: flex; justify-content: space-between; align-items: end; gap: 18px;
+      border-bottom: 1px solid var(--border); padding-bottom: 18px; margin-bottom: 22px;
+    }
+    h1 { margin: 0; font-size: 24px; letter-spacing: 0; }
+    .sub { margin: 7px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .pill {
+      border: 1px solid var(--border-2); background: var(--panel-2);
+      border-radius: 999px; padding: 8px 12px; color: var(--muted); font-size: 12px; white-space: nowrap;
+    }
+    .layout { display: grid; grid-template-columns: 280px 1fr 330px; gap: 16px; align-items: start; }
+    .panel {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+    }
+    .panel h2 { margin: 0 0 12px; font-size: 14px; }
+    .watch { display: flex; flex-direction: column; gap: 8px; }
+    .asset {
+      display: grid; grid-template-columns: 1fr auto; gap: 5px 10px;
+      padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: rgba(255,255,255,.018);
+    }
+    .asset strong { font-size: 13px; }
+    .asset small { color: var(--muted); font-size: 11px; }
+    .score { font-weight: 800; font-size: 12px; border-radius: 999px; padding: 4px 8px; align-self: start; }
+    .ok { color: var(--green); background: rgba(40,215,147,.1); border: 1px solid rgba(40,215,147,.28); }
+    .warn { color: var(--yellow); background: rgba(234,179,8,.1); border: 1px solid rgba(234,179,8,.28); }
+    .bad { color: #ff6b73; background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.28); }
+    .chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; }
+    .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tab { color: var(--muted); background: var(--panel-2); border: 1px solid var(--border); padding: 6px 9px; border-radius: 8px; font-size: 11px; }
+    .tab.active { color: var(--text); border-color: rgba(67,130,255,.55); background: rgba(67,130,255,.12); }
+    .chart {
+      height: 438px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+      background:
+        linear-gradient(to right, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 78px 100%,
+        linear-gradient(to bottom, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 100% 52px,
+        #0d1016;
+      position: relative;
+    }
+    .yaxis { position: absolute; right: 12px; top: 18px; display: flex; flex-direction: column; gap: 36px; color: var(--muted-2); font-size: 11px; }
+    .price-line { position: absolute; left: 0; right: 0; top: 42%; border-top: 1px dashed rgba(40,215,147,.55); }
+    .price-tag { position: absolute; right: 8px; top: calc(42% - 12px); color: var(--green); background: rgba(40,215,147,.12); border: 1px solid rgba(40,215,147,.35); padding: 3px 7px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+    svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .level { position: absolute; left: 18px; right: 62px; height: 1px; background: rgba(255,255,255,.08); }
+    .level.stop { top: 66%; background: rgba(239,68,68,.45); }
+    .level.target { top: 24%; background: rgba(40,215,147,.45); }
+    .level span {
+      position: absolute; left: 0; transform: translateY(-50%); padding: 3px 7px; border-radius: 6px;
+      background: #111319; border: 1px solid var(--border); font-size: 10px; color: var(--muted);
+    }
+    .lower { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .mini { border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: rgba(255,255,255,.018); min-height: 110px; }
+    .mini h3 { margin: 0 0 8px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .metric { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.05); font-size: 12px; }
+    .metric:last-child { border-bottom: 0; }
+    .metric span { color: var(--muted); }
+    .side-list { display: flex; flex-direction: column; gap: 10px; }
+    .event { padding: 11px; border: 1px solid var(--border); border-radius: 10px; background: rgba(255,255,255,.018); }
+    .event b { display: block; font-size: 12px; margin-bottom: 5px; }
+    .event p { margin: 0; color: var(--muted); font-size: 11.5px; line-height: 1.45; }
+    .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
+    .step { border: 1px solid var(--border); background: var(--panel-2); border-radius: 12px; padding: 13px; }
+    .step span { display: block; color: var(--accent); font-size: 11px; font-weight: 800; margin-bottom: 5px; }
+    .step b { font-size: 13px; }
+    .step p { margin: 7px 0 0; color: var(--muted); font-size: 11.5px; line-height: 1.45; }
+    @media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } .flow { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px) { .wrap { padding: 16px; } .top { align-items: start; flex-direction: column; } .lower, .flow { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>Trading Desk Konsepti</h1>
+        <p class="sub">Teknik Tarayici bir liste olmaktan cikip, hisse/coin bazli takip ekranina doner: grafik, sinyal katmanlari, olay riski ve islem plani tek ekranda.</p>
+      </div>
+      <div class="pill">Tasarim taslagi - uygulamaya bagli degil</div>
+    </div>
+
+    <div class="layout">
+      <aside class="panel">
+        <h2>Takip Radari</h2>
+        <div class="watch">
+          <div class="asset"><div><strong>TTKOM</strong><small>BIST - momentum devam</small></div><span class="score ok">87</span></div>
+          <div class="asset"><div><strong>AAPL</strong><small>ABD - tepe riski</small></div><span class="score bad">58</span></div>
+          <div class="asset"><div><strong>BTC</strong><small>Kripto - destek testi</small></div><span class="score warn">63k</span></div>
+          <div class="asset"><div><strong>NVDA</strong><small>Alt bant tepki adayi</small></div><span class="score warn">53</span></div>
+          <div class="asset"><div><strong>TUPRS</strong><small>Enerji temasi</small></div><span class="score warn">58</span></div>
+        </div>
+      </aside>
+
+      <main class="panel">
+        <div class="chart-head">
+          <div>
+            <h2>AAPL - Teknik Takip</h2>
+            <p class="sub" style="margin:4px 0 0">Candlestick/line chart uzerinde skor, stop, hedef, event ve backtest isaretleri.</p>
+          </div>
+          <div class="tabs"><span class="tab">1D</span><span class="tab">1H</span><span class="tab active">1G</span><span class="tab">1Hf</span><span class="tab">RSI</span><span class="tab">MACD</span></div>
+        </div>
+        <div class="chart">
+          <svg viewBox="0 0 900 438" preserveAspectRatio="none">
+            <path d="M30,315 C105,290 135,335 195,300 C255,265 285,310 345,245 C405,190 465,215 525,160 C590,110 650,150 710,98 C760,62 815,94 875,84" fill="none" stroke="#4382ff" stroke-width="3" />
+            <path d="M30,315 C105,290 135,335 195,300 C255,265 285,310 345,245 C405,190 465,215 525,160 C590,110 650,150 710,98 C760,62 815,94 875,84 L875,438 L30,438 Z" fill="rgba(67,130,255,.08)" />
+            <g stroke="#28d793" stroke-width="3">
+              <line x1="125" y1="285" x2="125" y2="330"/><rect x="118" y="300" width="14" height="22" fill="#28d793"/>
+              <line x1="355" y1="210" x2="355" y2="268"/><rect x="348" y="230" width="14" height="28" fill="#28d793"/>
+              <line x1="610" y1="108" x2="610" y2="170"/><rect x="603" y="125" width="14" height="34" fill="#28d793"/>
+            </g>
+            <g stroke="#ef4444" stroke-width="3">
+              <line x1="250" y1="252" x2="250" y2="318"/><rect x="243" y="260" width="14" height="39" fill="#ef4444"/>
+              <line x1="745" y1="68" x2="745" y2="128"/><rect x="738" y="78" width="14" height="36" fill="#ef4444"/>
+            </g>
+            <circle cx="710" cy="98" r="5" fill="#eab308"/>
+            <circle cx="875" cy="84" r="5" fill="#28d793"/>
+          </svg>
+          <div class="level target"><span>Hedef 325.55</span></div>
+          <div class="price-line"></div><div class="price-tag">307.34</div>
+          <div class="level stop"><span>Stop 298.23</span></div>
+          <div class="yaxis"><span>330</span><span>320</span><span>310</span><span>300</span><span>290</span></div>
+        </div>
+        <div class="lower">
+          <div class="mini">
+            <h3>Karar Paneli</h3>
+            <div class="metric"><span>Karar kalitesi</span><b style="color:#ef4444">Riskli - 58</b></div>
+            <div class="metric"><span>Stabilite</span><b>Sinyal stabil</b></div>
+            <div class="metric"><span>Catalyst</span><b>Apple event / CPI haftasi</b></div>
+          </div>
+          <div class="mini">
+            <h3>Backtest Ozeti</h3>
+            <div class="metric"><span>Strateji</span><b>+19.5%</b></div>
+            <div class="metric"><span>Al-tut</span><b>+33.3%</b></div>
+            <div class="metric"><span>Yorum</span><b style="color:#eab308">Al-tut daha iyi</b></div>
+          </div>
+        </div>
+      </main>
+
+      <aside class="panel">
+        <h2>Sinyal Akisi</h2>
+        <div class="side-list">
+          <div class="event"><b>Tepe riski</b><p>Skor yuksek ama 52H bandi %90+ ve MACD negatif. Yeni giris icin geri cekilme bekle.</p></div>
+          <div class="event"><b>Olay penceresi</b><p>48 saat icinde yuksek etkili veri varsa yeni AL bir kademe yumusatilacak.</p></div>
+          <div class="event"><b>Alarm</b><p>Fiyat stop seviyesine yaklasirsa veya karar kalitesi 60 altina duserse bildirim.</p></div>
+          <div class="event"><b>Not defteri</b><p>Bu grafikte alinan kararlar sonradan tahmin karnesine islenecek.</p></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="flow">
+      <div class="step"><span>1</span><b>Varlik sec</b><p>Watchlist, portfoy veya teknik tarayicidan tek tikla detay.</p></div>
+      <div class="step"><span>2</span><b>Grafikte oku</b><p>Fiyat, indikatorler, sinyal isaretleri ve olay riskleri ayni yerde.</p></div>
+      <div class="step"><span>3</span><b>Senaryoyu test et</b><p>Backtest formu teknik jargon yerine sorularla ilerler.</p></div>
+      <div class="step"><span>4</span><b>Karar kaydet</b><p>Alarm, not ve tahmin karnesi kapali donguyu tamamlar.</p></div>
+    </div>
+  </div>
+</body>
+</html>

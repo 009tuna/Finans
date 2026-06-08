@@ -1,0 +1,169 @@
+// Tarihsel Strateji Backtest Motoru
+// Belirtilen varlık için son 250 günlük veriyi çekip gün gün teknik puan hesaplar,
+// ardından belirtilen Al/Sat puan eşiklerine göre işlem simülasyonu çalıştırır.
+'use strict';
+const { fetchSeries: fetchYahooSeries } = require('./yahoo');
+const { fetchSeries: fetchBinanceSeries } = require('./coingecko');
+const { computeIndicators } = require('./indicators');
+const { scoreAsset } = require('./analyze');
+
+async function runBacktest({ symbol, market, buyThreshold = 70, sellThreshold = 45, stopLoss = null, takeProfit = null }) {
+  let series = null;
+  let currency = 'USD';
+
+  buyThreshold = parseFloat(buyThreshold);
+  sellThreshold = parseFloat(sellThreshold);
+  stopLoss = stopLoss ? parseFloat(stopLoss) : null;
+  takeProfit = takeProfit ? parseFloat(takeProfit) : null;
+
+  if (market === 'us') {
+    const data = await fetchYahooSeries(symbol);
+    if (data.__error) throw new Error(data.__error);
+    series = data.series;
+    currency = data.currency || 'USD';
+  } else if (market === 'bist') {
+    const data = await fetchYahooSeries(symbol + '.IS');
+    if (data.__error) throw new Error(data.__error);
+    series = data.series;
+    currency = 'TRY';
+  } else if (market === 'crypto') {
+    let binSym = symbol.toUpperCase();
+    if (!binSym.endsWith('USDT')) binSym += 'USDT';
+    const data = await fetchBinanceSeries(binSym);
+    if (!data) throw new Error('Binance verisi alınamadı');
+    series = data;
+    currency = 'USD';
+  }
+
+  if (!series || !series.closes || series.closes.length < 50) {
+    throw new Error('Yetersiz veri serisi (En az 50 günlük geçmiş veri gerekir)');
+  }
+
+  const closes = series.closes;
+  const highs = series.highs;
+  const lows = series.lows;
+  const volumes = series.volumes;
+  const n = closes.length;
+
+  const dailyScores = [];
+  const dailyPrices = [];
+  const startDay = 50; // İndikatör ısınması için ilk 50 günü atlıyoruz
+
+  // Gün gün teknik puanları hesapla (Kayan pencere)
+  for (let i = startDay; i < n; i++) {
+    const sliceSeries = {
+      closes: closes.slice(0, i + 1),
+      highs: highs && highs.length ? highs.slice(0, i + 1) : null,
+      lows: lows && lows.length ? lows.slice(0, i + 1) : null,
+      volumes: volumes && volumes.length ? volumes.slice(0, i + 1) : null,
+    };
+    const ind = computeIndicators(sliceSeries);
+    const scored = scoreAsset(ind, null, market);
+    dailyScores.push(scored.score != null ? scored.score : 50);
+    dailyPrices.push(closes[i]);
+  }
+
+  // İşlem Simülasyonu
+  let capital = 10000; // Başlangıç sermayesi (Dolar veya TL)
+  let position = 0; // Eldeki varlık miktarı
+  let buyPrice = 0;
+  const trades = [];
+  const equityCurve = [];
+
+  for (let i = 0; i < dailyScores.length; i++) {
+    const idx = i + startDay;
+    const currentPrice = closes[idx];
+    const score = dailyScores[i];
+
+    if (position > 0) {
+      // Pozisyondayız, Satış Koşullarını Denetle
+      const pnlPct = ((currentPrice - buyPrice) / buyPrice) * 100;
+      let exitReason = null;
+
+      if (stopLoss != null && pnlPct <= -stopLoss) {
+        exitReason = `Stop Loss (-%${stopLoss})`;
+      } else if (takeProfit != null && pnlPct >= takeProfit) {
+        exitReason = `Kâr Al (+%${takeProfit})`;
+      } else if (score <= sellThreshold) {
+        exitReason = `Puan Düşük (${score} ≤ ${sellThreshold})`;
+      }
+
+      if (exitReason) {
+        capital = position * currentPrice;
+        trades.push({
+          type: 'SELL',
+          day: idx - startDay + 1,
+          price: currentPrice,
+          pnlPct: Math.round(pnlPct * 100) / 100,
+          reason: exitReason,
+          capitalAfter: Math.round(capital * 100) / 100,
+        });
+        position = 0;
+      }
+    } else {
+      // Pozisyonda değiliz, Alış Koşullarını Denetle
+      if (score >= buyThreshold) {
+        position = capital / currentPrice;
+        buyPrice = currentPrice;
+        trades.push({
+          type: 'BUY',
+          day: idx - startDay + 1,
+          price: currentPrice,
+          capitalBefore: Math.round(capital * 100) / 100,
+        });
+      }
+    }
+
+    const posVal = position * currentPrice;
+    equityCurve.push({
+      day: idx - startDay + 1,
+      price: currentPrice,
+      score,
+      capital: position > 0 ? 0 : Math.round(capital * 100) / 100,
+      positionValue: Math.round(posVal * 100) / 100,
+      total: Math.round((position > 0 ? posVal : capital) * 100) / 100,
+    });
+  }
+
+  // Son gün pozisyon açıksa kapat
+  if (position > 0) {
+    const finalPrice = closes[n - 1];
+    capital = position * finalPrice;
+    const pnlPct = ((finalPrice - buyPrice) / buyPrice) * 100;
+    trades.push({
+      type: 'SELL',
+      day: n - startDay,
+      price: finalPrice,
+      pnlPct: Math.round(pnlPct * 100) / 100,
+      reason: 'Vade Sonu',
+      capitalAfter: Math.round(capital * 100) / 100,
+    });
+    position = 0;
+    equityCurve[equityCurve.length - 1].capital = Math.round(capital * 100) / 100;
+    equityCurve[equityCurve.length - 1].positionValue = 0;
+    equityCurve[equityCurve.length - 1].total = Math.round(capital * 100) / 100;
+  }
+
+  const initialCapital = 10000;
+  const finalCapital = capital;
+  const strategyReturn = ((finalCapital - initialCapital) / initialCapital) * 100;
+  const bhReturn = ((closes[n - 1] - closes[startDay]) / closes[startDay]) * 100;
+
+  return {
+    symbol,
+    market,
+    buyThreshold,
+    sellThreshold,
+    stopLoss,
+    takeProfit,
+    currency,
+    initialCapital,
+    finalCapital: Math.round(finalCapital * 100) / 100,
+    strategyReturn: Math.round(strategyReturn * 100) / 100,
+    bhReturn: Math.round(bhReturn * 100) / 100,
+    trades,
+    equityCurve,
+  };
+}
+
+module.exports = { runBacktest };

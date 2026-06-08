@@ -1,0 +1,9 @@
+node_modules/
+.agents/
+.claude/
+.env
+.env.local
+.DS_Store
+dist/
+build/
+*.log

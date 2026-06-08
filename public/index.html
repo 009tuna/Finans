@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finans Otomasyonu · Yatırım Paneli</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>" />
+  <script src="vendor/chart.umd.min.js"></script>
+  <script src="vendor/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-logo">📈</span>
+        <div class="brand-text">
+          <strong>Finans</strong>
+          <span>Otomasyonu</span>
+        </div>
+      </div>
+      <nav class="nav">
+        <button class="navitem active" data-view="overview"><span class="ni">◈</span> Genel Bakış</button>
+        <button class="navitem" data-view="us"><span class="ni">🇺🇸</span> ABD Hisseleri</button>
+        <button class="navitem" data-view="bist"><span class="ni">🇹🇷</span> BIST 20</button>
+        <button class="navitem" data-view="crypto"><span class="ni">₿</span> Kripto</button>
+        <div class="nav-sep">PORTFÖY & ANALİZ</div>
+        <button class="navitem" data-view="portfolio"><span class="ni">💼</span> Portföyüm</button>
+        <button class="navitem" data-view="screener"><span class="ni">🔍</span> Teknik Tarayıcı</button>
+        <button class="navitem" data-view="backtest"><span class="ni">📈</span> Strateji Backtest</button>
+        <div class="nav-sep">RAPORLAMA</div>
+        <button class="navitem" data-view="report"><span class="ni">📰</span> Günlük Rapor</button>
+        <button class="navitem" data-view="literacy"><span class="ni">📚</span> Finansal Okuryazarlık</button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="src">Finnhub · Yahoo · Binance · CoinGecko</div>
+        <div class="src dim">Yatırım tavsiyesi değildir</div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 id="viewTitle">Genel Bakış</h1>
+          <p id="viewSub" class="viewsub">Tüm pazarların özeti ve öne çıkan fırsatlar</p>
+        </div>
+        <div class="topbar-right">
+          <span id="updated" class="updated"><span class="fresh"><span class="dot"></span>Yükleniyor…</span></span>
+          <button id="refreshBtn" class="btn"><span class="btn-ic">↻</span> Yenile</button>
+        </div>
+      </header>
+
+      <main class="content" id="content">
+        <!-- GENEL BAKIŞ -->
+        <section class="view" id="view-overview">
+          <div id="kpis" class="kpis"></div>
+          <div class="grid-2">
+            <div class="card reveal">
+              <div class="card-head"><h2>⭐ Bugün Öne Çıkanlar</h2><span class="card-sub">Tüm pazarlardan en yüksek puanlı fırsatlar</span></div>
+              <div id="topPicks" class="picks"></div>
+            </div>
+            <div class="card reveal">
+              <div class="card-head"><h2>🥧 Önerilen Dağılım</h2><span class="card-sub">Puana orantılı örnek ağırlık</span></div>
+              <div class="chart-box"><canvas id="allocChart"></canvas></div>
+            </div>
+          </div>
+          <div class="card reveal">
+            <div class="card-head"><h2>📊 En İyi Fırsatlar (tüm pazarlar)</h2><span class="card-sub">Bileşik teknik puana göre ilk 12</span></div>
+            <div class="chart-box tall"><canvas id="moversChart"></canvas></div>
+          </div>
+        </section>
+
+        <!-- PAZAR GÖRÜNÜMÜ (us/bist/crypto) -->
+        <section class="view" id="view-market" hidden>
+          <div id="marketStatus" class="mstatus reveal"></div>
+          <div class="card reveal trading-desk" id="assetDesk">
+            <div class="desk-head">
+              <div>
+                <h2 id="deskTitle">Varlık Grafiği</h2>
+                <span id="deskMeta" class="card-sub">Sembol seçildiğinde OHLCV chart yüklenir</span>
+              </div>
+              <div class="desk-controls">
+                <div class="segmented" aria-label="Grafik tipi">
+                  <button type="button" class="seg active" data-desk-mode="candles">Mum</button>
+                  <button type="button" class="seg" data-desk-mode="line">Çizgi</button>
+                </div>
+                <label class="sortlbl">Periyot:
+                  <select id="deskIntervalSel"></select>
+                </label>
+              </div>
+            </div>
+            <div id="assetChart" class="asset-chart"></div>
+            <div id="assetChartNote" class="desk-note"></div>
+          </div>
+          <div class="card reveal">
+            <div class="card-head"><h2 id="marketChartTitle">Yatırım Puanları</h2>
+              <label class="sortlbl">Sırala:
+                <select id="sortSel">
+                  <option value="score">Puan</option>
+                  <option value="changePct">Günlük %</option>
+                  <option value="rsi">RSI</option>
+                  <option value="name">İsim</option>
+                </select>
+              </label>
+            </div>
+            <div class="chart-box tall"><canvas id="scoreChart"></canvas></div>
+          </div>
+          <div class="card reveal">
+            <div id="tableWrap" class="table-wrap"></div>
+          </div>
+          <div id="errorsBox" class="card errors reveal" hidden>
+            <h2>⚠️ Uyarılar</h2>
+            <ul id="errorsList"></ul>
+          </div>
+        </section>
+
+        <!-- GÜNLÜK RAPOR -->
+        <section class="view" id="view-report" hidden>
+          <div id="reportContent"></div>
+        </section>
+
+        <!-- PORTFÖYÜM -->
+        <section class="view" id="view-portfolio" hidden>
+          <div class="kpis" id="portfolio-kpis"></div>
+          <div class="grid-2">
+            <div class="card reveal">
+              <div class="card-head">
+                <h2>🥧 Portföy Dağılımı</h2>
+                <span class="card-sub">Varlık sınıfları ve ağırlıkları</span>
+              </div>
+              <div class="chart-box"><canvas id="portAllocChart"></canvas></div>
+            </div>
+            <div class="card reveal">
+              <div class="card-head">
+                <h2>➕ Yeni Varlık Ekle / Düzenle</h2>
+                <span class="card-sub">Portföyünüze varlık ekleyin veya güncelleyin</span>
+              </div>
+              <form id="portfolio-form" class="port-form">
+                <div class="form-row">
+                  <label>Pazar:
+                    <select id="port-market-sel" required>
+                      <option value="us">ABD Hissesi</option>
+                      <option value="bist">BIST 20</option>
+                      <option value="crypto">Kripto Para</option>
+                    </select>
+                  </label>
+                  <label>Sembol:
+                    <select id="port-symbol-sel" required>
+                      <!-- Dinamik dolacak -->
+                    </select>
+                  </label>
+                </div>
+                <div class="form-row">
+                  <label>Adet:
+                    <input type="number" id="port-amount-input" step="any" min="0.0001" placeholder="Miktar" required />
+                  </label>
+                  <label>Ort. Maliyet:
+                    <input type="number" id="port-price-input" step="any" min="0.000001" placeholder="Birim fiyat" required />
+                  </label>
+                </div>
+                <button type="submit" class="btn"><span class="btn-ic">✓</span> Portföye Ekle</button>
+              </form>
+            </div>
+          </div>
+          <div class="card reveal">
+            <div class="card-head">
+              <h2>💼 Portföy Varlıkları</h2>
+              <span class="card-sub">Maliyet ve anlık kâr/zarar durumu</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sembol</th>
+                    <th>Adet</th>
+                    <th>Maliyet</th>
+                    <th>Fiyat</th>
+                    <th>Değer</th>
+                    <th>Kâr / Zarar</th>
+                    <th>Teknik Puan</th>
+                    <th>Öneri</th>
+                    <th>Aktif Uyarılar</th>
+                    <th>İşlem</th>
+                  </tr>
+                </thead>
+                <tbody id="portfolio-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TEKNİK TARAYICI -->
+        <section class="view" id="view-screener" hidden>
+          <div class="screener-grid reveal">
+            <div class="screener-card">
+              <div class="screener-card-head screener-green">
+                <h3>🟢 Dönüş Yakın (Aşırı Satım)</h3>
+                <span class="screener-desc">RSI ≤ 35 veya Bollinger Alt Bandı altındakiler</span>
+              </div>
+              <ul class="screener-list" id="screen-oversold"></ul>
+            </div>
+            <div class="screener-card">
+              <div class="screener-card-head screener-red">
+                <h3>🔴 Tepe Riski (Aşırı Alım)</h3>
+                <span class="screener-desc">RSI ≥ 68 veya Bollinger Üst Bandı üstündekiler</span>
+              </div>
+              <ul class="screener-list" id="screen-overbought"></ul>
+            </div>
+            <div class="screener-card">
+              <div class="screener-card-head screener-blue">
+                <h3>⚡ Hacimli Kırılımlar</h3>
+                <span class="screener-desc">Hacim Patlaması (≥1.5x) ve RSI > 50</span>
+              </div>
+              <ul class="screener-list" id="screen-volume"></ul>
+            </div>
+            <div class="screener-card">
+              <div class="screener-card-head screener-yellow">
+                <h3>💀 Trend Kırılımı / Ayı</h3>
+                <span class="screener-desc">Death Cross veya Kısa Vadeli Düşüş Trendi</span>
+              </div>
+              <ul class="screener-list" id="screen-bearish"></ul>
+            </div>
+            <div class="screener-card flex-full">
+              <div class="screener-card-head screener-violet">
+                <h3>⚠️ Sinyal Çelişkisi Olan Varlıklar</h3>
+                <span class="screener-desc">Yüksek Puan Alıp Tepe/Hacim Sinyali Çelişenler</span>
+              </div>
+              <ul class="screener-list flex-row-list" id="screen-contradic"></ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- STRATEJİ BACKTEST -->
+        <section class="view" id="view-backtest" hidden>
+          <div class="card reveal">
+            <div class="card-head">
+              <h2>⚙️ Backtest Parametreleri</h2>
+              <span class="card-sub">Geçmiş 1 yıllık (250 Gün) verilere göre strateji simülasyonu</span>
+            </div>
+            <form id="backtest-form" class="bt-form">
+              <div class="form-row-3">
+                <label>Varlık Seçimi:
+                  <select id="bt-asset-sel" required></select>
+                </label>
+                <label>Alış Yatırım Puanı Eşiği:
+                  <input type="number" id="bt-buy-input" value="70" min="0" max="100" required />
+                </label>
+                <label>Satış Yatırım Puanı Eşiği:
+                  <input type="number" id="bt-sell-input" value="45" min="0" max="100" required />
+                </label>
+              </div>
+              <div class="form-row-3">
+                <label>Stop Loss (%):
+                  <input type="number" id="bt-sl-input" value="0" min="0" max="100" placeholder="0 = Devre dışı" />
+                </label>
+                <label>Kâr Al (%):
+                  <input type="number" id="bt-tp-input" value="0" min="0" max="100" placeholder="0 = Devre dışı" />
+                </label>
+                <div class="btn-wrap">
+                  <button type="submit" id="bt-run-btn" class="btn"><span class="btn-ic">▶</span> Backtest Çalıştır</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <div id="backtest-results-container" hidden>
+            <div id="backtest-story" class="bt-story"></div>
+            <div class="kpis" id="backtest-kpis"></div>
+            <div class="card reveal">
+              <div class="card-head">
+                <h2>📈 Getiri Eğrisi</h2>
+                <span class="card-sub">Strateji vs Basit Al-Tut Getirisi</span>
+              </div>
+              <div class="chart-box tall"><canvas id="backtestChart"></canvas></div>
+            </div>
+            <div class="card reveal">
+              <div class="card-head">
+                <h2>📜 Gerçekleşen İşlemler</h2>
+                <span class="card-sub">Simülasyon süresince yapılan alım/satımlar</span>
+              </div>
+              <div class="table-wrap max-height-300">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Gün</th>
+                      <th>İşlem</th>
+                      <th>Fiyat</th>
+                      <th>Kâr / Zarar %</th>
+           <!-- FİNANSAL OKURYAZARLIK -->
+                      <th>Gerekce</th>
+                      <th>Bakiye</th>
+                    </tr>
+                  </thead>
+                  <tbody id="backtest-trades-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-literacy" hidden>
+          <div class="editorial-container reveal">
+            <header class="editorial-header">
+              <h2>📚 Finansal Okuryazarlık &amp; Risk Yönetimi</h2>
+              <p class="editorial-lead">Yatırım kararlarınızı rasyonel temellere oturtmak ve portföy riskini yönetmek için analitik rehber.</p>
+            </header>
+
+            <div class="editorial-content">
+              <article class="editorial-section">
+                <h3>🔍 İndikatörler Ne Anlatır?</h3>
+                <div class="lit-grid">
+                  <div class="lit">
+                    <h4>RSI (Göreceli Güç)</h4>
+                    <p>0–100 arası momentum. <b>70 üstü</b> aşırı alım (geri çekilme riski), <b>30 altı</b> aşırı satım (tepki yükselişi olabilir). 50–70 sağlıklı yükseliş bölgesi. Tek başına değil trendle birlikte okuyun.</p>
+                  </div>
+                  <div class="lit">
+                    <h4>MACD</h4>
+                    <p>İki ortalamanın farkı + sinyal çizgisi. <b>Histogram pozitif ve genişliyorsa</b> ivme güçleniyor; daralıyorsa zayıflıyor. Negatiften pozitife geçiş alım, tersi satış sinyali sayılır.</p>
+                  </div>
+                  <div class="lit">
+                    <h4>Hareketli Ortalamalar (SMA/EMA)</h4>
+                    <p>Fiyatın 20/50/200 günlük ortalaması. Fiyat ortalamaların <b>üstündeyse trend yukarı</b>. 50g'nin 200g'yi yukarı kesmesi "altın kesişim" (boğa), aşağı kesmesi "ölüm kesişimi" (ayı).</p>
+                  </div>
+                  <div class="lit">
+                    <h4>Bollinger Bantları</h4>
+                    <p>20g ortalama ± 2 standart sapma. Fiyat <b>üst banda yapışırsa</b> aşırı gergin, alt banda değerse tepki potansiyeli. Bantların daralması büyük bir hareketin habercisi olabilir.</p>
+                  </div>
+                  <div class="lit">
+                    <h4>ATR &amp; Volatilite</h4>
+                    <p>Ortalama Gerçek Aralık — fiyatın günlük ne kadar oynadığı. <b>Yüksek ATR = yüksek risk ve fırsat.</b> Pozisyon büyüklüğünü ve stop mesafesini buna göre ayarlayın.</p>
+                  </div>
+                  <div class="lit">
+                    <h4>Hacim &amp; OBV</h4>
+                    <p>Hareketi teyit eder. <b>Yükselişe artan hacim eşlik etmeli.</b> OBV (hacim akışı) yükseliyorsa alım baskısı, düşüyorsa satış baskısı. Hacimsiz yükseliş kırılgandır.</p>
+                  </div>
+                </div>
+              </article>
+
+              <article class="editorial-section">
+                <h3>🛡️ Risk Yönetimi — En Önemli Kısım</h3>
+                <ul class="lit-list">
+                  <li><b>Pozisyon büyüklüğü:</b> Tek bir varlığa sermayenizin küçük bir kısmını (örn. %2–5) koyun. Hiçbir tek işlem sizi batıramamalı.</li>
+                  <li><b>Stop-loss:</b> Her alımda "buraya düşerse çıkarım" seviyesini önceden belirleyin (örn. ATR'nin 1.5–2 katı altı). Zararı küçük tutmak, kârı büyütmekten önce gelir.</li>
+                  <li><b>Çeşitlendirme:</b> Farklı pazar ve sektörlere yayın (ABD + BIST + kripto, teknoloji + sanayi…). Korelasyonu düşük varlıklar riski azaltır.</li>
+                  <li><b>Risk/Ödül oranı:</b> Hedef kâr, göze aldığınız zararın en az 2 katı olsun. %50 isabetle bile kazanırsınız.</li>
+                  <li><b>Duygu yönetimi:</b> Korku ve hırs en büyük düşman. Planınıza sadık kalın; "kaçırma korkusuyla" (FOMO) tepe noktasından almayın.</li>
+                </ul>
+              </article>
+
+              <article class="editorial-section">
+                <h3>🌍 Haberler &amp; Makro Piyasayı Nasıl Etkiler?</h3>
+                <div class="lit-grid">
+                  <div class="lit">
+                    <h4>Faiz Kararları</h4>
+                    <p>Merkez bankaları (Fed, TCMB) faizi artırınca borçlanma pahalılaşır → hisseler ve kripto genelde baskılanır. Faiz indirimi tersine destekler.</p>
+                  </div>
+                  <div class="lit">
+                    <h4>Enflasyon Verisi</h4>
+                    <p>Yüksek enflasyon → faiz artışı beklentisi → risk iştahı düşer. CPI/PPI açıklamaları piyasayı sert hareket ettirir.</p>
+                  </div>
+                  <div class="lit">
+                    <h4>Şirket Bilançoları</h4>
+                    <p>Beklenti üstü kâr hisseyi uçurur, altı çakar. Bilanço dönemlerinde volatilite artar.</p>
+                  </div>
+                  <div class="lit">
+                    <h4>Jeopolitik &amp; Kur</h4>
+                    <p>Savaş, seçim, kur şokları (özellikle BIST için TL/USD) tüm teknik tabloyu bir günde değiştirebilir. Haber akışını takip edin.</p>
+                  </div>
+                </div>
+                <p class="muted-note">Bu yüzden <b>Günlük Rapor</b> sekmesi her sabah güncel makro/haber durumunu okuyup takip listenize etkisini yorumlar.</p>
+              </article>
+
+              <article class="editorial-section">
+                <h3>⚠️ Sık Yapılan Hatalar</h3>
+                <ul class="lit-list">
+                  <li>Tek indikatöre güvenmek — sinyalleri birlikte okuyun (trend + momentum + hacim).</li>
+                  <li>Zarardaki pozisyonu "döner" diye tutmak; kazançlıyı erken satmak.</li>
+                  <li>Kaldıraçla kapasitenin üstünde risk almak.</li>
+                  <li>Araştırmadan, sadece sosyal medya tüyosuyla almak.</li>
+                  <li>Geçmiş getirinin geleceği garanti ettiğini sanmak.</li>
+                </ul>
+              </article>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

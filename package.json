@@ -1,0 +1,15 @@
+{
+  "name": "finans-otomasyonu",
+  "version": "1.0.0",
+  "description": "ABD hisseleri, BIST 20 ve kripto icin otomatik takip + yatirim onerisi paneli",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "fetch": "node src/fetch-all.js",
+    "test": "node test/decision.test.js && node test/chart-data.test.js && node test/ui-contract.test.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "lightweight-charts": "^5.2.0"
+  }
+}

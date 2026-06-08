@@ -1,0 +1,12 @@
+{
+  "us": [
+    { "symbol": "AAPL", "amount": 10, "avgPrice": 175.2 },
+    { "symbol": "NVDA", "amount": 25, "avgPrice": 110.5 }
+  ],
+  "bist": [
+    { "symbol": "THYAO", "amount": 50, "avgPrice": 285.0 }
+  ],
+  "crypto": [
+    { "symbol": "BTC", "amount": 0.2, "avgPrice": 62500.0 }
+  ]
+}
