@@ -14,7 +14,7 @@ const { runAll } = require('./src/fetch-all');
 const { runBacktest } = require('./src/backtest-engine');
 const { fetchAssetChart } = require('./src/chart-data');
 const { runMonteCarlo, calculateDCF, runStressTest, calculateCorrelationMatrix, calculateGraham, calculateDDM } = require('./src/forecast');
-const { getPortfolio, savePortfolio, getLatestSnapshot, getHistory } = require('./src/db');
+const { getPortfolio, savePortfolio, getLatestSnapshot, getHistory, getReport } = require('./src/db');
 const { isAuthorized } = require('./src/admin-auth');
 
 const ROOT = __dirname;
@@ -72,11 +72,9 @@ const server = http.createServer(async (req, res) => {
       return res.end(JSON.stringify(Array.isArray(hist) ? hist : []));
     }
     if (p === '/api/report') {
-      const readJson = (f) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { return null; } };
-      const base = readJson(path.join(DATA, 'report', 'base.json'));
-      const ai   = readJson(path.join(DATA, 'report', 'ai.json'));
+      const r = await getReport(); // Supabase reports tablosu (en son)
       res.writeHead(200, { 'Content-Type': MIME['.json'] });
-      return res.end(JSON.stringify({ base, ai }));
+      return res.end(JSON.stringify({ base: r.base || null, ai: r.ai || null, date: r.date || null }));
     }
     if (p === '/api/refresh' && req.method === 'POST') {
       if (!isAuthorized(req)) {

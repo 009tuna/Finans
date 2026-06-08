@@ -35,5 +35,13 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           FINNHUB_TOKEN:             ${{ secrets.FINNHUB_TOKEN }}
 
+      - name: Temel raporu üret (base → Supabase)
+        run: node src/report.js
+        env:
+          SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY:         ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          FINNHUB_TOKEN:             ${{ secrets.FINNHUB_TOKEN }}
+
       - name: Tamamlandı
-        run: echo "✅ Veriler güncellendi - $(date '+%Y-%m-%d %H:%M:%S UTC')"
+        run: echo "✅ Veriler + temel rapor güncellendi - $(date '+%Y-%m-%d %H:%M:%S UTC')"

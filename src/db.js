@@ -303,6 +303,60 @@ async function setCache(key, value) {
   }
 }
 
+// =====================================================
+// GÜNLÜK RAPOR (data/report/*.json yerine)
+// =====================================================
+
+/**
+ * Rapor kaydını döndürür. date verilmezse en son raporu getirir.
+ * @param {string} [date] YYYY-MM-DD
+ * @returns {{ base: object|null, ai: object|null, date: string|null }}
+ */
+async function getReport(date) {
+  const empty = { base: null, ai: null, date: null };
+  if (!supabase) return empty;
+
+  try {
+    let query = supabase.from('reports').select('date, base, ai');
+    query = date
+      ? query.eq('date', date)
+      : query.order('date', { ascending: false }).limit(1);
+
+    const { data, error } = await query;
+    if (error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    return row ? { base: row.base || null, ai: row.ai || null, date: row.date } : empty;
+  } catch (e) {
+    console.error('⚠️  [db] getReport hatası:', e.message);
+    return empty;
+  }
+}
+
+/**
+ * Rapor satırını upsert eder. base ve ai AYRI yazılabilir; verilmeyen alan korunur
+ * (Supabase upsert yalnızca sağlanan sütunları günceller).
+ * @param {string} date YYYY-MM-DD
+ * @param {{ base?: object, ai?: object }} fields
+ */
+async function saveReport(date, fields = {}) {
+  if (!supabaseAdmin) return;
+
+  try {
+    const row = { date, updated_at: new Date().toISOString() };
+    if (fields.base !== undefined) row.base = fields.base;
+    if (fields.ai !== undefined) row.ai = fields.ai;
+
+    const { error } = await supabaseAdmin
+      .from('reports')
+      .upsert(row, { onConflict: 'date' });
+
+    if (error) throw error;
+  } catch (e) {
+    console.error('⚠️  [db] saveReport hatası:', e.message);
+    throw e;
+  }
+}
+
 module.exports = {
   supabase,
   supabaseAdmin,
@@ -313,5 +367,7 @@ module.exports = {
   getHistory,
   appendHistory,
   getCache,
-  setCache
+  setCache,
+  getReport,
+  saveReport
 };

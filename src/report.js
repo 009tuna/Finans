@@ -6,6 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const { fetchEconomic, fetchEarnings, fetchCompanyNews } = require('./calendar');
+const { getLatestSnapshot, saveReport } = require('./db');
 
 const ROOT = path.join(__dirname, '..');
 const DATA = path.join(ROOT, 'data');
@@ -21,7 +22,12 @@ function ymd(d) {
 async function buildBaseReport() {
   const cfg = loadConfig();
   const token = cfg.finnhubToken;
-  const snap = JSON.parse(fs.readFileSync(path.join(DATA, 'latest.json'), 'utf8'));
+  // Snapshot Supabase'den (latest.json artık yazılmıyor); yerel dev için dosya fallback.
+  let snap = await getLatestSnapshot();
+  if (!snap) {
+    try { snap = JSON.parse(fs.readFileSync(path.join(DATA, 'latest.json'), 'utf8')); } catch (_) {}
+  }
+  if (!snap) throw new Error('Snapshot yok (Supabase market_snapshots boş ve latest.json bulunamadı). Önce node src/fetch-all.js çalıştırın.');
   const all = []
     .concat((snap.us || []).map((x) => ({ market: 'ABD', ...x })))
     .concat((snap.bist || []).map((x) => ({ market: 'BIST', ...x })))
@@ -111,10 +117,22 @@ async function buildBaseReport() {
 }
 
 async function run() {
-  fs.mkdirSync(REPORT_DIR, { recursive: true });
   const base = await buildBaseReport();
-  fs.writeFileSync(path.join(REPORT_DIR, 'base.json'), JSON.stringify(base, null, 2));
-  fs.writeFileSync(path.join(REPORT_DIR, 'base-' + base.date + '.json'), JSON.stringify(base));
+  // Yerel dosya (Claude routine base.json'u okur) — best-effort.
+  try {
+    fs.mkdirSync(REPORT_DIR, { recursive: true });
+    fs.writeFileSync(path.join(REPORT_DIR, 'base.json'), JSON.stringify(base, null, 2));
+    fs.writeFileSync(path.join(REPORT_DIR, 'base-' + base.date + '.json'), JSON.stringify(base));
+  } catch (e) {
+    console.warn('Yerel base.json yazılamadı (sorun değil, Supabase asıl):', e.message);
+  }
+  // Supabase'e yaz (asıl kaynak — Vercel buradan okur).
+  try {
+    await saveReport(base.date, { base });
+    console.log('Temel rapor Supabase\'e yazıldı: ' + base.date);
+  } catch (e) {
+    console.error('⚠️  Temel rapor Supabase\'e yazılamadı:', e.message);
+  }
   const c = base.calendar || {};
   console.log('Temel rapor üretildi: ' + base.date + ' | duyarlılık ' + base.sentiment.label + ' (' + base.sentiment.avg + ')');
   console.log('  Takvim: ' + (c.economic || []).length + ' ekonomik olay, ' + (c.earnings || []).length + ' bilanço, ' + (c.companyNews || []).length + ' haber');
