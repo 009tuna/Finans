@@ -10,6 +10,8 @@ const { scoreAsset } = require('./analyze');
 const { attachDecisionMetadata } = require('./decision');
 const { saveSnapshot, appendHistory, getHistory } = require('./db');
 const { fetchFxRates } = require('./fx');
+const { fetchAssetChart } = require('./chart-data');
+const { computeMarketRegimes } = require('./market-regime');
 
 const ROOT = path.join(__dirname, '..');
 const fs = require('fs');
@@ -84,16 +86,34 @@ function buildCrypto(c) {
   };
 }
 
+// Piyasa-seviye rejim girdileri: ^VIX (US), ^IXIC+BTC-USD (kripto korelasyon), XU100.IS (BIST SMA200).
+// Her biri dayanıklı: çekilemezse o rejim null döner, akışı bozmaz.
+async function fetchMarketRegimes() {
+  const safe = async (params) => {
+    try { const r = await fetchAssetChart(params); return (r && r.bars) || null; }
+    catch (_) { return null; }
+  };
+  const [vixBars, nasdaqBars, btcBars, bistBars] = await Promise.all([
+    safe({ market: 'us', symbol: '^VIX', interval: '1d', range: '3mo' }),
+    safe({ market: 'us', symbol: '^IXIC', interval: '1d', range: '3mo' }),
+    safe({ market: 'us', symbol: 'BTC-USD', interval: '1d', range: '3mo' }),
+    safe({ market: 'bist', symbol: 'XU100', interval: '1d', range: '2y' }), // SMA200 için ≥200 gün
+  ]);
+  try { return computeMarketRegimes({ vixBars, nasdaqBars, btcBars, bistBars }); }
+  catch (_) { return { us: null, bist: null, crypto: null }; }
+}
+
 async function runAll() {
   const cfg = loadConfig();
   const token = cfg.finnhubToken;
 
-  const [usSeries, usFund, bistSeries, crypto, fx] = await Promise.all([
+  const [usSeries, usFund, bistSeries, crypto, fx, marketRegime] = await Promise.all([
     fetchManySeries(cfg.watchlists.us),
     fetchManyFundamentals(cfg.watchlists.us, token),
     fetchManySeries(cfg.watchlists.bist, (s) => s + '.IS'),
     fetchCryptoFull(cfg.watchlists.crypto),
     fetchFxRates(),
+    fetchMarketRegimes(),
   ]);
 
   const fundBy = {};
@@ -145,6 +165,7 @@ async function runAll() {
     counts: { us: scored(us).length, bist: scored(bist).length, crypto: scored(cryptoArr).length },
     market: { usAsOf: maxTime(us), bistAsOf: maxTime(bist), cryptoAsOf: maxTime(cryptoArr) },
     fx,
+    marketRegime,
     topPicks,
     allocation,
     us,

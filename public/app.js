@@ -267,7 +267,7 @@ function setView(view) {
 function renderView() {
   if (!DATA || DATA.empty) return;
   if (activeView === 'overview') {
-    renderKpis(); renderPicks(); renderAlloc(); renderMovers(); renderFxWidget();
+    renderKpis(); renderPicks(); renderAlloc(); renderMovers(); renderFxWidget(); renderMarketRegime();
     triggerRevealAnimations($('#view-overview'));
   }
   else if (activeView === 'us' || activeView === 'bist' || activeView === 'crypto') {
@@ -508,6 +508,25 @@ function renderPicks() {
         mini + '<span class="badge tone-' + p.tone + '">' + p.label + ' · ' + p.score + '</span></div>';
       })
       .join('') || '<p class="muted">Henüz veri yok.</p>';
+}
+
+/* ---------- Piyasa Rejimi (piyasa-seviye) ---------- */
+function renderMarketRegime() {
+  const el = $('#marketRegime');
+  if (!el) return;
+  const mr = DATA && DATA.marketRegime;
+  if (!mr) { el.innerHTML = '<p class="muted">Piyasa rejimi verisi henüz yok (sonraki güncellemede gelir).</p>'; return; }
+  const TONE = { calm: 'pos', normal: '', stress: 'warn', panic: 'neg', 'long-ok': 'pos', cash: 'neg', coupled: '', decoupled: 'pos', mixed: '' };
+  const tile = (flag, name, r) => {
+    if (!r) return '<div class="regime-tile"><div class="rt-head"><span class="rt-mkt">' + flag + ' ' + name + '</span></div><p class="rt-advice muted">Veri yok</p></div>';
+    const t = TONE[r.type] || '';
+    return '<div class="regime-tile rt-' + t + '">' +
+      '<div class="rt-head"><span class="rt-mkt">' + flag + ' ' + name + '</span><span class="rt-badge rt-' + t + '">' + esc(r.label) + '</span></div>' +
+      '<div class="rt-metric">' + esc(r.metric) + ': <b>' + r.value + '</b></div>' +
+      '<p class="rt-advice">' + esc(r.advice) + '</p>' +
+    '</div>';
+  };
+  el.innerHTML = tile('🇺🇸', 'ABD', mr.us) + tile('₿', 'Kripto', mr.crypto) + tile('🇹🇷', 'BIST', mr.bist);
 }
 
 function renderAlloc() {
