@@ -217,5 +217,74 @@
     };
   }
 
-  return { explainDecision: explainDecision, explainBacktest: explainBacktest };
+  /**
+   * Yönetici Özeti / Risk Panosu — tüm parçaları (piyasa rejimi, karar kalitesi,
+   * çelişkiler, fırsatlar) tek risk seviyesi + sade hüküm + aksiyon listesine indirir.
+   * Snapshot'taki HAZIR veriden hesaplar (anında, ek API çağrısı yok).
+   */
+  function buildExecutiveSummary(snapshot) {
+    if (!snapshot) return null;
+    const mr = snapshot.marketRegime || {};
+    const all = [].concat(snapshot.us || [], snapshot.bist || [], snapshot.crypto || [])
+      .filter(function (x) { return x && x.analysis && x.analysis.score != null; });
+    if (!all.length && !mr.us && !mr.bist && !mr.crypto) return null;
+
+    const dq = all.map(function (x) { return x.decision && x.decision.score; }).filter(function (v) { return typeof v === 'number'; });
+    const avgQuality = dq.length ? Math.round(dq.reduce(function (a, b) { return a + b; }, 0) / dq.length) : null;
+    const contradictionCount = all.reduce(function (n, x) { return n + ((x.decision && x.decision.contradictions) ? x.decision.contradictions.length : 0); }, 0);
+
+    const environment = [];
+    let riskPoints = 0;
+    if (mr.us) {
+      if (mr.us.type === 'panic') { riskPoints += 2; environment.push('ABD: panik volatilite'); }
+      else if (mr.us.type === 'stress') { riskPoints += 1; environment.push('ABD: yüksek volatilite (stres)'); }
+      else if (mr.us.type === 'calm') { environment.push('ABD: düşük volatilite (mean-reversion)'); }
+      else environment.push('ABD: normal volatilite');
+    }
+    if (mr.bist) {
+      if (mr.bist.type === 'cash') { riskPoints += 2; environment.push('BIST: 200g altı (nakit rejimi)'); }
+      else environment.push('BIST: long rejim aktif');
+    }
+    if (mr.crypto) {
+      if (mr.crypto.type === 'decoupled') environment.push('Kripto: Nasdaq kopuşu (tepki fırsatı)');
+      else if (mr.crypto.type === 'coupled') environment.push('Kripto: makroya bağlı');
+      else environment.push('Kripto: korelasyon karışık');
+    }
+    if (avgQuality != null && avgQuality < 60) riskPoints += 2;
+    else if (avgQuality != null && avgQuality < 75) riskPoints += 1;
+    if (contradictionCount >= 3) riskPoints += 1;
+
+    const riskLevel = riskPoints >= 4 ? { label: 'Yüksek', tone: 'neg' }
+      : riskPoints >= 2 ? { label: 'Orta', tone: 'warn' }
+      : { label: 'Düşük', tone: 'pos' };
+
+    const best = (snapshot.topPicks || [])[0] || null;
+
+    const regimeActions = [];
+    if (mr.bist && mr.bist.type === 'cash') regimeActions.push('BIST 200g ortalama altında — kısa-vade long\'dan kaçın; sadece likit büyüklerde tepki ya da nakit.');
+    if (mr.us && (mr.us.type === 'stress' || mr.us.type === 'panic')) regimeActions.push('ABD volatilitesi yüksek — pozisyon küçült; mean-reversion yerine breakout/momentum.');
+    else if (mr.us && mr.us.type === 'calm') regimeActions.push('ABD düşük volatilitede — RSI uçları/Bollinger ile mean-reversion uygun, trend takibi zor.');
+    if (mr.crypto && mr.crypto.type === 'coupled') regimeActions.push('Kripto Nasdaq ile bağlı — bağımsız kripto sinyaline güvenme, makro risk-on/off izle.');
+    else if (mr.crypto && mr.crypto.type === 'decoupled') regimeActions.push('Kripto Nasdaq\'tan koptu — geçici ayrışma; majörlerde tepki/yakınsama izlenebilir.');
+    // En fazla 2 rejim aksiyonu + en iyi fırsat + (her zaman) dürüstlük notu.
+    const honesty = 'Kısa-vade üç piyasada da maliyet-sonrası çoğu birey için negatif-toplamlı; az ama doğru işlem + sıkı stop.';
+    const finalActions = regimeActions.slice(0, 2);
+    if (best) finalActions.push('En yüksek puanlı fırsat: ' + best.market + ' ' + best.symbol + ' (' + best.label + ' · ' + best.score + ') — varlığın rejim/maliyet kartını oku.');
+    finalActions.push(honesty);
+
+    const headline = 'Piyasa ortamı ' + riskLevel.label.toLowerCase() + ' riskli'
+      + (avgQuality != null ? ' · ortalama karar kalitesi ' + avgQuality + '/100' : '')
+      + (environment.length ? '. ' + environment.slice(0, 3).join(' · ') + '.' : '.');
+
+    return {
+      riskLevel: riskLevel,
+      avgQuality: avgQuality,
+      contradictionCount: contradictionCount,
+      environment: environment,
+      headline: headline,
+      actions: finalActions,
+    };
+  }
+
+  return { explainDecision: explainDecision, explainBacktest: explainBacktest, buildExecutiveSummary: buildExecutiveSummary };
 });

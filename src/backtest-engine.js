@@ -151,6 +151,30 @@ async function runBacktest({ symbol, market, buyThreshold = 70, sellThreshold = 
   const strategyReturn = ((finalCapital - initialCapital) / initialCapital) * 100;
   const bhReturn = ((closes[n - 1] - closes[startDay]) / closes[startDay]) * 100;
 
+  // --- Risk-ayarlı metrikler + örneklem-içi/dışı tutarlılık (dürüstlük) ---
+  const dailyRets = [];
+  for (let i = 1; i < equityCurve.length; i++) {
+    const prev = equityCurve[i - 1].total || 1;
+    dailyRets.push((equityCurve[i].total - prev) / prev);
+  }
+  const mean = dailyRets.length ? dailyRets.reduce((a, b) => a + b, 0) / dailyRets.length : 0;
+  const variance = dailyRets.length > 1 ? dailyRets.reduce((a, b) => a + (b - mean) ** 2, 0) / (dailyRets.length - 1) : 0;
+  const sd = Math.sqrt(variance);
+  const downside = dailyRets.filter((r) => r < 0);
+  const downVar = downside.length ? downside.reduce((a, b) => a + b * b, 0) / downside.length : 0;
+  const downSd = Math.sqrt(downVar);
+  const sharpe = sd > 0 ? (mean / sd) * Math.sqrt(252) : null;
+  const sortino = downSd > 0 ? (mean / downSd) * Math.sqrt(252) : null;
+
+  // Yarı-dönem tutarlılığı: strateji ikinci yarıda da çalıştı mı? (overfit/şans göstergesi)
+  const half = Math.floor(equityCurve.length / 2);
+  const halfReturn = (a, b) => {
+    if (!equityCurve[a] || !equityCurve[b] || !equityCurve[a].total) return null;
+    return Math.round(((equityCurve[b].total - equityCurve[a].total) / equityCurve[a].total) * 10000) / 100;
+  };
+  const firstHalfReturn = half > 1 ? halfReturn(0, half) : null;
+  const secondHalfReturn = half > 1 ? halfReturn(half, equityCurve.length - 1) : null;
+
   return {
     symbol,
     market,
@@ -164,6 +188,10 @@ async function runBacktest({ symbol, market, buyThreshold = 70, sellThreshold = 
     finalCapital: Math.round(finalCapital * 100) / 100,
     strategyReturn: Math.round(strategyReturn * 100) / 100,
     bhReturn: Math.round(bhReturn * 100) / 100,
+    sharpe: sharpe != null ? Math.round(sharpe * 100) / 100 : null,
+    sortino: sortino != null ? Math.round(sortino * 100) / 100 : null,
+    firstHalfReturn,
+    secondHalfReturn,
     trades,
     equityCurve,
   };

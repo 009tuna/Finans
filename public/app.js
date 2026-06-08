@@ -267,7 +267,7 @@ function setView(view) {
 function renderView() {
   if (!DATA || DATA.empty) return;
   if (activeView === 'overview') {
-    renderKpis(); renderPicks(); renderAlloc(); renderMovers(); renderFxWidget(); renderMarketRegime();
+    renderExecSummary(); renderKpis(); renderPicks(); renderAlloc(); renderMovers(); renderFxWidget(); renderMarketRegime();
     triggerRevealAnimations($('#view-overview'));
   }
   else if (activeView === 'us' || activeView === 'bist' || activeView === 'crypto') {
@@ -508,6 +508,22 @@ function renderPicks() {
         mini + '<span class="badge tone-' + p.tone + '">' + p.label + ' · ' + p.score + '</span></div>';
       })
       .join('') || '<p class="muted">Henüz veri yok.</p>';
+}
+
+/* ---------- Yönetici Özeti / Risk Panosu ---------- */
+function renderExecSummary() {
+  const el = $('#execSummary');
+  if (!el) return;
+  if (!window.FinansInsights || !window.FinansInsights.buildExecutiveSummary) { el.innerHTML = ''; return; }
+  const s = window.FinansInsights.buildExecutiveSummary(DATA);
+  if (!s) { el.innerHTML = ''; return; }
+  const tone = s.riskLevel.tone;
+  el.innerHTML = '<div class="card reveal exec-card exec-' + tone + '">' +
+    '<div class="exec-head"><h2>🧠 Yönetici Özeti</h2>' +
+      '<span class="exec-risk er-' + tone + '">Risk: ' + esc(s.riskLevel.label) + '</span></div>' +
+    '<p class="exec-headline">' + esc(s.headline) + '</p>' +
+    '<ol class="exec-actions">' + s.actions.map((a) => '<li>' + esc(a) + '</li>').join('') + '</ol>' +
+  '</div>';
 }
 
 /* ---------- Piyasa Rejimi (piyasa-seviye) ---------- */
@@ -1752,6 +1768,19 @@ function renderBacktestStory(res) {
         '<p>' + esc(ins.breaksWhen) + '</p></div>';
   } else if (!buys.length) {
     story.innerHTML += '<div class="bt-story-card warn"><span class="bt-kicker">Okuma notu</span><b>Alım sinyali yok</b><p>Eşikler bu varlık için fazla seçici olabilir. Alım eşiğini düşürüp tekrar deneyin.</p></div>';
+  }
+  // Risk-ayarlı metrikler + yarı-dönem tutarlılığı (dürüstlük)
+  if (res.sharpe != null || res.firstHalfReturn != null) {
+    const consistent = (res.firstHalfReturn != null && res.secondHalfReturn != null)
+      ? ((res.firstHalfReturn > 0) === (res.secondHalfReturn > 0))
+      : null;
+    const consText = consistent == null ? 'tek dönem değerlendirildi'
+      : consistent ? 'her iki yarıda da aynı yönde — daha güvenilir'
+      : 'yalnızca bir yarıda çalıştı — şansa/rejime duyarlı, dikkat';
+    story.innerHTML +=
+      '<div class="bt-story-card"><span class="bt-kicker">Risk-ayarlı</span>' +
+        '<b class="' + (res.sharpe != null && res.sharpe > 0 ? 'pos' : 'neg') + '">Sharpe ' + (res.sharpe != null ? res.sharpe : '–') + ' · Sortino ' + (res.sortino != null ? res.sortino : '–') + '</b>' +
+        '<p>Yarı-dönem: 1.yarı ' + (res.firstHalfReturn != null ? fmtPct(res.firstHalfReturn) : '–') + ' / 2.yarı ' + (res.secondHalfReturn != null ? fmtPct(res.secondHalfReturn) : '–') + ' — ' + consText + '.</p></div>';
   }
 }
 

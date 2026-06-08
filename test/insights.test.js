@@ -1,7 +1,7 @@
 // İnsancıl karar/backtest özeti üreticilerinin birim testleri (saf, ağ/Supabase gerekmez).
 'use strict';
 const assert = require('assert');
-const { explainDecision, explainBacktest } = require('../public/insights.js');
+const { explainDecision, explainBacktest, buildExecutiveSummary } = require('../public/insights.js');
 
 console.log('🧪 Insights (insancıl özet) testleri başlatılıyor...\n');
 
@@ -106,5 +106,29 @@ const bt2 = explainBacktest(btNone);
 assert.equal(bt2.headlineTone, 'warn');
 assert.ok(/hiç alım/i.test(bt2.worksWhen));
 console.log('   ✓ Başarılı: alımsız senaryo uyarı olarak işaretlendi.');
+
+// --- buildExecutiveSummary ---
+console.log('6. buildExecutiveSummary — risk + aksiyon sentezi...');
+const snap = {
+  marketRegime: {
+    us: { type: 'calm', label: 'Rehavet' },
+    bist: { type: 'cash', label: 'Nakit' },
+    crypto: { type: 'coupled', label: 'Makroya bağlı' },
+  },
+  topPicks: [{ market: 'ABD', symbol: 'AAPL', label: 'AL', score: 72 }],
+  us: [{ analysis: { score: 72 }, decision: { score: 55, contradictions: [{ label: 'x', detail: 'y' }] } }],
+  bist: [{ analysis: { score: 60 }, decision: { score: 50, contradictions: [] } }],
+  crypto: [{ analysis: { score: 40 }, decision: { score: 45, contradictions: [{ label: 'a', detail: 'b' }, { label: 'c', detail: 'd' }] } }],
+};
+const ex = buildExecutiveSummary(snap);
+assert.ok(ex.riskLevel && ex.riskLevel.label, 'risk seviyesi olmalı');
+assert.equal(ex.riskLevel.label, 'Yüksek'); // bist cash(+2) + avgQuality 50<60(+2) + 3 çelişki(+1)
+assert.ok(ex.actions.length >= 2 && ex.actions.length <= 4);
+const actionsText = ex.actions.join(' ');
+assert.ok(/BIST 200g/.test(actionsText), 'BIST nakit aksiyonu olmalı');
+assert.ok(/AAPL/.test(actionsText), 'en iyi fırsat aksiyonu olmalı');
+assert.ok(/negatif-toplaml/.test(actionsText), 'dürüstlük aksiyonu her zaman son sırada');
+assert.equal(buildExecutiveSummary(null), null);
+console.log('   ✓ Başarılı: risk=' + ex.riskLevel.label + ', ' + ex.actions.length + ' aksiyon.');
 
 console.log('\n🎉 Tüm insights testleri geçti.');
