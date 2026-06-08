@@ -1371,12 +1371,13 @@ async function renderPortfolioView() {
     </div>
     <div class="kpi">
       <div class="label">Net Kâr / Zarar</div>
-      <div class="value ${finalPnLUSD >= 0 ? 'pos' : 'neg'}">${fmtPrice(finalPnLUSD, 'USD')} (${fmtPct(finalPnLPercent)})<small>Maliyete göre değişim</small></div>
+      <div class="value ${finalPnLUSD >= 0 ? 'pos' : 'neg'}">${fmtPrice(finalPnLUSD, 'USD')} (${fmtPct(finalPnLPercent)})<small>TL: ${fmtPrice(finalPnLTRY, 'TRY')} · USD reel getiriyi yansıtır</small></div>
     </div>
     <div class="kpi">
       <div class="label">Risk Profili</div>
       <div class="value"><span class="sent-pill ${riskCls}" style="font-size: 14px; padding: 4px 10px; font-weight:700;">${riskLabel}</span><small>Kripto ağırlığı: %${Math.round(cryptoWeightPct)}</small></div>
     </div>
+    <div class="infl-note">💡 <b>Para illüzyonu:</b> TL'deki nominal kâr enflasyonla erir — <b>USD bazlı kâr/zarar reel getirinin daha dürüst göstergesidir</b>. Reel TL ≈ (1+nominal)/(1+TÜFE)−1 · yıllık TÜFE ~%32 (2026).</div>
   `;
   
   if (!tableRows.length) {
@@ -1794,7 +1795,19 @@ function drawBacktestChart(res) {
   const strategyData = curve.map(c => c.total);
   const initialPrice = curve[0] ? curve[0].price : 1;
   const bhData = curve.map(c => (c.price / initialPrice) * res.initialCapital);
-  
+
+  // Al/Sat marker'ları: işlem günlerini sermaye eğrisinde işaretle
+  const dayToIdx = {};
+  curve.forEach((c, i) => { dayToIdx[c.day] = i; });
+  const buyPts = new Array(curve.length).fill(null);
+  const sellPts = new Array(curve.length).fill(null);
+  (res.trades || []).forEach(t => {
+    const idx = dayToIdx[t.day];
+    if (idx == null || !curve[idx]) return;
+    if (t.type === 'BUY') buyPts[idx] = curve[idx].total;
+    else sellPts[idx] = curve[idx].total;
+  });
+
   backtestChart = new Chart(canvas, {
     type: 'line',
     data: {
@@ -1819,6 +1832,28 @@ function drawBacktestChart(res) {
           pointRadius: 0,
           fill: false,
           tension: 0.1
+        },
+        {
+          label: '▲ Alış',
+          data: buyPts,
+          borderColor: 'transparent',
+          backgroundColor: '#28d793',
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointStyle: 'triangle',
+          showLine: false,
+          fill: false
+        },
+        {
+          label: '◆ Satış',
+          data: sellPts,
+          borderColor: 'transparent',
+          backgroundColor: '#ef4444',
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointStyle: 'rectRot',
+          showLine: false,
+          fill: false
         }
       ]
     },

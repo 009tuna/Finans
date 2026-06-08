@@ -434,6 +434,10 @@ tr.row:hover { background: rgba(255,255,255,.025); }
 .reasons li.r-neg { color: #ff7e87; }
 .reasons li.r-neutral { color: var(--muted); }
 
+/* Portföy enflasyon/para-illüzyonu notu (KPI grid'i içinde tam genişlik) */
+.kpis .infl-note { grid-column: 1 / -1; font-size: 12px; line-height: 1.55; color: var(--muted); background: rgba(234,179,8,.05); border: 1px solid rgba(234,179,8,.18); border-radius: 10px; padding: 10px 13px; }
+.kpis .infl-note b { color: var(--text); }
+
 /* Yönetici Özeti / Risk Panosu (Genel Bakış üstü) */
 .exec-card { border-left: 3px solid var(--muted); margin-bottom: 16px; }
 .exec-card.exec-pos { border-left-color: #28d793; }
