@@ -11,6 +11,7 @@ const path = require('path');
 const { runAll } = require('./src/fetch-all');
 const { runBacktest } = require('./src/backtest-engine');
 const { fetchAssetChart } = require('./src/chart-data');
+const { runMonteCarlo, calculateDCF, runStressTest } = require('./src/forecast');
 
 const ROOT = __dirname;
 
@@ -112,16 +113,48 @@ const server = http.createServer(async (req, res) => {
         }
       }
     }
-    if (p === '/api/backtest' && req.method === 'POST') {
+    if (p === '/api/forecast/montecarlo' && req.method === 'POST') {
       const bodyStr = await readBody(req);
       try {
         const params = JSON.parse(bodyStr);
-        const result = await runBacktest(params);
+        const result = await runMonteCarlo(params);
         res.writeHead(200, { 'Content-Type': MIME['.json'] });
         return res.end(JSON.stringify(result));
       } catch (e) {
         res.writeHead(400, { 'Content-Type': MIME['.json'] });
-        return res.end(JSON.stringify({ error: (e && e.message) || 'Bilinmeyen backtest hatasi' }));
+        return res.end(JSON.stringify({ error: (e && e.message) || 'Monte Carlo hatasi' }));
+      }
+    }
+    if (p === '/api/forecast/dcf' && req.method === 'POST') {
+      const bodyStr = await readBody(req);
+      try {
+        const params = JSON.parse(bodyStr);
+        const result = calculateDCF(params);
+        res.writeHead(200, { 'Content-Type': MIME['.json'] });
+        return res.end(JSON.stringify(result));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': MIME['.json'] });
+        return res.end(JSON.stringify({ error: (e && e.message) || 'DCF hatasi' }));
+      }
+    }
+    if (p === '/api/forecast/scenarios' && req.method === 'GET') {
+      try {
+        const pFile = path.join(DATA, 'portfolio.json');
+        let portfolio = { us: [], bist: [], crypto: [] };
+        if (fs.existsSync(pFile)) {
+          portfolio = JSON.parse(fs.readFileSync(pFile, 'utf8'));
+        }
+        const latestFile = path.join(DATA, 'latest.json');
+        let latestData = null;
+        if (fs.existsSync(latestFile)) {
+          latestData = JSON.parse(fs.readFileSync(latestFile, 'utf8'));
+        }
+        const result = runStressTest(portfolio, latestData);
+        res.writeHead(200, { 'Content-Type': MIME['.json'] });
+        return res.end(JSON.stringify(result));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': MIME['.json'] });
+        return res.end(JSON.stringify({ error: (e && e.message) || 'Stres testi hatasi' }));
       }
     }
     if (p === '/' || p === '') p = '/index.html';

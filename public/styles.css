@@ -971,3 +971,73 @@ tr.row:hover { background: rgba(255,255,255,.025); }
   .btn-wrap { margin-top: 10px; }
   .flex-item-contra { flex: 1 1 100%; }
 }
+
+/* ---------- Projeksiyon / Forecast Stilleri ---------- */
+.range-group {
+  margin-bottom: 12px;
+}
+.range-lbl {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.range-lbl span {
+  font-weight: 500;
+}
+.range-lbl b {
+  color: var(--text);
+  font-weight: 700;
+}
+.range-group input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  background: var(--border);
+  height: 6px;
+  border-radius: 999px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.range-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text);
+  border: 2px solid var(--accent);
+  transition: transform 100ms ease;
+}
+.range-group input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+@keyframes slideDownSpring {
+  from { opacity: 0; transform: translateY(-16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.slide-down-spring {
+  animation: slideDownSpring 600ms var(--ease-spring) forwards;
+}
+
+@keyframes valuePop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); color: var(--green); }
+  100% { transform: scale(1); }
+}
+.val-pop {
+  animation: valuePop 250ms var(--ease-spring) both;
+}
+
+/* Hover highlights for stress test rows */
+#stress-table-body tr {
+  transition: background 150ms var(--ease-out), transform 150ms var(--ease-out);
+}
+#stress-table-body tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+  transform: scale(1.005) translateX(2px);
+}
+

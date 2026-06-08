@@ -9,6 +9,7 @@ let scoreChart = null;
 let moversChart = null;
 let portAllocChart = null;
 let backtestChart = null;
+let mcChart = null;
 let portfolioData = null;
 let activeDetailCharts = {};
 let assetDeskChart = null;
@@ -166,6 +167,7 @@ const VIEW_META = {
   portfolio: ['💼 Portföyüm', 'Maliyet, kâr/zarar ve portföy sağlık analizi', 'view-portfolio'],
   screener: ['🔍 Teknik Tarayıcı', 'Kritik indikatör sinyalleri ve alarmlar', 'view-screener'],
   backtest: ['📈 Strateji Backtest', 'Geçmiş fiyat verileriyle teknik puan stratejisi testi', 'view-backtest'],
+  forecast: ['🔮 Finansal Projeksiyon', 'Olasılıksal portföy simülasyonu, stres testleri ve DCF analizleri', 'view-forecast'],
   report: ['📰 Günlük Rapor', 'Her sabah 09:00 otomatik rapor', 'view-report'],
   literacy: ['📚 Finansal Okuryazarlık', 'İndikatör ve risk rehberi', 'view-literacy'],
 };
@@ -201,6 +203,8 @@ function renderView() {
     renderScreenerView();
   } else if (activeView === 'backtest') {
     renderBacktestView();
+  } else if (activeView === 'forecast') {
+    renderForecastView();
   }
 }
 
@@ -1438,6 +1442,418 @@ function drawBacktestChart(res) {
       }
     }
   });
+}
+
+let forecastInitialized = false;
+
+function renderForecastView() {
+  if (!forecastInitialized) {
+    forecastInitialized = true;
+    initForecastEventListeners();
+  }
+  
+  // DCF Select doldur (sadece hisseler: us ve bist)
+  const dcfSel = $('#dcf-asset-sel');
+  if (dcfSel) {
+    const opts = [];
+    const addOpts = (list, market, pfx) => {
+      list.forEach(x => {
+        if (!x.__error) {
+          opts.push(`<option value="${market}:${x.symbol}">${pfx}: ${x.symbol} (${x.name || ''})</option>`);
+        }
+      });
+    };
+    addOpts(DATA.us || [], 'us', 'ABD');
+    addOpts(DATA.bist || [], 'bist', 'BIST');
+    dcfSel.innerHTML = opts.join('') || '<option value="">Hisse senedi yok</option>';
+  }
+
+  // Stres testlerini yukle
+  loadStressScenarios();
+  
+  // Ilk DCF yuklemesi
+  if (dcfSel && dcfSel.value) {
+    loadDCFDefaults();
+  }
+}
+
+async function loadStressScenarios() {
+  const tbody = $('#stress-table-body');
+  try {
+    const res = await fetch('/api/forecast/scenarios');
+    const result = await res.json();
+    if (result.error) {
+      tbody.innerHTML = `<tr><td colspan="7" class="muted" style="text-align:center;padding:16px;">Hata: ${result.error}</td></tr>`;
+      return;
+    }
+
+    const scenarios = result.scenarios || {};
+    let h = '';
+    
+    Object.keys(scenarios).forEach(key => {
+      const sc = scenarios[key];
+      const signCls = sc.pnlUSD >= 0 ? 'pos' : 'neg';
+      const pctSignCls = sc.pctChange >= 0 ? 'pos' : 'neg';
+      
+      let shockStr = `ABD: %${sc.shocks.find(s=>s.market==='us')?.shockPct || 0} · ` +
+                     `BIST: %${sc.shocks.find(s=>s.market==='bist')?.shockPct || 0} · ` +
+                     `Kripto: %${sc.shocks.find(s=>s.market==='crypto')?.shockPct || 0}`;
+
+      h += `
+        <tr>
+          <td><b>${esc(sc.name)}</b></td>
+          <td style="font-size:12px; white-space:normal; max-width:220px; line-height:1.4; color:var(--muted);">${esc(sc.desc)}</td>
+          <td style="font-size:12px; color:var(--muted-2);">${shockStr}</td>
+          <td><b>$${fmtNum(sc.oldUSD, 0)}</b> <span style="font-size:11px; color:var(--muted-2);">(${fmtNum(sc.oldTRY, 0)} ₺)</span></td>
+          <td><b>$${fmtNum(sc.newUSD, 0)}</b> <span style="font-size:11px; color:var(--muted-2);">(${fmtNum(sc.newTRY, 0)} ₺)</span></td>
+          <td><b class="${signCls}">${sc.pnlUSD >= 0 ? '+' : ''}$${fmtNum(sc.pnlUSD, 0)}</b> <span style="font-size:11px; color:var(--muted-2);">(${fmtNum(sc.pnlTRY, 0)} ₺)</span></td>
+          <td><b class="${pctSignCls}">${fmtPct(sc.pctChange)}</b></td>
+        </tr>
+      `;
+    });
+    
+    tbody.innerHTML = h || '<tr><td colspan="7" class="muted" style="text-align:center;">Senaryo sonucu üretilemedi.</td></tr>';
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="7" class="muted" style="text-align:center;padding:16px;">Veri bağlantı hatası.</td></tr>`;
+  }
+}
+
+function initForecastEventListeners() {
+  // Monte Carlo Formu
+  const mcForm = $('#mc-form');
+  if (mcForm) {
+    mcForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const runBtn = $('#mc-run-btn');
+      runBtn.disabled = true;
+      runBtn.innerHTML = '<span class="btn-ic">🔮</span> Projeksiyon Çiziliyor...';
+      runBtn.classList.add('loading');
+
+      const horizon = parseInt($('#mc-horizon-sel').value, 10);
+      const monthlySaving = parseFloat($('#mc-saving-input').value) || 0;
+
+      const mcAssets = [];
+      const addMcAssets = (list, market) => {
+        list.forEach(p => {
+          const source = DATA[market].find(x => x.symbol === p.symbol);
+          mcAssets.push({
+            symbol: p.symbol,
+            market,
+            amount: p.amount,
+            price: source ? source.price : p.avgPrice
+          });
+        });
+      };
+      
+      if (portfolioData) {
+        addMcAssets(portfolioData.us || [], 'us');
+        addMcAssets(portfolioData.bist || [], 'bist');
+        addMcAssets(portfolioData.crypto || [], 'crypto');
+      }
+
+      if (!mcAssets.length) {
+        alert('Simülasyon başlatmak için önce Portföyüm sekmesinden portföyünüze en az 1 varlık eklemelisiniz.');
+        runBtn.disabled = false;
+        runBtn.innerHTML = '<span class="btn-ic">🔮</span> Simülasyonu Başlat';
+        runBtn.classList.remove('loading');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/forecast/montecarlo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ assets: mcAssets, horizon, monthlySaving })
+        });
+        const result = await res.json();
+        
+        if (result.error) {
+          alert('Simülasyon Hatası: ' + result.error);
+          return;
+        }
+
+        displayMCResults(result);
+      } catch (err) {
+        alert('Sunucuyla bağlantı hatası oluştu.');
+      } finally {
+        runBtn.disabled = false;
+        runBtn.innerHTML = '<span class="btn-ic">🔮</span> Simülasyonu Başlat';
+        runBtn.classList.remove('loading');
+      }
+    });
+  }
+
+  // DCF Asset change
+  const dcfSel = $('#dcf-asset-sel');
+  if (dcfSel) {
+    dcfSel.addEventListener('change', loadDCFDefaults);
+  }
+
+  // DCF Sliders & Inputs
+  const dcfSliders = [
+    'growth-1-5', 'growth-6-10', 'ebit-margin', 'wacc', 'terminal-growth'
+  ];
+  dcfSliders.forEach(id => {
+    const el = $('#dcf-' + id);
+    if (el) {
+      el.addEventListener('input', (e) => {
+        const lbl = $('#lbl-' + id);
+        if (lbl) {
+          lbl.textContent = (id === 'wacc' || id === 'terminal-growth') ? `%${parseFloat(e.target.value).toFixed(1)}` : `%${e.target.value}`;
+        }
+        runDCFCalculation();
+      });
+    }
+  });
+
+  const dcfInputs = ['tax-rate', 'net-debt', 'revenue', 'shares'];
+  dcfInputs.forEach(id => {
+    const el = $('#dcf-' + id);
+    if (el) {
+      el.addEventListener('change', runDCFCalculation);
+      el.addEventListener('keyup', runDCFCalculation);
+    }
+  });
+
+  // Defaults button
+  const defaultsBtn = $('#dcf-load-defaults-btn');
+  if (defaultsBtn) {
+    defaultsBtn.addEventListener('click', loadDCFDefaults);
+  }
+}
+
+function displayMCResults(res) {
+  const container = $('#mc-results-container');
+  container.hidden = false;
+  
+  // Emil spring entrance animation
+  container.classList.remove('slide-down-spring');
+  void container.offsetWidth; // trigger reflow
+  container.classList.add('slide-down-spring');
+  
+  const n = res.horizon;
+  const pFinal = res.percentiles.pessimistic[n];
+  const mFinal = res.percentiles.median[n];
+  const oFinal = res.percentiles.optimistic[n];
+
+  // countUp count-up!
+  countUp($('#mc-kpi-init'), res.initialValue, { decimals: 0 });
+  countUp($('#mc-kpi-median'), mFinal, { decimals: 0 });
+  countUp($('#mc-kpi-pessimistic'), pFinal, { decimals: 0 });
+  countUp($('#mc-kpi-optimistic'), oFinal, { decimals: 0 });
+  countUp($('#mc-kpi-ret'), res.annualizedReturn, { decimals: 1 });
+  countUp($('#mc-kpi-vol'), res.annualizedVol, { decimals: 1 });
+
+  drawMCChart(res);
+}
+
+function drawMCChart(res) {
+  if (mcChart) mcChart.destroy();
+  const canvas = $('#mcChart');
+  if (!canvas || !window.Chart) return;
+
+  const n = res.horizon;
+  const labels = Array.from({ length: n + 1 }, (_, i) => `Gün ${i}`);
+  
+  mcChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Optimistik (%90 Olasılık Üst Sınır)',
+          data: res.percentiles.optimistic,
+          borderColor: '#28d793',
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.1
+        },
+        {
+          label: 'Medyan (%50 Beklenen Gidişat)',
+          data: res.percentiles.median,
+          borderColor: '#4382ff',
+          backgroundColor: 'rgba(67, 130, 255, 0.04)',
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.1,
+          fill: true
+        },
+        {
+          label: 'Pessimistik (%10 Olasılık Alt Sınır)',
+          data: res.percentiles.pessimistic,
+          borderColor: '#ef4444',
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: reduceMotion ? 0 : 500 },
+      plugins: {
+        legend: { labels: { color: '#7d8590', font: { family: 'Plus Jakarta Sans' } } }
+      },
+      scales: {
+        y: {
+          grid: { color: 'rgba(30, 34, 43, 0.4)' },
+          ticks: { color: '#7d8590', font: { family: 'Plus Jakarta Sans' }, callback: (value) => '$' + fmtNum(value, 0) }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#f1f3f6', font: { size: 10, family: 'Plus Jakarta Sans' }, maxTicksLimit: 12 }
+        }
+      }
+    }
+  });
+}
+
+function loadDCFDefaults() {
+  const dcfSel = $('#dcf-asset-sel');
+  if (!dcfSel || !dcfSel.value) return;
+
+  const parts = dcfSel.value.split(':');
+  const market = parts[0];
+  const symbol = parts[1];
+  
+  const list = DATA[market] || [];
+  const stock = list.find(x => x.symbol === symbol);
+  if (!stock) return;
+
+  const price = stock.price || 100;
+  const marketCap = stock.marketCap || (price * 1000000);
+  const shares = marketCap / price;
+
+  let revenue = marketCap / 4;
+  let pe = stock.pe || null;
+  if (pe && pe > 0) {
+    const netIncome = marketCap / pe;
+    revenue = netIncome / 0.15;
+  }
+
+  const defaults = {
+    us: { wacc: 9.0, growth1_5: 10, growth6_10: 5, ebit: 25, tax: 21, netDebt: 0 },
+    bist: { wacc: 16.0, growth1_5: 25, growth6_10: 12, ebit: 15, tax: 25, netDebt: 0 }
+  };
+  
+  const def = defaults[market] || defaults.us;
+
+  $('#dcf-growth-1-5').value = def.growth1_5;
+  $('#lbl-growth-1-5').textContent = `%${def.growth1_5}`;
+
+  $('#dcf-growth-6-10').value = def.growth6_10;
+  $('#lbl-growth-6-10').textContent = `%${def.growth6_10}`;
+
+  $('#dcf-ebit-margin').value = def.ebit;
+  $('#lbl-ebit-margin').textContent = `%${def.ebit}`;
+
+  $('#dcf-wacc').value = def.wacc;
+  $('#lbl-wacc').textContent = `%${def.wacc.toFixed(1)}`;
+
+  $('#dcf-terminal-growth').value = 2.5;
+  $('#lbl-terminal-growth').textContent = `%2.5`;
+
+  $('#dcf-tax-rate').value = def.tax;
+  $('#dcf-net-debt').value = def.netDebt;
+  $('#dcf-revenue').value = Math.round(revenue);
+  $('#dcf-shares').value = Math.round(shares);
+
+  runDCFCalculation();
+}
+
+async function runDCFCalculation() {
+  const dcfSel = $('#dcf-asset-sel');
+  if (!dcfSel || !dcfSel.value) return;
+
+  const parts = dcfSel.value.split(':');
+  const market = parts[0];
+  const symbol = parts[1];
+  
+  const list = DATA[market] || [];
+  const stock = list.find(x => x.symbol === symbol);
+  if (!stock) return;
+
+  const currencySym = stock.currency === 'TRY' ? '₺' : '$';
+  
+  const params = {
+    currentPrice: parseFloat(stock.price),
+    revenue: parseFloat($('#dcf-revenue').value) || 0,
+    sharesOutstanding: parseFloat($('#dcf-shares').value) || 1,
+    revenueGrowthY1Y5: parseFloat($('#dcf-growth-1-5').value),
+    revenueGrowthY6Y10: parseFloat($('#dcf-growth-6-10').value),
+    ebitMargin: parseFloat($('#dcf-ebit-margin').value),
+    taxRate: parseFloat($('#dcf-tax-rate').value) || 0,
+    wacc: parseFloat($('#dcf-wacc').value),
+    terminalGrowthRate: parseFloat($('#dcf-terminal-growth').value),
+    netDebt: parseFloat($('#dcf-net-debt').value) || 0
+  };
+
+  try {
+    const res = await fetch('/api/forecast/dcf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params)
+    });
+    const result = await res.json();
+    if (result.error) {
+      $('#dcf-fair-val-num').textContent = 'Hata';
+      $('#dcf-margin-safety-badge').className = 'badge tone-sell';
+      return;
+    }
+
+    // Currency symbols sync
+    $('#dcf-currency-sym').textContent = currencySym;
+    $('#dcf-ev-cur').textContent = currencySym;
+    $('#dcf-eq-cur').textContent = currencySym;
+    $('#dcf-ttm-cur').textContent = currencySym;
+
+    // Trigger the spring pop animation
+    const fairValBox = $('#dcf-fair-value-box');
+    if (fairValBox) {
+      fairValBox.classList.remove('val-pop');
+      void fairValBox.offsetWidth; // trigger reflow
+      fairValBox.classList.add('val-pop');
+    }
+
+    // countUp count-up!
+    countUp($('#dcf-fair-val-num'), result.fairValue, { decimals: 2 });
+    countUp($('#dcf-safety-num'), result.marginOfSafety, { decimals: 1 });
+    countUp($('#dcf-ev-val-num'), result.enterpriseValue, { decimals: 0 });
+    countUp($('#dcf-eq-val-num'), result.equityValue, { decimals: 0 });
+    countUp($('#dcf-ttm-val-num'), params.revenue, { decimals: 0 });
+
+    const badge = $('#dcf-margin-safety-badge');
+    const mos = result.marginOfSafety;
+    badge.innerHTML = `Güvenlik Marjı: ${mos >= 0 ? '+' : ''}<span id="dcf-safety-num">${fmtNum(mos, 1)}</span>%`;
+    if (mos >= 20) {
+      badge.className = 'badge tone-strong-buy';
+    } else if (mos >= 0) {
+      badge.className = 'badge tone-buy';
+    } else if (mos >= -20) {
+      badge.className = 'badge tone-reduce';
+    } else {
+      badge.className = 'badge tone-sell';
+    }
+
+    $('#dcf-current-price').textContent = fmtPrice(params.currentPrice, stock.currency);
+
+    const tbody = $('#dcf-table-body');
+    tbody.innerHTML = result.forecast.map(f => `
+      <tr>
+        <td>Yıl ${f.year}</td>
+        <td>${currencySym}${fmtNum(f.revenue, 0)}</td>
+        <td>${currencySym}${fmtNum(f.ebit, 0)}</td>
+        <td>${currencySym}${fmtNum(f.fcf, 0)}</td>
+        <td><b>${currencySym}${fmtNum(f.pv, 0)}</b></td>
+      </tr>
+    `).join('');
+
+  } catch (e) {
+    console.error('DCF hesaplama hatası:', e);
+  }
 }
 
 /* ---------- Olaylar ---------- */
