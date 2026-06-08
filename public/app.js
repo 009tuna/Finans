@@ -19,7 +19,9 @@ let assetDeskState = {
   symbol: null,
   mode: 'candles',
   interval: null,
-  showSMA: localStorage.getItem('finans-show-sma') === 'true'
+  showSMA:  localStorage.getItem('finans-show-sma')  === 'true',
+  showRSI:  localStorage.getItem('finans-show-rsi')  === 'true',
+  showMACD: localStorage.getItem('finans-show-macd') === 'true',
 };
 let booted = false;
 
@@ -545,13 +547,41 @@ function renderMarketRegime() {
   el.innerHTML = tile('🇺🇸', 'ABD', mr.us) + tile('₿', 'Kripto', mr.crypto) + tile('🇹🇷', 'BIST', mr.bist);
 }
 
+/* ---------- Chart renk paleti — marka aksanları (gri yerine kısıtlı, uyumlu renk) ---------- */
+const CHART = {
+  accent: '#6f9bff',   // marka indigo-mavi (ana seri)
+  green:  '#3ddc97',   // yeşil (pozitif/optimistik)
+  red:    '#f6766f',   // mercan kırmızı (negatif/pessimistik) — alarm tonu değil
+  amber:  '#ecb45a',
+  orange: '#f0925a',
+  violet: '#a78bfa',
+  teal:   '#34d4c4',
+  axis:   '#8a92a0',
+  grid:   'rgba(255,255,255,0.045)',
+  neutral:'#5a6472',   // nötr ikincil (al-tut, medyan referans)
+  toneColor(tone) {
+    return ({ 'strong-buy': '#3ddc97', buy: '#57d3a4', hold: '#ecb45a', reduce: '#f0925a', sell: '#f6766f' })[tone] || '#6f9bff';
+  },
+};
+// Smooth alan dolgusu için dikey gradient (renk → şeffaf)
+function chartGradient(canvas, hex, alpha) {
+  try {
+    const ctx = canvas.getContext('2d');
+    const g = ctx.createLinearGradient(0, 0, 0, canvas.height || 300);
+    const r = parseInt(hex.slice(1, 3), 16), gg = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+    g.addColorStop(0, 'rgba(' + r + ',' + gg + ',' + b + ',' + alpha + ')');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    return g;
+  } catch (_) { return 'rgba(111,155,255,0.10)'; }
+}
+
 function renderAlloc() {
   const alloc = (DATA.allocation || []).filter((a) => a.weight > 0);
   if (allocChart) allocChart.destroy();
   if (!window.Chart || !alloc.length) return;
   allocChart = new Chart($('#allocChart'), {
     type: 'doughnut',
-    data: { labels: alloc.map((a) => a.label), datasets: [{ data: alloc.map((a) => a.weight), backgroundColor: ['#1e222b', '#2d323f', '#525866', '#7f8798', '#b5bac9', '#f1f3f6'], borderColor: '#12151b', borderWidth: 2 }] },
+    data: { labels: alloc.map((a) => a.label), datasets: [{ data: alloc.map((a) => a.weight), backgroundColor: [CHART.accent, CHART.teal, CHART.violet, CHART.amber, CHART.green, CHART.orange], borderColor: '#12151b', borderWidth: 2 }] },
     options: { responsive: true, maintainAspectRatio: false, animation: { duration: reduceMotion ? 0 : 700 }, cutout: '62%', plugins: { legend: { position: 'right', labels: { color: '#7d8590', boxWidth: 12, font: { size: 11, family: 'Plus Jakarta Sans' } } }, tooltip: { callbacks: { label: (x) => x.label + ': %' + x.raw } } } },
   });
 }
@@ -562,7 +592,7 @@ function renderMovers() {
   if (!window.Chart || !all.length) return;
   moversChart = new Chart($('#moversChart'), {
     type: 'bar',
-    data: { labels: all.map((x) => x.symbol), datasets: [{ data: all.map((x) => x.analysis.score), backgroundColor: all.map((x, i) => i === 0 ? '#f1f3f6' : '#2d323f'), hoverBackgroundColor: '#525866', borderRadius: 6 }] },
+    data: { labels: all.map((x) => x.symbol), datasets: [{ data: all.map((x) => x.analysis.score), backgroundColor: all.map((x) => CHART.toneColor(x.analysis.tone)), hoverBackgroundColor: 'rgba(255,255,255,.22)', borderRadius: 6 }] },
     options: {
       responsive: true, maintainAspectRatio: false, animation: { duration: reduceMotion ? 0 : 750, easing: 'easeOutQuart' },
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: (x) => { const a = all[x.dataIndex]; return a.market + ' · puan ' + x.raw + ' — ' + a.analysis.label; } } } },
@@ -632,7 +662,7 @@ function renderScoreChart() {
   if (!window.Chart || !list.length) return;
   scoreChart = new Chart($('#scoreChart'), {
     type: 'bar',
-    data: { labels: list.map((x) => x.symbol), datasets: [{ data: list.map((x) => x.analysis.score), backgroundColor: list.map((x, i) => i === 0 ? '#f1f3f6' : '#2d323f'), hoverBackgroundColor: '#525866', borderRadius: 6 }] },
+    data: { labels: list.map((x) => x.symbol), datasets: [{ data: list.map((x) => x.analysis.score), backgroundColor: list.map((x) => CHART.toneColor(x.analysis.tone)), hoverBackgroundColor: 'rgba(255,255,255,.22)', borderRadius: 6 }] },
     options: {
       responsive: true, maintainAspectRatio: false, animation: { duration: reduceMotion ? 0 : 700, easing: 'easeOutQuart' },
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: (x) => 'Puan ' + x.raw + ' — ' + list[x.dataIndex].analysis.label } } },
@@ -659,6 +689,8 @@ function syncDeskControls(market, interval) {
     btn.classList.toggle('active', btn.dataset.deskMode === assetDeskState.mode);
   });
   updateSmaButtonVisual();
+  updateRsiButtonVisual();
+  updateMacdButtonVisual();
 }
 function destroyAssetDeskChart() {
   if (assetDeskResize) {
@@ -670,12 +702,18 @@ function destroyAssetDeskChart() {
   }
   assetDeskChart = null;
 }
-function addLwSeries(chart, name, options) {
+function addLwSeries(chart, name, options, paneIndex) {
   const lw = window.LightweightCharts || {};
-  if (chart.addSeries && lw[name]) return chart.addSeries(lw[name], options);
+  // v5: chart.addSeries(SeriesType, options, paneIndex)
+  if (chart.addSeries && lw[name]) {
+    return (paneIndex != null)
+      ? chart.addSeries(lw[name], options, paneIndex)
+      : chart.addSeries(lw[name], options);
+  }
+  // v4 fallback (paneIndex ignoré)
   if (name === 'CandlestickSeries' && chart.addCandlestickSeries) return chart.addCandlestickSeries(options);
-  if (name === 'LineSeries' && chart.addLineSeries) return chart.addLineSeries(options);
-  if (name === 'HistogramSeries' && chart.addHistogramSeries) return chart.addHistogramSeries(options);
+  if (name === 'LineSeries'        && chart.addLineSeries)        return chart.addLineSeries(options);
+  if (name === 'HistogramSeries'   && chart.addHistogramSeries)   return chart.addHistogramSeries(options);
   return null;
 }
 function addTradePriceLines(series, asset) {
@@ -769,21 +807,86 @@ function calculateMACD(closes, fast = 12, slow = 26, signal = 9) {
   };
 }
 
+// Full-series RSI for chart pane (Wilder smoothing)
+function calculateRSISeries(bars, period = 14) {
+  if (!bars || bars.length < period + 1) return [];
+  const closes = bars.map(b => b.close);
+  const out = [];
+  let avgGain = 0, avgLoss = 0;
+  for (let i = 1; i <= period; i++) {
+    const ch = closes[i] - closes[i - 1];
+    if (ch >= 0) avgGain += ch; else avgLoss -= ch;
+  }
+  avgGain /= period; avgLoss /= period;
+  const rsi0 = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+  out.push({ time: bars[period].time, value: rsi0 });
+  for (let i = period + 1; i < closes.length; i++) {
+    const ch = closes[i] - closes[i - 1];
+    avgGain = (avgGain * (period - 1) + Math.max(ch, 0)) / period;
+    avgLoss = (avgLoss * (period - 1) + Math.max(-ch, 0)) / period;
+    const rsi = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+    out.push({ time: bars[i].time, value: rsi });
+  }
+  return out;
+}
+
+// Full-series MACD for chart pane
+function calculateMACDSeries(bars, fast = 12, slow = 26, sig = 9) {
+  if (!bars || bars.length < slow + sig) return null;
+  const closes = bars.map(b => b.close);
+  const ef = calculateEMA(closes, fast);
+  const es = calculateEMA(closes, slow);
+  // Build aligned macd values
+  const macdVals = [];
+  const macdTimes = [];
+  for (let i = 0; i < closes.length; i++) {
+    if (ef[i] != null && es[i] != null) {
+      macdVals.push(ef[i] - es[i]);
+      macdTimes.push(bars[i].time);
+    }
+  }
+  const sigVals = calculateEMA(macdVals, sig);
+  const macdLine = [], signalLine = [], hist = [];
+  for (let i = 0; i < macdVals.length; i++) {
+    if (sigVals[i] == null) continue;
+    const m = macdVals[i], s = sigVals[i], h = m - s;
+    macdLine.push({ time: macdTimes[i], value: m });
+    signalLine.push({ time: macdTimes[i], value: s });
+    hist.push({ time: macdTimes[i], value: h, color: h >= 0 ? '#28d793' : '#ef4444' });
+  }
+  return { macdLine, signalLine, hist };
+}
+
 function updateSmaButtonVisual() {
   const btn = $('#deskSmaToggleBtn');
   const txt = $('#deskSmaStatusText');
   if (!btn || !txt) return;
-  
   if (assetDeskState.showSMA) {
-    btn.dataset.active = 'true';
-    txt.textContent = 'AÇIK';
-    txt.style.color = '#28d793';
-    btn.style.borderColor = 'var(--text)';
+    btn.dataset.active = 'true'; txt.textContent = 'AÇIK'; txt.style.color = '#28d793'; btn.style.borderColor = 'var(--text)';
   } else {
-    btn.dataset.active = 'false';
-    txt.textContent = 'KAPALI';
-    txt.style.color = 'var(--muted)';
-    btn.style.borderColor = 'var(--border)';
+    btn.dataset.active = 'false'; txt.textContent = 'KAPALI'; txt.style.color = 'var(--muted)'; btn.style.borderColor = 'var(--border)';
+  }
+}
+
+function updateRsiButtonVisual() {
+  const btn = $('#deskRsiToggleBtn');
+  const txt = $('#deskRsiStatusText');
+  if (!btn || !txt) return;
+  if (assetDeskState.showRSI) {
+    btn.dataset.active = 'true'; txt.textContent = 'AÇIK'; txt.style.color = '#a78bfa'; btn.style.borderColor = 'var(--text)';
+  } else {
+    btn.dataset.active = 'false'; txt.textContent = 'KAPALI'; txt.style.color = 'var(--muted)'; btn.style.borderColor = 'var(--border)';
+  }
+}
+
+function updateMacdButtonVisual() {
+  const btn = $('#deskMacdToggleBtn');
+  const txt = $('#deskMacdStatusText');
+  if (!btn || !txt) return;
+  if (assetDeskState.showMACD) {
+    btn.dataset.active = 'true'; txt.textContent = 'AÇIK'; txt.style.color = '#f97316'; btn.style.borderColor = 'var(--text)';
+  } else {
+    btn.dataset.active = 'false'; txt.textContent = 'KAPALI'; txt.style.color = 'var(--muted)'; btn.style.borderColor = 'var(--border)';
   }
 }
 
@@ -837,15 +940,15 @@ function drawAssetDeskChart(payload, asset) {
   }
 
   const mainOptions = assetDeskState.mode === 'line'
-    ? { color: '#f1f3f6', lineWidth: 1.8, priceLineVisible: false }
+    ? { color: CHART.accent, lineWidth: 2, priceLineVisible: false }
     : {
-        upColor: '#f1f3f6',
-        downColor: '#1c1f26',
+        upColor: '#2fbe88',
+        downColor: '#e2666e',
         borderVisible: true,
-        borderUpColor: '#f1f3f6',
-        borderDownColor: '#2d323f',
-        wickUpColor: '#7f8798',
-        wickDownColor: '#7f8798',
+        borderUpColor: '#2fbe88',
+        borderDownColor: '#e2666e',
+        wickUpColor: '#6b7585',
+        wickDownColor: '#6b7585',
       };
   const main = addLwSeries(chart, assetDeskState.mode === 'line' ? 'LineSeries' : 'CandlestickSeries', mainOptions);
   if (!main) {
@@ -912,25 +1015,76 @@ function drawAssetDeskChart(payload, asset) {
   // Eğer SMA çizgileri aktifse çizdir
   if (assetDeskState.showSMA) {
     const sma20Series = addLwSeries(chart, 'LineSeries', {
-      color: '#4382ff',
-      lineWidth: 1.2,
-      priceLineVisible: false,
-      lastValueVisible: false,
-      crosshairMarkerVisible: false,
+      color: '#4382ff', lineWidth: 1.2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
     });
-    if (sma20Series) {
-      sma20Series.setData(sma20Data);
-    }
-
+    if (sma20Series) sma20Series.setData(sma20Data);
     const sma50Series = addLwSeries(chart, 'LineSeries', {
-      color: '#ff9f43',
-      lineWidth: 1.2,
-      priceLineVisible: false,
-      lastValueVisible: false,
-      crosshairMarkerVisible: false,
+      color: '#ff9f43', lineWidth: 1.2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
     });
-    if (sma50Series) {
-      sma50Series.setData(sma50Data);
+    if (sma50Series) sma50Series.setData(sma50Data);
+  }
+
+  // --- RSI Panosu ---
+  if (assetDeskState.showRSI) {
+    const rsiSeries_data = calculateRSISeries(bars, 14);
+    if (rsiSeries_data.length > 0) {
+      const rsiPane = 1;
+      const rsiS = addLwSeries(chart, 'LineSeries', {
+        color: '#a78bfa',
+        lineWidth: 1.5,
+        priceLineVisible: false,
+        lastValueVisible: true,
+        crosshairMarkerVisible: true,
+        priceScaleId: 'rsi-scale',
+      }, rsiPane);
+      if (rsiS) {
+        rsiS.setData(rsiSeries_data);
+        // 0–100 sabit ölçek
+        try {
+          rsiS.priceScale().applyOptions({ autoScale: false, minimum: 0, maximum: 100 });
+        } catch (_) {}
+        // 70 referans çizgisi
+        rsiS.createPriceLine({ price: 70, color: 'rgba(239,68,68,0.5)', lineWidth: 1, lineStyle: 1, axisLabelVisible: false, title: '70' });
+        // 30 referans çizgisi
+        rsiS.createPriceLine({ price: 30, color: 'rgba(40,215,147,0.5)', lineWidth: 1, lineStyle: 1, axisLabelVisible: false, title: '30' });
+        // 50 orta çizgi
+        rsiS.createPriceLine({ price: 50, color: 'rgba(125,133,144,0.25)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: '' });
+      }
+    }
+  }
+
+  // --- MACD Panosu ---
+  if (assetDeskState.showMACD) {
+    const macdData = calculateMACDSeries(bars, 12, 26, 9);
+    if (macdData && macdData.hist.length > 0) {
+      const macdPane = assetDeskState.showRSI ? 2 : 1;
+      const histS = addLwSeries(chart, 'HistogramSeries', {
+        priceLineVisible: false,
+        lastValueVisible: false,
+        color: '#28d793',
+        priceScaleId: 'macd-scale',
+      }, macdPane);
+      if (histS) histS.setData(macdData.hist);
+
+      const macdLineS = addLwSeries(chart, 'LineSeries', {
+        color: '#4382ff',
+        lineWidth: 1.2,
+        priceLineVisible: false,
+        lastValueVisible: true,
+        crosshairMarkerVisible: false,
+        priceScaleId: 'macd-scale',
+      }, macdPane);
+      if (macdLineS) macdLineS.setData(macdData.macdLine);
+
+      const signalS = addLwSeries(chart, 'LineSeries', {
+        color: '#f97316',
+        lineWidth: 1.2,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+        priceScaleId: 'macd-scale',
+      }, macdPane);
+      if (signalS) signalS.setData(macdData.signalLine);
     }
   }
 
@@ -1490,7 +1644,7 @@ function renderPortfolioChart(usVal, cryptoVal, bistVal) {
       labels: data.map(x => x.label),
       datasets: [{
         data: data.map(x => x.val),
-        backgroundColor: ['#2d323f', '#7f8798', '#f1f3f6'],
+        backgroundColor: [CHART.accent, CHART.violet, CHART.teal],
         borderColor: '#12151b',
         borderWidth: 2
       }]
@@ -1816,8 +1970,8 @@ function drawBacktestChart(res) {
         {
           label: 'Strateji Getirisi',
           data: strategyData,
-          borderColor: '#f1f3f6',
-          backgroundColor: 'rgba(241, 243, 246, 0.02)',
+          borderColor: CHART.accent,
+          backgroundColor: chartGradient(canvas, CHART.accent, 0.16),
           borderWidth: 2,
           pointRadius: 0,
           fill: true,
@@ -1826,7 +1980,7 @@ function drawBacktestChart(res) {
         {
           label: 'Al-Tut Getirisi (Normalleştirilmiş)',
           data: bhData,
-          borderColor: '#525866',
+          borderColor: CHART.neutral,
           borderDash: [5, 5],
           borderWidth: 1.5,
           pointRadius: 0,
@@ -1837,7 +1991,7 @@ function drawBacktestChart(res) {
           label: '▲ Alış',
           data: buyPts,
           borderColor: 'transparent',
-          backgroundColor: '#28d793',
+          backgroundColor: CHART.green,
           pointRadius: 5,
           pointHoverRadius: 7,
           pointStyle: 'triangle',
@@ -1848,7 +2002,7 @@ function drawBacktestChart(res) {
           label: '◆ Satış',
           data: sellPts,
           borderColor: 'transparent',
-          backgroundColor: '#ef4444',
+          backgroundColor: CHART.red,
           pointRadius: 5,
           pointHoverRadius: 7,
           pointStyle: 'rectRot',
@@ -2340,7 +2494,7 @@ function drawMCChart(res) {
         {
           label: 'Optimistik (%90 Olasılık Üst Sınır)',
           data: res.percentiles.optimistic,
-          borderColor: '#f1f3f6',
+          borderColor: CHART.green,
           backgroundColor: 'transparent',
           borderWidth: 1.8,
           pointRadius: 0,
@@ -2349,8 +2503,8 @@ function drawMCChart(res) {
         {
           label: 'Medyan (%50 Beklenen Gidişat)',
           data: res.percentiles.median,
-          borderColor: '#7f8798',
-          backgroundColor: 'rgba(127, 135, 152, 0.03)',
+          borderColor: CHART.accent,
+          backgroundColor: chartGradient(canvas, CHART.accent, 0.12),
           borderWidth: 2,
           pointRadius: 0,
           tension: 0.1,
@@ -2359,7 +2513,7 @@ function drawMCChart(res) {
         {
           label: 'Pessimistik (%10 Olasılık Alt Sınır)',
           data: res.percentiles.pessimistic,
-          borderColor: '#2d323f',
+          borderColor: CHART.red,
           borderDash: [4, 4],
           backgroundColor: 'transparent',
           borderWidth: 1.5,
@@ -2666,9 +2820,31 @@ if (toggleBtn) {
     updateSmaButtonVisual();
     const list = DATA && DATA[activeView] ? DATA[activeView] : [];
     const asset = list.find((x) => x.symbol === assetDeskState.symbol) || list[0];
-    if (asset) {
-      renderAssetDesk(asset);
-    }
+    if (asset) renderAssetDesk(asset);
+  });
+}
+
+const rsiToggleBtn = $('#deskRsiToggleBtn');
+if (rsiToggleBtn) {
+  rsiToggleBtn.addEventListener('click', () => {
+    assetDeskState.showRSI = !assetDeskState.showRSI;
+    localStorage.setItem('finans-show-rsi', assetDeskState.showRSI);
+    updateRsiButtonVisual();
+    const list = DATA && DATA[activeView] ? DATA[activeView] : [];
+    const asset = list.find((x) => x.symbol === assetDeskState.symbol) || list[0];
+    if (asset) renderAssetDesk(asset);
+  });
+}
+
+const macdToggleBtn = $('#deskMacdToggleBtn');
+if (macdToggleBtn) {
+  macdToggleBtn.addEventListener('click', () => {
+    assetDeskState.showMACD = !assetDeskState.showMACD;
+    localStorage.setItem('finans-show-macd', assetDeskState.showMACD);
+    updateMacdButtonVisual();
+    const list = DATA && DATA[activeView] ? DATA[activeView] : [];
+    const asset = list.find((x) => x.symbol === assetDeskState.symbol) || list[0];
+    if (asset) renderAssetDesk(asset);
   });
 }
 
