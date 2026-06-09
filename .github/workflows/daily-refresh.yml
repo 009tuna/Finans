@@ -21,7 +21,9 @@ jobs:
       - name: Node.js kurulumu
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # Node 22+ gerekli: @supabase/realtime-js eski Node'da native
+          # WebSocket bulamazsa modül yüklenirken hata fırlatıyor (db.js createClient)
+          node-version: '22'
           cache: 'npm'
 
       - name: Bağımlılıkları yükle
