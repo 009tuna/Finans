@@ -122,3 +122,18 @@ Amaç: günlük akışı zamanla iyileştirmek — kalibrasyon, veri kalitesi, t
 2. risk-off bayrağı (aşırı satım ≥5-6 coin → eşikleri yumuşat).
 3. Gün-içi snapshot diff'i / "skor şu saatte alındı, değişebilir" uyarısı — bugünün TUPRS gözlemiyle netleşen yeni öncelik.
 4. affected[] sembollerin güncel skorunu rapora otomatik iliştir.
+
+## 2026-06-10 (5. calistirma — rutin yarida kesildi, Claude Code elle tamamladi)
+
+**Sistem akisi — ONEMLI olay**
+- 09:02 rutini makine kapali oldugu icin 09:39'da tetiklendi; fetch-all tamamlandi (snapshot 09:40:52, journal'a ilk 2 sistem tahmini yazildi: TTKOM 72, YKBNK 71) ama report.js hic base yazamadan oturum oldu — buyuk olasilikla tek-bash zincirinde 2 dk timeout + uyanma sonrasi yavas ag. SKILL.md duzeltildi: adimlar ayrildi, timeout 300000, resolver + archive-tip adimlari eklendi, sema quiz/weeklyRetro ile guncellendi.
+- GH Action cron'u (06:00 UTC) bugun 09:47 itibariyle hala tetiklenmemisti — GitHub cron gecikmesi dun 09:55 UTC'ye kadar sarkmisti. Yerel rutin ana yol olmaya devam etmeli; GH Action yedek.
+
+**Veri/skor gozlemleri**
+- Tum kripto listesi asiri satimda (BTC RSI 23.7, AVAX 19.3) ama dusus trendi + ETF cikislari = dusen bicak; mean-reversion sinyalinin rejim filtresi burada kritik calisiyor.
+- Isabet karnesi CANLI: ilk 2 sistem tahmini acildi (30 gun vade). Yarindan itibaren resolver her sabah kontrol edecek.
+
+**Yarin izle**
+- 11 Haz: ECB (%91 artirim fiyatli) + TCMB 14:00 (27/33 sabit %37) + ABD UFE — uclu pencere.
+- BTC 60k gunluk kapanis ustu mu? Kirilirsa 50k senaryolari.
+- Bugunku TUFE myCall'i: manset %4.2-4.4 / cekirdek ~%2.9 — yarin gerceklesmeyle karsilastir (weeklyRetro besini).

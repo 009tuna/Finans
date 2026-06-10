@@ -10,33 +10,33 @@
   "predictions": [
     {
       "id": "bist:YKBNK:2026-06-10",
-      "market": "bist",
-      "symbol": "YKBNK",
+      "stop": 33.6,
+      "entry": 35.54,
       "label": "AL",
       "score": 71,
-      "entry": 35.54,
+      "market": "bist",
+      "source": "system",
+      "symbol": "YKBNK",
       "target": 39.41,
-      "stop": 33.6,
-      "createdAt": "2026-06-10T06:40:52.609Z",
-      "horizonDays": 30,
-      "resolvedAt": null,
       "outcome": "open",
-      "source": "system"
+      "createdAt": "2026-06-10T06:40:52.609Z",
+      "resolvedAt": null,
+      "horizonDays": 30
     },
     {
       "id": "bist:TTKOM:2026-06-10",
-      "market": "bist",
-      "symbol": "TTKOM",
+      "stop": 59.84,
+      "entry": 62.9,
       "label": "AL",
       "score": 72,
-      "entry": 62.9,
+      "market": "bist",
+      "source": "system",
+      "symbol": "TTKOM",
       "target": 69.02,
-      "stop": 59.84,
-      "createdAt": "2026-06-10T06:40:52.609Z",
-      "horizonDays": 30,
-      "resolvedAt": null,
       "outcome": "open",
-      "source": "system"
+      "createdAt": "2026-06-10T06:40:52.609Z",
+      "resolvedAt": null,
+      "horizonDays": 30
     }
   ]
 }

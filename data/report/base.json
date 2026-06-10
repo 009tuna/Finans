@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-08T20:20:49.395Z",
-  "date": "2026-06-08",
+  "generatedAt": "2026-06-10T06:49:39.394Z",
+  "date": "2026-06-10",
   "dataAsOf": {
-    "usAsOf": "2026-06-08T20:00:01.000Z",
-    "bistAsOf": "2026-06-08T15:09:59.000Z",
-    "cryptoAsOf": "2026-06-08T20:10:17.054Z"
+    "usAsOf": "2026-06-09T20:00:01.000Z",
+    "bistAsOf": "2026-06-09T15:09:59.000Z",
+    "cryptoAsOf": "2026-06-10T06:40:50.649Z"
   },
   "sentiment": {
-    "avg": 44,
+    "avg": 43,
     "label": "Temkinli",
-    "gainers": 34,
+    "gainers": 12,
     "total": 44,
-    "buys": 6
+    "buys": 7
   },
   "markets": {
     "us": {
@@ -27,20 +27,20 @@
     "bist": {
       "name": "BIST",
       "count": 20,
-      "avg": 53,
+      "avg": 50,
       "topPick": {
         "symbol": "TTKOM",
-        "score": 81,
-        "label": "GUCLU AL"
+        "score": 72,
+        "label": "AL"
       }
     },
     "crypto": {
       "name": "Kripto",
       "count": 12,
-      "avg": 21,
+      "avg": 22,
       "topPick": {
         "symbol": "TRX",
-        "score": 30,
+        "score": 33,
         "label": "AZALT"
       }
     }
@@ -50,25 +50,25 @@
       "market": "bist",
       "symbol": "TTKOM",
       "name": "Türk Telekomünikasyon Anonim Sirketi",
-      "score": 81,
-      "label": "GUCLU AL",
-      "summary": "Bileşik teknik puan 81/100 → GUCLU AL. · RSI 56.6 · MACD pozitif · fiyat 50g ort. üstünde · 52H bandında %65"
+      "score": 72,
+      "label": "AL",
+      "summary": "Bileşik teknik puan 72/100 → AL. · RSI 51.5 · MACD pozitif · fiyat 50g ort. üstünde · 52H bandında %60"
+    },
+    {
+      "market": "bist",
+      "symbol": "YKBNK",
+      "name": "Yapi ve Kredi Bankasi A.S.",
+      "score": 71,
+      "label": "AL",
+      "summary": "Bileşik teknik puan 71/100 → AL. · RSI 51.8 · MACD pozitif · fiyat 50g ort. altında · 52H bandında %52"
     },
     {
       "market": "bist",
       "symbol": "GARAN",
       "name": "Turkiye Garanti Bankasi A.S.",
-      "score": 70,
+      "score": 66,
       "label": "AL",
-      "summary": "Bileşik teknik puan 70/100 → AL. · RSI 50.7 · MACD pozitif · fiyat 50g ort. altında · 52H bandında %32"
-    },
-    {
-      "market": "bist",
-      "symbol": "THYAO",
-      "name": "Türk Hava Yollari Anonim Ortakligi",
-      "score": 67,
-      "label": "AL",
-      "summary": "Bileşik teknik puan 67/100 → AL. · RSI 47.5 · MACD pozitif · fiyat 50g ort. altında · 52H bandında %47"
+      "summary": "Bileşik teknik puan 66/100 → AL. · RSI 52.1 · MACD pozitif · fiyat 50g ort. altında · 52H bandında %34"
     },
     {
       "market": "us",
@@ -80,61 +80,63 @@
     },
     {
       "market": "bist",
-      "symbol": "ISCTR",
-      "name": "Türkiye Is Bankasi A.S.",
-      "score": 64,
+      "symbol": "AKBNK",
+      "name": "Akbank T.A.S.",
+      "score": 65,
       "label": "AL",
-      "summary": "Bileşik teknik puan 64/100 → AL. · RSI 52.2 · MACD pozitif · fiyat 50g ort. altında · 52H bandında %37"
+      "summary": "Bileşik teknik puan 65/100 → AL. · RSI 47.3 · MACD pozitif · fiyat 50g ort. altında · 52H bandında %35"
     },
     {
       "market": "bist",
-      "symbol": "BIMAS",
-      "name": "BIM Birlesik Magazalar A.S.",
-      "score": 64,
+      "symbol": "ISCTR",
+      "name": "Türkiye Is Bankasi A.S.",
+      "score": 65,
       "label": "AL",
-      "summary": "Bileşik teknik puan 64/100 → AL. · RSI 48.9 · MACD negatif · fiyat 50g ort. üstünde · 52H bandında %80"
+      "summary": "Bileşik teknik puan 65/100 → AL. · RSI 52.2 · MACD pozitif · fiyat 50g ort. altında · 52H bandında %37"
     }
   ],
   "signals": {
     "overbought": [],
     "oversold": [
-      "crypto BTC (RSI 27)",
-      "crypto ETH (RSI 27.6)",
-      "crypto ADA (RSI 24.9)",
-      "crypto AVAX (RSI 21.4)",
-      "crypto DOT (RSI 30)"
+      "crypto BTC (RSI 23.7)",
+      "crypto ETH (RSI 25.4)",
+      "crypto SOL (RSI 26)",
+      "crypto XRP (RSI 29.3)",
+      "crypto ADA (RSI 21.7)",
+      "crypto AVAX (RSI 19.3)",
+      "crypto DOGE (RSI 28.7)",
+      "crypto DOT (RSI 25.5)"
     ],
     "goldenCross": [],
     "deathCross": [],
     "volumeSpike": [
-      "us AAPL (%151)",
-      "bist TTKOM (%164)",
-      "bist SASA (%1619)"
+      "us AAPL (%159)",
+      "bist TTKOM (%216)"
     ],
     "strongMomentum": [
-      "bist THYAO",
-      "bist KCHOL",
       "bist GARAN",
       "bist AKBNK",
       "bist ISCTR",
-      "bist FROTO",
       "bist SAHOL",
-      "bist TCELL",
       "bist YKBNK",
-      "bist TTKOM",
       "bist PGSUS"
     ]
   },
   "risks": [
     {
+      "market": "bist",
+      "symbol": "SASA",
+      "reason": "Düşük teknik puan 19"
+    },
+    {
       "market": "crypto",
       "symbol": "BTC",
-      "reason": "Düşük teknik puan 25"
+      "reason": "Düşük teknik puan 22"
     },
     {
       "market": "crypto",
       "symbol": "ETH",
-      "reason": "Düşük teknik puan 21"
+      "reason": "Düşük teknik puan 22"
     },
     {
       "market": "crypto",
@@ -144,88 +146,28 @@
     {
       "market": "crypto",
       "symbol": "BNB",
-      "reason": "Düşük teknik puan 25"
-    },
-    {
-      "market": "crypto",
-      "symbol": "XRP",
       "reason": "Düşük teknik puan 23"
     },
     {
       "market": "crypto",
+      "symbol": "XRP",
+      "reason": "Düşük teknik puan 22"
+    },
+    {
+      "market": "crypto",
       "symbol": "ADA",
-      "reason": "Düşük teknik puan 20"
+      "reason": "Düşük teknik puan 21"
     },
     {
       "market": "crypto",
       "symbol": "AVAX",
-      "reason": "Düşük teknik puan 20"
-    },
-    {
-      "market": "crypto",
-      "symbol": "DOGE",
-      "reason": "Düşük teknik puan 15"
+      "reason": "Düşük teknik puan 18"
     }
   ],
   "calendar": {
-    "weekFrom": "2026-06-08",
-    "weekTo": "2026-06-14",
+    "weekFrom": "2026-06-10",
+    "weekTo": "2026-06-16",
     "economic": [
-      {
-        "date": "2026-06-09",
-        "time": "03:00",
-        "country": "CN",
-        "event": "Balance of Trade",
-        "impact": "high",
-        "estimate": 92.1,
-        "prev": 84.82,
-        "actual": null,
-        "unit": "$"
-      },
-      {
-        "date": "2026-06-09",
-        "time": "03:00",
-        "country": "CN",
-        "event": "Exports YoY",
-        "impact": "high",
-        "estimate": 15,
-        "prev": 14.1,
-        "actual": null,
-        "unit": "%"
-      },
-      {
-        "date": "2026-06-09",
-        "time": "03:00",
-        "country": "CN",
-        "event": "Imports YoY",
-        "impact": "high",
-        "estimate": 25,
-        "prev": 25.3,
-        "actual": null,
-        "unit": "%"
-      },
-      {
-        "date": "2026-06-09",
-        "time": "06:00",
-        "country": "DE",
-        "event": "Balance of Trade",
-        "impact": "high",
-        "estimate": 15,
-        "prev": 14.3,
-        "actual": null,
-        "unit": "€"
-      },
-      {
-        "date": "2026-06-09",
-        "time": "14:00",
-        "country": "US",
-        "event": "Existing Home Sales",
-        "impact": "high",
-        "estimate": 4.06,
-        "prev": 4.02,
-        "actual": null,
-        "unit": ""
-      },
       {
         "date": "2026-06-10",
         "time": "01:30",
@@ -234,7 +176,7 @@
         "impact": "high",
         "estimate": 1.3,
         "prev": 1.2,
-        "actual": null,
+        "actual": 1.2,
         "unit": "%"
       },
       {
@@ -348,15 +290,81 @@
         "unit": ""
       },
       {
-        "date": "2026-06-08",
-        "time": "23:01",
-        "country": "GB",
-        "event": "BRC Retail Sales Monitor YoY",
-        "impact": "medium",
-        "estimate": 0.6,
-        "prev": -3.4,
+        "date": "2026-06-16",
+        "time": "02:00",
+        "country": "CN",
+        "event": "Industrial Production YoY",
+        "impact": "high",
+        "estimate": null,
+        "prev": 4.1,
         "actual": null,
         "unit": "%"
+      },
+      {
+        "date": "2026-06-16",
+        "time": "02:00",
+        "country": "CN",
+        "event": "Retail Sales YoY",
+        "impact": "high",
+        "estimate": null,
+        "prev": 0.2,
+        "actual": null,
+        "unit": "%"
+      },
+      {
+        "date": "2026-06-16",
+        "time": "03:00",
+        "country": "JP",
+        "event": "BoJ Interest Rate Decision",
+        "impact": "high",
+        "estimate": null,
+        "prev": 0.75,
+        "actual": null,
+        "unit": "%"
+      },
+      {
+        "date": "2026-06-16",
+        "time": "09:00",
+        "country": "DE",
+        "event": "ZEW Economic Sentiment Index",
+        "impact": "high",
+        "estimate": null,
+        "prev": -10.2,
+        "actual": null,
+        "unit": ""
+      },
+      {
+        "date": "2026-06-16",
+        "time": "12:30",
+        "country": "US",
+        "event": "Building Permits Prel",
+        "impact": "high",
+        "estimate": null,
+        "prev": 1.423,
+        "actual": null,
+        "unit": ""
+      },
+      {
+        "date": "2026-06-16",
+        "time": "12:30",
+        "country": "US",
+        "event": "Housing Starts",
+        "impact": "high",
+        "estimate": null,
+        "prev": 1.465,
+        "actual": null,
+        "unit": ""
+      },
+      {
+        "date": "2026-06-16",
+        "time": "23:50",
+        "country": "JP",
+        "event": "Balance of Trade",
+        "impact": "high",
+        "estimate": null,
+        "prev": 301.9,
+        "actual": null,
+        "unit": "¥"
       },
       {
         "date": "2026-06-10",
@@ -366,7 +374,7 @@
         "impact": "medium",
         "estimate": -0.2,
         "prev": 0.3,
-        "actual": null,
+        "actual": -0.1,
         "unit": "%"
       },
       {
@@ -375,9 +383,9 @@
         "country": "CN",
         "event": "PPI YoY",
         "impact": "medium",
-        "estimate": 3.8,
+        "estimate": 3.9,
         "prev": 2.8,
-        "actual": null,
+        "actual": 3.9,
         "unit": "%"
       },
       {
@@ -386,7 +394,7 @@
         "country": "US",
         "event": "CPI",
         "impact": "medium",
-        "estimate": null,
+        "estimate": 335.11,
         "prev": 333.02,
         "actual": null,
         "unit": ""
@@ -447,72 +455,6 @@
         "unit": "%"
       },
       {
-        "date": "2026-06-08",
-        "time": "15:00",
-        "country": "US",
-        "event": "Consumer Inflation Expectations",
-        "impact": "low",
-        "estimate": null,
-        "prev": 3.6,
-        "actual": 3.5,
-        "unit": "%"
-      },
-      {
-        "date": "2026-06-09",
-        "time": "10:00",
-        "country": "US",
-        "event": "NFIB Business Optimism Index",
-        "impact": "low",
-        "estimate": 96,
-        "prev": 95.9,
-        "actual": null,
-        "unit": ""
-      },
-      {
-        "date": "2026-06-09",
-        "time": "13:20",
-        "country": "US",
-        "event": "NY Fed Bill Purchases 1 to 4 months",
-        "impact": "low",
-        "estimate": 6.576,
-        "prev": null,
-        "actual": null,
-        "unit": ""
-      },
-      {
-        "date": "2026-06-09",
-        "time": "13:20",
-        "country": "US",
-        "event": "NY Fed Bill Purchases 4 to 12 months",
-        "impact": "low",
-        "estimate": 3.288,
-        "prev": null,
-        "actual": null,
-        "unit": ""
-      },
-      {
-        "date": "2026-06-09",
-        "time": "23:50",
-        "country": "JP",
-        "event": "PPI MoM",
-        "impact": "low",
-        "estimate": 0.5,
-        "prev": 2.3,
-        "actual": null,
-        "unit": "%"
-      },
-      {
-        "date": "2026-06-09",
-        "time": "23:50",
-        "country": "JP",
-        "event": "PPI YoY",
-        "impact": "low",
-        "estimate": 5.5,
-        "prev": 4.9,
-        "actual": null,
-        "unit": "%"
-      },
-      {
         "date": "2026-06-10",
         "time": "07:00",
         "country": "TR",
@@ -533,6 +475,28 @@
         "prev": 21.2,
         "actual": null,
         "unit": "%"
+      },
+      {
+        "date": "2026-06-10",
+        "time": "08:00",
+        "country": "EU",
+        "event": "ECB Buch Speech",
+        "impact": "low",
+        "estimate": null,
+        "prev": null,
+        "actual": null,
+        "unit": ""
+      },
+      {
+        "date": "2026-06-11",
+        "time": "09:00",
+        "country": "EU",
+        "event": "ECB Donnery Speech",
+        "impact": "low",
+        "estimate": null,
+        "prev": null,
+        "actual": null,
+        "unit": ""
       },
       {
         "date": "2026-06-11",
@@ -610,149 +574,182 @@
         "prev": 6,
         "actual": null,
         "unit": "%"
+      },
+      {
+        "date": "2026-06-11",
+        "time": "20:30",
+        "country": "US",
+        "event": "Fed Balance Sheet",
+        "impact": "low",
+        "estimate": null,
+        "prev": 6.711,
+        "actual": null,
+        "unit": "$"
+      },
+      {
+        "date": "2026-06-12",
+        "time": "06:00",
+        "country": "GB",
+        "event": "GDP YoY",
+        "impact": "low",
+        "estimate": null,
+        "prev": 1.2,
+        "actual": null,
+        "unit": ""
+      },
+      {
+        "date": "2026-06-12",
+        "time": "06:00",
+        "country": "DE",
+        "event": "Harmonised Inflation Rate MoM Final",
+        "impact": "low",
+        "estimate": -0.1,
+        "prev": 0.5,
+        "actual": null,
+        "unit": "%"
       }
     ],
     "earnings": [
       {
-        "date": "2026-06-08",
-        "symbol": "CELU",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
-        "watch": false
-      },
-      {
-        "date": "2026-06-08",
-        "symbol": "GMHS",
-        "hour": "bmo",
-        "epsEstimate": null,
-        "revenueEstimate": null,
-        "watch": false
-      },
-      {
-        "date": "2026-06-08",
-        "symbol": "WDH",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
-        "watch": false
-      },
-      {
-        "date": "2026-06-08",
-        "symbol": "ASGI",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
-        "watch": false
-      },
-      {
-        "date": "2026-06-08",
-        "symbol": "GLOO",
+        "date": "2026-06-10",
+        "symbol": "NAVN",
         "hour": "amc",
-        "epsEstimate": -0.2244,
-        "revenueEstimate": 36744990,
+        "epsEstimate": -0.0098,
+        "revenueEstimate": 209379163,
         "watch": false
       },
       {
-        "date": "2026-06-08",
-        "symbol": "FTRS",
+        "date": "2026-06-10",
+        "symbol": "IDWM",
         "hour": "",
         "epsEstimate": null,
         "revenueEstimate": null,
         "watch": false
       },
       {
-        "date": "2026-06-08",
-        "symbol": "BESS",
+        "date": "2026-06-10",
+        "symbol": "NOBH",
         "hour": "",
         "epsEstimate": null,
         "revenueEstimate": null,
         "watch": false
       },
       {
-        "date": "2026-06-08",
-        "symbol": "ODC",
+        "date": "2026-06-10",
+        "symbol": "IVDN",
         "hour": "",
         "epsEstimate": null,
         "revenueEstimate": null,
         "watch": false
       },
       {
-        "date": "2026-06-08",
-        "symbol": "SBOX",
+        "date": "2026-06-10",
+        "symbol": "IEHC",
         "hour": "",
         "epsEstimate": null,
         "revenueEstimate": null,
         "watch": false
       },
       {
-        "date": "2026-06-08",
-        "symbol": "KOAN",
+        "date": "2026-06-10",
+        "symbol": "MSB",
         "hour": "",
         "epsEstimate": null,
         "revenueEstimate": null,
         "watch": false
       },
       {
-        "date": "2026-06-08",
-        "symbol": "MIND",
+        "date": "2026-06-10",
+        "symbol": "MAYS",
         "hour": "",
-        "epsEstimate": 0,
-        "revenueEstimate": 9639000,
+        "epsEstimate": null,
+        "revenueEstimate": null,
         "watch": false
       },
       {
-        "date": "2026-06-08",
-        "symbol": "OCC",
+        "date": "2026-06-10",
+        "symbol": "FRD",
+        "hour": "",
+        "epsEstimate": null,
+        "revenueEstimate": null,
+        "watch": false
+      },
+      {
+        "date": "2026-06-10",
+        "symbol": "YRD",
+        "hour": "",
+        "epsEstimate": null,
+        "revenueEstimate": null,
+        "watch": false
+      },
+      {
+        "date": "2026-06-10",
+        "symbol": "BRRE",
+        "hour": "",
+        "epsEstimate": null,
+        "revenueEstimate": null,
+        "watch": false
+      },
+      {
+        "date": "2026-06-10",
+        "symbol": "GLBS",
+        "hour": "",
+        "epsEstimate": -0.051,
+        "revenueEstimate": 10608000,
+        "watch": false
+      },
+      {
+        "date": "2026-06-10",
+        "symbol": "CHWY",
         "hour": "bmo",
-        "epsEstimate": null,
-        "revenueEstimate": null,
+        "epsEstimate": 0.2868,
+        "revenueEstimate": 3440503207,
         "watch": false
       },
       {
-        "date": "2026-06-08",
-        "symbol": "ZEPP",
+        "date": "2026-06-10",
+        "symbol": "CNM",
         "hour": "bmo",
-        "epsEstimate": null,
-        "revenueEstimate": null,
+        "epsEstimate": 0.6756,
+        "revenueEstimate": 1924204610,
         "watch": false
       },
       {
-        "date": "2026-06-08",
-        "symbol": "YQ",
+        "date": "2026-06-10",
+        "symbol": "RH",
         "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
+        "epsEstimate": -2.1829,
+        "revenueEstimate": 816844590,
         "watch": false
       },
       {
-        "date": "2026-06-08",
-        "symbol": "KAVL",
+        "date": "2026-06-10",
+        "symbol": "DAKT",
         "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
+        "epsEstimate": 0.153,
+        "revenueEstimate": 205020000,
         "watch": false
       },
       {
-        "date": "2026-06-08",
-        "symbol": "SRKE",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
+        "date": "2026-06-10",
+        "symbol": "SFIX",
+        "hour": "amc",
+        "epsEstimate": -0.0571,
+        "revenueEstimate": 338058192,
         "watch": false
       },
       {
-        "date": "2026-06-08",
-        "symbol": "SRKE",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
+        "date": "2026-06-10",
+        "symbol": "CRMT",
+        "hour": "bmo",
+        "epsEstimate": -1.3464,
+        "revenueEstimate": 322176516,
         "watch": false
       },
       {
-        "date": "2026-06-08",
-        "symbol": "COE",
-        "hour": "",
+        "date": "2026-06-10",
+        "symbol": "ME",
+        "hour": "amc",
         "epsEstimate": null,
         "revenueEstimate": null,
         "watch": false
@@ -761,46 +758,70 @@
     "companyNews": [
       {
         "symbol": "AAPL",
-        "headline": "Why is this Wealth Manager Buying 1 Million Shares of Harley Davidson?",
+        "headline": "Apple-Nvidia Friends Again? Nvidia Says Its Chips In Google Cloud Are Powering Apple Intelligence",
         "source": "Yahoo",
-        "url": "https://finnhub.io/api/news?id=8bb8c024df2383345f78b879b3d90da6a51d7ae9a05e3813ad762aac8618760b",
-        "datetime": 1780948325
+        "url": "https://finnhub.io/api/news?id=5556e28f16a96a830a60a44d7b5521982f6ef86f57ee40e27c10907fcbfed4b4",
+        "datetime": 1781065061
       },
       {
         "symbol": "MSFT",
-        "headline": "Microsoft Expands NHS AI Rollout",
+        "headline": "Oracle Is Reshaping Its Earnings. The Cloud Is How.",
         "source": "Yahoo",
-        "url": "https://finnhub.io/api/news?id=f7a5cb41b8e537e4a097ab6cae0707168fd1474e6fbeaf673b8c83d6bf889e14",
-        "datetime": 1780947831
+        "url": "https://finnhub.io/api/news?id=720248b7de82f0661f8d1a93c13ff536cd3f6ead19c1050aa5c1c1b807efc219",
+        "datetime": 1781067600
       },
       {
         "symbol": "NVDA",
-        "headline": "Naver Taps Nvidia To Build Korea's Sovereign AI Infrastructure",
+        "headline": "ProShares Plans 2x SpaceX ETF Launch on Day of Record IPO",
         "source": "Yahoo",
-        "url": "https://finnhub.io/api/news?id=e977f197bc638f6db5855924d185f28336f050f8ff52e445a485776280348beb",
-        "datetime": 1780948366
+        "url": "https://finnhub.io/api/news?id=00d252899491a00f26090025a58ed00ca30950e9c9686a095a51a0619b23f487",
+        "datetime": 1781065625
       },
       {
         "symbol": "GOOGL",
-        "headline": "Why is this Wealth Manager Buying 1 Million Shares of Harley Davidson?",
+        "headline": "Apple-Nvidia Friends Again? Nvidia Says Its Chips In Google Cloud Are Powering Apple Intelligence",
         "source": "Yahoo",
-        "url": "https://finnhub.io/api/news?id=8bb8c024df2383345f78b879b3d90da6a51d7ae9a05e3813ad762aac8618760b",
-        "datetime": 1780948325
+        "url": "https://finnhub.io/api/news?id=5556e28f16a96a830a60a44d7b5521982f6ef86f57ee40e27c10907fcbfed4b4",
+        "datetime": 1781065061
       },
       {
         "symbol": "AMZN",
-        "headline": "Sector Update: Tech Stocks Gain Late Afternoon",
+        "headline": "Natalia Dyer Explores Korean Beauty Culture, Unveiling Authentic Charm on Set",
         "source": "Yahoo",
-        "url": "https://finnhub.io/api/news?id=5905c8c72a255ab121f30d83c131211ccf16b409cec7f6f4f6b6a4294a35029b",
-        "datetime": 1780947827
+        "url": "https://finnhub.io/api/news?id=97bd9b34ff9595257200fd5574fdef2b3095d9fa8d98b3abf53a00d2f42b935c",
+        "datetime": 1781067900
       },
       {
         "symbol": "META",
-        "headline": "Is the Market Underestimating Meta Stock’s AI Payoff",
+        "headline": "META Stock Rebounds Overnight: Analyst Says Subscriptions Could Be $20B Business By 2030",
         "source": "Yahoo",
-        "url": "https://finnhub.io/api/news?id=21137ea69cf727ea201fc529b68d70ac44a6bcaaf3888b7b7650aab0f5fefaa2",
-        "datetime": 1780947398
+        "url": "https://finnhub.io/api/news?id=680fa92835cd910b2964c8d1592577ff73896bd77a01453c2be017b8eeca337b",
+        "datetime": 1781060803
       }
     ]
-  }
+  },
+  "scorecard": {
+    "total": 2,
+    "open": 2,
+    "closed": 0,
+    "wins": 0,
+    "losses": 0,
+    "winRate": 0,
+    "avgResultPct": 0,
+    "bySource": {
+      "system": {
+        "total": 2,
+        "closed": 0,
+        "wins": 0,
+        "winRate": 0
+      },
+      "user": {
+        "total": 0,
+        "closed": 0,
+        "wins": 0,
+        "winRate": 0
+      }
+    }
+  },
+  "resolvedLastWeek": []
 }
