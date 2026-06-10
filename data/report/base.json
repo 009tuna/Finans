@@ -1,46 +1,46 @@
 {
-  "generatedAt": "2026-06-08T08:52:25.766Z",
+  "generatedAt": "2026-06-08T20:20:49.395Z",
   "date": "2026-06-08",
   "dataAsOf": {
-    "usAsOf": "2026-06-05T20:00:01.000Z",
-    "bistAsOf": "2026-06-08T08:11:44.000Z",
-    "cryptoAsOf": "2026-06-08T08:26:45.372Z"
+    "usAsOf": "2026-06-08T20:00:01.000Z",
+    "bistAsOf": "2026-06-08T15:09:59.000Z",
+    "cryptoAsOf": "2026-06-08T20:10:17.054Z"
   },
   "sentiment": {
-    "avg": 42,
+    "avg": 44,
     "label": "Temkinli",
-    "gainers": 20,
+    "gainers": 34,
     "total": 44,
-    "buys": 4
+    "buys": 6
   },
   "markets": {
     "us": {
       "name": "ABD",
       "count": 12,
-      "avg": 49,
+      "avg": 51,
       "topPick": {
-        "symbol": "AAPL",
-        "score": 71,
+        "symbol": "AMD",
+        "score": 65,
         "label": "AL"
       }
     },
     "bist": {
       "name": "BIST",
       "count": 20,
-      "avg": 47,
+      "avg": 53,
       "topPick": {
         "symbol": "TTKOM",
-        "score": 80,
+        "score": 81,
         "label": "GUCLU AL"
       }
     },
     "crypto": {
       "name": "Kripto",
       "count": 12,
-      "avg": 26,
+      "avg": 21,
       "topPick": {
         "symbol": "TRX",
-        "score": 37,
+        "score": 30,
         "label": "AZALT"
       }
     }
@@ -50,119 +50,121 @@
       "market": "bist",
       "symbol": "TTKOM",
       "name": "Türk Telekomünikasyon Anonim Sirketi",
-      "score": 80,
+      "score": 81,
       "label": "GUCLU AL",
-      "summary": "Bileşik teknik puan 80/100 → GUCLU AL. · RSI 54.4 · MACD pozitif · fiyat 50g ort. üstünde · 52H bandında %62"
-    },
-    {
-      "market": "us",
-      "symbol": "AAPL",
-      "name": "Apple Inc",
-      "score": 71,
-      "label": "AL",
-      "summary": "Bileşik teknik puan 71/100 → AL. · RSI 60.7 · MACD negatif · fiyat 50g ort. üstünde · 52H bandında %93"
-    },
-    {
-      "market": "us",
-      "symbol": "GOOGL",
-      "name": "Alphabet Inc",
-      "score": 61,
-      "label": "AL",
-      "summary": "Bileşik teknik puan 61/100 → AL. · RSI 46.4 · MACD negatif · fiyat 50g ort. üstünde · 52H bandında %86"
+      "summary": "Bileşik teknik puan 81/100 → GUCLU AL. · RSI 56.6 · MACD pozitif · fiyat 50g ort. üstünde · 52H bandında %65"
     },
     {
       "market": "bist",
-      "symbol": "TCELL",
-      "name": "Turkcell Iletisim Hizmetleri A.S.",
-      "score": 60,
+      "symbol": "GARAN",
+      "name": "Turkiye Garanti Bankasi A.S.",
+      "score": 70,
       "label": "AL",
-      "summary": "Bileşik teknik puan 60/100 → AL. · RSI 45 · MACD pozitif · fiyat 50g ort. altında · 52H bandında %44"
+      "summary": "Bileşik teknik puan 70/100 → AL. · RSI 50.7 · MACD pozitif · fiyat 50g ort. altında · 52H bandında %32"
+    },
+    {
+      "market": "bist",
+      "symbol": "THYAO",
+      "name": "Türk Hava Yollari Anonim Ortakligi",
+      "score": 67,
+      "label": "AL",
+      "summary": "Bileşik teknik puan 67/100 → AL. · RSI 47.5 · MACD pozitif · fiyat 50g ort. altında · 52H bandında %47"
+    },
+    {
+      "market": "us",
+      "symbol": "AMD",
+      "name": "Advanced Micro Devices Inc",
+      "score": 65,
+      "label": "AL",
+      "summary": "Bileşik teknik puan 65/100 → AL. · RSI 58.8 · MACD negatif · fiyat 50g ort. üstünde · 52H bandında %88"
+    },
+    {
+      "market": "bist",
+      "symbol": "ISCTR",
+      "name": "Türkiye Is Bankasi A.S.",
+      "score": 64,
+      "label": "AL",
+      "summary": "Bileşik teknik puan 64/100 → AL. · RSI 52.2 · MACD pozitif · fiyat 50g ort. altında · 52H bandında %37"
     },
     {
       "market": "bist",
       "symbol": "BIMAS",
       "name": "BIM Birlesik Magazalar A.S.",
-      "score": 58,
-      "label": "TUT",
-      "summary": "Bileşik teknik puan 58/100 → TUT. · RSI 47.5 · MACD negatif · fiyat 50g ort. üstünde · 52H bandında %79"
-    },
-    {
-      "market": "bist",
-      "symbol": "TUPRS",
-      "name": "Türkiye Petrol Rafinerileri A.S.",
-      "score": 58,
-      "label": "TUT",
-      "summary": "Bileşik teknik puan 58/100 → TUT. · RSI 46 · MACD pozitif · fiyat 50g ort. altında · 52H bandında %77"
+      "score": 64,
+      "label": "AL",
+      "summary": "Bileşik teknik puan 64/100 → AL. · RSI 48.9 · MACD negatif · fiyat 50g ort. üstünde · 52H bandında %80"
     }
   ],
   "signals": {
     "overbought": [],
     "oversold": [
-      "crypto BTC (RSI 26.3)",
-      "crypto ETH (RSI 27.1)",
-      "crypto SOL (RSI 27.2)",
-      "crypto ADA (RSI 19.2)",
-      "crypto AVAX (RSI 20.2)",
-      "crypto DOT (RSI 26.8)"
+      "crypto BTC (RSI 27)",
+      "crypto ETH (RSI 27.6)",
+      "crypto ADA (RSI 24.9)",
+      "crypto AVAX (RSI 21.4)",
+      "crypto DOT (RSI 30)"
     ],
     "goldenCross": [],
     "deathCross": [],
     "volumeSpike": [
-      "us META (%179)",
-      "us AVGO (%185)",
-      "us COIN (%165)",
-      "bist SASA (%1126)"
+      "us AAPL (%151)",
+      "bist TTKOM (%164)",
+      "bist SASA (%1619)"
     ],
     "strongMomentum": [
+      "bist THYAO",
+      "bist KCHOL",
       "bist GARAN",
       "bist AKBNK",
       "bist ISCTR",
-      "bist TUPRS",
+      "bist FROTO",
+      "bist SAHOL",
       "bist TCELL",
       "bist YKBNK",
-      "bist TTKOM"
+      "bist TTKOM",
+      "bist PGSUS"
     ]
   },
   "risks": [
     {
       "market": "crypto",
+      "symbol": "BTC",
+      "reason": "Düşük teknik puan 25"
+    },
+    {
+      "market": "crypto",
       "symbol": "ETH",
-      "reason": "Düşük teknik puan 26"
+      "reason": "Düşük teknik puan 21"
     },
     {
       "market": "crypto",
       "symbol": "SOL",
-      "reason": "Düşük teknik puan 25"
+      "reason": "Düşük teknik puan 20"
     },
     {
       "market": "crypto",
       "symbol": "BNB",
-      "reason": "Düşük teknik puan 26"
-    },
-    {
-      "market": "crypto",
-      "symbol": "XRP",
-      "reason": "Düşük teknik puan 27"
-    },
-    {
-      "market": "crypto",
-      "symbol": "ADA",
-      "reason": "Düşük teknik puan 21"
-    },
-    {
-      "market": "crypto",
-      "symbol": "AVAX",
       "reason": "Düşük teknik puan 25"
     },
     {
       "market": "crypto",
-      "symbol": "DOGE",
-      "reason": "Düşük teknik puan 21"
+      "symbol": "XRP",
+      "reason": "Düşük teknik puan 23"
     },
     {
       "market": "crypto",
-      "symbol": "LINK",
-      "reason": "Düşük teknik puan 23"
+      "symbol": "ADA",
+      "reason": "Düşük teknik puan 20"
+    },
+    {
+      "market": "crypto",
+      "symbol": "AVAX",
+      "reason": "Düşük teknik puan 20"
+    },
+    {
+      "market": "crypto",
+      "symbol": "DOGE",
+      "reason": "Düşük teknik puan 15"
     }
   ],
   "calendar": {
@@ -175,7 +177,7 @@
         "country": "CN",
         "event": "Balance of Trade",
         "impact": "high",
-        "estimate": 91.5,
+        "estimate": 92.1,
         "prev": 84.82,
         "actual": null,
         "unit": "$"
@@ -186,7 +188,7 @@
         "country": "CN",
         "event": "Exports YoY",
         "impact": "high",
-        "estimate": 14.3,
+        "estimate": 15,
         "prev": 14.1,
         "actual": null,
         "unit": "%"
@@ -208,7 +210,7 @@
         "country": "DE",
         "event": "Balance of Trade",
         "impact": "high",
-        "estimate": 14.2,
+        "estimate": 15,
         "prev": 14.3,
         "actual": null,
         "unit": "€"
@@ -219,7 +221,7 @@
         "country": "US",
         "event": "Existing Home Sales",
         "impact": "high",
-        "estimate": 4.05,
+        "estimate": 4.06,
         "prev": 4.02,
         "actual": null,
         "unit": ""
@@ -307,7 +309,7 @@
         "country": "US",
         "event": "PPI MoM",
         "impact": "high",
-        "estimate": 0.8,
+        "estimate": 0.7,
         "prev": 1.4,
         "actual": null,
         "unit": "%"
@@ -362,7 +364,7 @@
         "country": "CN",
         "event": "Inflation Rate MoM",
         "impact": "medium",
-        "estimate": null,
+        "estimate": -0.2,
         "prev": 0.3,
         "actual": null,
         "unit": "%"
@@ -428,7 +430,7 @@
         "country": "US",
         "event": "Initial Jobless Claims",
         "impact": "medium",
-        "estimate": 225,
+        "estimate": 219,
         "prev": 225,
         "actual": null,
         "unit": ""
@@ -439,7 +441,7 @@
         "country": "GB",
         "event": "GDP 3-Month Avg",
         "impact": "medium",
-        "estimate": null,
+        "estimate": 0.7,
         "prev": 0.6,
         "actual": null,
         "unit": "%"
@@ -452,7 +454,7 @@
         "impact": "low",
         "estimate": null,
         "prev": 3.6,
-        "actual": null,
+        "actual": 3.5,
         "unit": "%"
       },
       {
@@ -538,7 +540,7 @@
         "country": "US",
         "event": "Continuing Jobless Claims",
         "impact": "low",
-        "estimate": null,
+        "estimate": 1780,
         "prev": 1777,
         "actual": null,
         "unit": ""
@@ -549,7 +551,7 @@
         "country": "US",
         "event": "Core PPI YoY",
         "impact": "low",
-        "estimate": null,
+        "estimate": 5.3,
         "prev": 5.2,
         "actual": null,
         "unit": "%"
@@ -604,7 +606,7 @@
         "country": "US",
         "event": "PPI YoY",
         "impact": "low",
-        "estimate": null,
+        "estimate": 6.4,
         "prev": 6,
         "actual": null,
         "unit": "%"
@@ -702,7 +704,7 @@
       {
         "date": "2026-06-08",
         "symbol": "OCC",
-        "hour": "",
+        "hour": "bmo",
         "epsEstimate": null,
         "revenueEstimate": null,
         "watch": false
@@ -759,45 +761,45 @@
     "companyNews": [
       {
         "symbol": "AAPL",
-        "headline": "Apple's WWDC Event Is Nearly Here. What to Watch.",
+        "headline": "Why is this Wealth Manager Buying 1 Million Shares of Harley Davidson?",
         "source": "Yahoo",
-        "url": "https://finnhub.io/api/news?id=e04bea491e40837eba1d993832ec6921ffa0e83ede73cbe7e75d0bebb985d571",
-        "datetime": 1780900412
+        "url": "https://finnhub.io/api/news?id=8bb8c024df2383345f78b879b3d90da6a51d7ae9a05e3813ad762aac8618760b",
+        "datetime": 1780948325
       },
       {
         "symbol": "MSFT",
-        "headline": "Alger AI Enablers & Adopters ETF Q1 2026 Portfolio Update",
-        "source": "SeekingAlpha",
-        "url": "https://finnhub.io/api/news?id=43d2b746b07d37f09f750598fe01ec802ad1a7840036e1a14b559f5cf32c5a4c",
-        "datetime": 1780891200
+        "headline": "Microsoft Expands NHS AI Rollout",
+        "source": "Yahoo",
+        "url": "https://finnhub.io/api/news?id=f7a5cb41b8e537e4a097ab6cae0707168fd1474e6fbeaf673b8c83d6bf889e14",
+        "datetime": 1780947831
       },
       {
         "symbol": "NVDA",
-        "headline": "Forget the SpaceX IPO: 3 AI Space Stocks to Buy and Hold Instead",
+        "headline": "Naver Taps Nvidia To Build Korea's Sovereign AI Infrastructure",
         "source": "Yahoo",
-        "url": "https://finnhub.io/api/news?id=30c7190e0dc2580470b57c04b40fcb13682672e4f5f6027c0fe31b7ce70e423a",
-        "datetime": 1780904820
+        "url": "https://finnhub.io/api/news?id=e977f197bc638f6db5855924d185f28336f050f8ff52e445a485776280348beb",
+        "datetime": 1780948366
       },
       {
         "symbol": "GOOGL",
-        "headline": "The Nasdaq Just Had Its Worst Day In Over A Year. The Jobs Market Lit The Fuse.",
-        "source": "ChartMill",
-        "url": "https://finnhub.io/api/news?id=fea71b83251297a46139608a57760cb1c4bf2df6536777aa7809d8e2e2d37fef",
-        "datetime": 1780902270
+        "headline": "Why is this Wealth Manager Buying 1 Million Shares of Harley Davidson?",
+        "source": "Yahoo",
+        "url": "https://finnhub.io/api/news?id=8bb8c024df2383345f78b879b3d90da6a51d7ae9a05e3813ad762aac8618760b",
+        "datetime": 1780948325
       },
       {
         "symbol": "AMZN",
-        "headline": "A Critical Week For The Markets Ahead",
-        "source": "SeekingAlpha",
-        "url": "https://finnhub.io/api/news?id=f59db508576fedf0ea9d5fcccafe19d79069d23471bd16217a55c0bbadce709d",
-        "datetime": 1780883178
+        "headline": "Sector Update: Tech Stocks Gain Late Afternoon",
+        "source": "Yahoo",
+        "url": "https://finnhub.io/api/news?id=5905c8c72a255ab121f30d83c131211ccf16b409cec7f6f4f6b6a4294a35029b",
+        "datetime": 1780947827
       },
       {
         "symbol": "META",
-        "headline": "The Nasdaq Just Had Its Worst Day In Over A Year. The Jobs Market Lit The Fuse.",
-        "source": "ChartMill",
-        "url": "https://finnhub.io/api/news?id=fea71b83251297a46139608a57760cb1c4bf2df6536777aa7809d8e2e2d37fef",
-        "datetime": 1780902270
+        "headline": "Is the Market Underestimating Meta Stock’s AI Payoff",
+        "source": "Yahoo",
+        "url": "https://finnhub.io/api/news?id=21137ea69cf727ea201fc529b68d70ac44a6bcaaf3888b7b7650aab0f5fefaa2",
+        "datetime": 1780947398
       }
     ]
   }

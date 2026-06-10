@@ -180,11 +180,23 @@ function scoreAsset(ind, fund, market) {
   const w = weightsFor(regime, hasFund);
 
   const composite = w.mom * mom.score + w.tr * tr.score + w.vol * vol.score + w.vlt * vlt.score + w.fnd * fnd.score;
-  const score = Math.round(composite * 100);
+  let score = Math.round(composite * 100);
+  let appliedPeakRisk = false;
+  if (score >= 70 && ind.pos52 != null && ind.pos52 >= 0.9 && ind.macd && ind.macd.histogram < 0) {
+    score = Math.max(0, score - 8);
+    appliedPeakRisk = true;
+  }
   const lab = labelFor(score);
   const reasons = []
     .concat(mom.reasons, tr.reasons, vol.reasons, vlt.reasons, fnd.reasons)
     .map((r) => ({ sentiment: r[0], text: r[1] }));
+
+  if (appliedPeakRisk) {
+    reasons.push({
+      sentiment: 'neg',
+      text: '52H zirvesine çok yakın + MACD negatif — tepe riski düzeltmesi (−8 puan)'
+    });
+  }
 
   return {
     score,

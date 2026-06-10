@@ -59,4 +59,23 @@ assert.ok(noReg.score >= 0 && noReg.score <= 100);
 assert.equal(noReg.regime, null);
 console.log('   ✓ Rejim yoksa varsayılan skorlama çalışıyor, skor=' + noReg.score);
 
+// 6. Top-risk scoring adjustment (Phase 2a)
+console.log('6. Top-risk scoring adjustment...');
+const indTopRisk = makeInd(65, 'trend', {
+  pos52: 0.95,
+  macd: { macd: 0, signal: 0, histogram: -0.5, prevHistogram: -0.2 }
+});
+const resTopRisk = scoreAsset(indTopRisk, null, 'crypto');
+
+const indNormalRisk = makeInd(65, 'trend', {
+  pos52: 0.85,
+  macd: { macd: 0, signal: 0, histogram: -0.5, prevHistogram: -0.2 }
+});
+const resNormalRisk = scoreAsset(indNormalRisk, null, 'crypto');
+
+assert.equal(resNormalRisk.score - resTopRisk.score, 8, 'Top-risk asset score should be exactly 8 points lower');
+assert.ok(resTopRisk.reasons.some((r) => r.sentiment === 'neg' && r.text.includes('tepe riski düzeltmesi')), 'Top-risk reason should be attached');
+assert.ok(!resNormalRisk.reasons.some((r) => r.text.includes('tepe riski düzeltmesi')), 'Normal risk should not have the top-risk warning');
+console.log('   ✓ Top-risk adjustment decreases score by 8 points and attaches warning reason');
+
 console.log('\n🎉 Tüm rejim-farkında skorlama testleri geçti.');

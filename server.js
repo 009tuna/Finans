@@ -14,8 +14,9 @@ const { runAll } = require('./src/fetch-all');
 const { runBacktest } = require('./src/backtest-engine');
 const { fetchAssetChart } = require('./src/chart-data');
 const { runMonteCarlo, calculateDCF, runStressTest, calculateCorrelationMatrix, calculateGraham, calculateDDM } = require('./src/forecast');
-const { getPortfolio, savePortfolio, getLatestSnapshot, getHistory, getReport } = require('./src/db');
+const { getPortfolio, savePortfolio, getLatestSnapshot, getHistory, getReport, getCache } = require('./src/db');
 const { isAuthorized } = require('./src/admin-auth');
+const { readJournal, writeJournal } = require('./src/decision-journal');
 
 const ROOT = __dirname;
 
@@ -73,8 +74,38 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/report') {
       const r = await getReport(); // Supabase reports tablosu (en son)
+      
+      // Read tips archive
+      let tipsArchive = [];
+      if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+        try {
+          const cached = await getCache('tips_archive');
+          if (cached && Array.isArray(cached.value)) {
+            tipsArchive = cached.value;
+          }
+        } catch (e) {
+          console.warn('[server] Supabase tips_archive okuma hatası:', e.message);
+        }
+      }
+      
+      if (tipsArchive.length === 0) {
+        const archivePath = path.join(DATA, 'report/tips-archive.json');
+        if (fs.existsSync(archivePath)) {
+          try {
+            tipsArchive = JSON.parse(fs.readFileSync(archivePath, 'utf8'));
+          } catch (e) {
+            console.warn('[server] tips-archive.json okuma hatası:', e.message);
+          }
+        }
+      }
+
       res.writeHead(200, { 'Content-Type': MIME['.json'] });
-      return res.end(JSON.stringify({ base: r.base || null, ai: r.ai || null, date: r.date || null }));
+      return res.end(JSON.stringify({ 
+        base: r.base || null, 
+        ai: r.ai || null, 
+        date: r.date || null,
+        tipsArchive: tipsArchive
+      }));
     }
     if (p === '/api/refresh' && req.method === 'POST') {
       if (!isAuthorized(req)) {
@@ -118,6 +149,26 @@ const server = http.createServer(async (req, res) => {
           await savePortfolio(parsed);
           res.writeHead(200, { 'Content-Type': MIME['.json'] });
           return res.end(JSON.stringify({ success: true }));
+        } catch (e) {
+          res.writeHead(400);
+          return res.end('Gecersiz JSON verisi');
+        }
+      }
+    }
+    if (p === '/api/journal') {
+      const journalPath = path.join(DATA, 'journal.json');
+      if (req.method === 'GET') {
+        const j = await readJournal(journalPath);
+        res.writeHead(200, { 'Content-Type': MIME['.json'] });
+        return res.end(JSON.stringify(j));
+      }
+      if (req.method === 'POST') {
+        const bodyStr = await readBody(req);
+        try {
+          const parsed = JSON.parse(bodyStr);
+          await writeJournal(journalPath, parsed);
+          res.writeHead(200, { 'Content-Type': MIME['.json'] });
+          return res.end(JSON.stringify(parsed));
         } catch (e) {
           res.writeHead(400);
           return res.end('Gecersiz JSON verisi');

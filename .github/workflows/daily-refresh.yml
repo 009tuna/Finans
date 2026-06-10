@@ -38,6 +38,15 @@ jobs:
           SUPABASE_ACCESS_TOKEN:     ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           FINNHUB_TOKEN:             ${{ secrets.FINNHUB_TOKEN }}
 
+      - name: Tahminleri çöz (prediction-resolver → Supabase/dosya)
+        run: node src/prediction-resolver.js
+        env:
+          SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY:         ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ACCESS_TOKEN:     ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          FINNHUB_TOKEN:             ${{ secrets.FINNHUB_TOKEN }}
+
       - name: Temel raporu üret (base → Supabase)
         run: node src/report.js
         env:
@@ -47,5 +56,13 @@ jobs:
           SUPABASE_ACCESS_TOKEN:     ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           FINNHUB_TOKEN:             ${{ secrets.FINNHUB_TOKEN }}
 
+      - name: Günün ipucunu arşivle (tips-archive → Supabase/dosya)
+        run: node scripts/archive-tip.js
+        env:
+          SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY:         ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ACCESS_TOKEN:     ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
       - name: Tamamlandı
-        run: echo "✅ Veriler + temel rapor güncellendi - $(date '+%Y-%m-%d %H:%M:%S UTC')"
+        run: echo "✅ Veriler + temel rapor + tahminler + arşiv güncellendi - $(date '+%Y-%m-%d %H:%M:%S UTC')"

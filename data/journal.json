@@ -1,0 +1,42 @@
+{
+  "notes": {
+    "us:AAPL": {
+      "thesis": "Alim tezi: 50g �st�",
+      "updatedAt": "2026-06-08T20:00:00.000Z",
+      "invalidation": "Stop alti"
+    }
+  },
+  "alerts": [],
+  "predictions": [
+    {
+      "id": "bist:YKBNK:2026-06-10",
+      "market": "bist",
+      "symbol": "YKBNK",
+      "label": "AL",
+      "score": 71,
+      "entry": 35.54,
+      "target": 39.41,
+      "stop": 33.6,
+      "createdAt": "2026-06-10T06:40:52.609Z",
+      "horizonDays": 30,
+      "resolvedAt": null,
+      "outcome": "open",
+      "source": "system"
+    },
+    {
+      "id": "bist:TTKOM:2026-06-10",
+      "market": "bist",
+      "symbol": "TTKOM",
+      "label": "AL",
+      "score": 72,
+      "entry": 62.9,
+      "target": 69.02,
+      "stop": 59.84,
+      "createdAt": "2026-06-10T06:40:52.609Z",
+      "horizonDays": 30,
+      "resolvedAt": null,
+      "outcome": "open",
+      "source": "system"
+    }
+  ]
+}

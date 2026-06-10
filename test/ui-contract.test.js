@@ -48,6 +48,10 @@ assert.equal(Number.isFinite(totals.finalPnLTRY), true);
 const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
 assert.match(html, /id="backtest-trades-body"/);
 assert.match(html, /vendor\/lightweight-charts\.standalone\.production\.js/);
+assert.match(html, /id="dailyDigest"/);
+assert.match(html, /id="predictionScorecard"/);
+assert.match(html, /id="portfolioActions"/);
+assert.match(html, /action-layer\.js/);
 assert.match(html, /class="[^"]*trading-desk/);
 assert.match(html, /id="backtest-story"/);
 assert.match(html, /<th>Gerekce<\/th>/);
@@ -56,5 +60,12 @@ assert.ok(html.indexOf('id="backtest-trades-body"') < html.indexOf('id="view-lit
 
 const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
 assert.match(server, /\/api\/chart/);
+
+const app = fs.readFileSync(path.join(__dirname, '..', 'public', 'app.js'), 'utf8');
+assert.match(app, /loadJournal/);
+assert.match(app, /saveJournal/);
+assert.match(app, /asset-note-form/);
+assert.match(app, /alert-toggle-form/);
+assert.match(app, /renderPredictionScorecard/);
 
 console.log('ui contract tests passed');

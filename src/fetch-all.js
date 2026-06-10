@@ -177,6 +177,40 @@ async function runAll() {
   const history = await loadHistory();
   attachDecisionMetadata(snapshot, history, cfg);
 
+  // System predictions recording
+  const { readJournal, writeJournal, recordPrediction } = require('./decision-journal');
+  const JOURNAL_PATH = path.join(ROOT, 'data', 'journal.json');
+  try {
+    const journal = await readJournal(JOURNAL_PATH);
+    let updatedJournal = journal;
+    const nowIso = snapshot.generatedAt;
+    
+    const recordList = (arr) => {
+      (arr || []).forEach(x => {
+        if (x.analysis && x.analysis.score >= 70 && x.decision && x.decision.trade && x.decision.trade.available) {
+          updatedJournal = recordPrediction(updatedJournal, {
+            market: x.market,
+            symbol: x.symbol,
+            label: x.analysis.label,
+            score: x.analysis.score,
+            entry: x.decision.trade.entry,
+            target: x.decision.trade.target,
+            stop: x.decision.trade.stop,
+            horizonDays: 30,
+            source: 'system'
+          }, nowIso);
+        }
+      });
+    };
+    recordList(snapshot.us);
+    recordList(snapshot.bist);
+    recordList(snapshot.crypto);
+    
+    await writeJournal(JOURNAL_PATH, updatedJournal);
+  } catch (err) {
+    console.error('⚠️ [fetch-all] Sistem tahminleri kaydedilemedi:', err.message);
+  }
+
   // Supabase'e yaz (latest + history)
   await saveSnapshot(snapshot);
   await appendHistory(snapshot);

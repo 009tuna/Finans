@@ -113,6 +113,30 @@ function countUp(el, target, { decimals = 0, dur = 650 } = {}) {
 }
 
 /* ---------- Veri yükleme ---------- */
+let JOURNAL = { notes: {}, alerts: [], predictions: [] };
+
+async function loadJournal() {
+  try {
+    const res = await fetch('/api/journal', { cache: 'no-store' });
+    JOURNAL = await res.json();
+  } catch (e) {
+    console.error('Journal yüklenemedi:', e);
+    JOURNAL = { notes: {}, alerts: [], predictions: [] };
+  }
+}
+
+async function saveJournal() {
+  try {
+    await fetch('/api/journal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(JOURNAL),
+    });
+  } catch (e) {
+    console.error('Journal kaydedilemedi:', e);
+  }
+}
+
 async function loadPortfolio() {
   try {
     const res = await fetch('/api/portfolio');
@@ -131,6 +155,7 @@ async function load() {
       return silentRefresh();
     }
     await loadPortfolio();
+    await loadJournal();
     updateFreshness();
     renderView();
     if (!booted) { booted = true; maybeAutoRefresh(); }
@@ -269,7 +294,7 @@ function setView(view) {
 function renderView() {
   if (!DATA || DATA.empty) return;
   if (activeView === 'overview') {
-    renderExecSummary(); renderKpis(); renderPicks(); renderAlloc(); renderMovers(); renderFxWidget(); renderMarketRegime();
+    renderExecSummary(); renderDailyDigest(); renderPredictionScorecard(); renderKpis(); renderPicks(); renderAlloc(); renderMovers(); renderFxWidget(); renderMarketRegime();
     triggerRevealAnimations($('#view-overview'));
   }
   else if (activeView === 'us' || activeView === 'bist' || activeView === 'crypto') {
@@ -288,6 +313,8 @@ function renderView() {
     renderBacktestView();
   } else if (activeView === 'forecast') {
     renderForecastView();
+  } else if (activeView === 'literacy') {
+    renderLiteracyView();
   }
 }
 
@@ -327,6 +354,12 @@ async function renderReport() {
         }).join('') + '</div>';
     }
     h += '</div>';
+  }
+
+  // Haftalık Retro
+  if (ai && ai.weeklyRetro) {
+    h += '<div class="card reveal"><div class="card-head"><h2>Geçen Hafta Ne Dedik? (Haftalık Retro)</h2><span class="ai-badge">✦ AI</span></div>' +
+      '<p class="rep-macro">' + esc(ai.weeklyRetro) + '</p></div>';
   }
 
   // Bu hafta: katalizör takvimi + CFO senaryo analizi
@@ -376,6 +409,54 @@ async function renderReport() {
     h += '<div class="card reveal">';
     if (ai.todayFocus) h += '<div class="card-head"><h2>🎯 Bugün Neye Dikkat?</h2><span class="ai-badge">✦ AI</span></div><p class="rep-macro">' + esc(ai.todayFocus) + '</p>';
     if (ai.literacyTip) h += '<div class="tip-card" style="margin-top:14px"><h4>📚 ' + esc(ai.literacyTip.title || 'Günün dersi') + '</h4><p>' + esc(ai.literacyTip.body || '') + '</p></div>';
+    h += '</div>';
+  }
+
+  // Daily Quiz
+  if (ai && ai.quiz) {
+    const quizDate = base.date || new Date().toISOString().slice(0, 10);
+    const lastPlayed = localStorage.getItem('finans-quiz-last-played');
+    const streak = parseInt(localStorage.getItem('finans-quiz-streak') || '0', 10);
+    const hasPlayedToday = lastPlayed === quizDate;
+    
+    h += '<div class="card reveal" id="quiz-card" style="margin-top: 14px;">';
+    h += '<div class="card-head"><h2>🧠 Günün Finansal Akıl Yürütme Sorusu</h2><span class="ai-badge">✦ Günlük Soru</span></div>';
+    h += '<p style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">' + esc(ai.quiz.question) + '</p>';
+    
+    if (hasPlayedToday) {
+      const selectedIndex = parseInt(localStorage.getItem('finans-quiz-last-selected') || '0', 10);
+      h += '<div style="display: flex; flex-direction: column; gap: 8px;">';
+      ai.quiz.options.forEach((opt, idx) => {
+        const isCorrect = idx === ai.quiz.correctIndex;
+        const isSelected = idx === selectedIndex;
+        let borderStyle = 'border: 1px solid var(--border);';
+        let bgStyle = '';
+        let icon = '';
+        if (isCorrect) {
+          borderStyle = 'border: 1px solid var(--green);';
+          bgStyle = 'background: rgba(5, 150, 105, 0.1);';
+          icon = '🟢 ';
+        } else if (isSelected) {
+          borderStyle = 'border: 1px solid var(--red);';
+          bgStyle = 'background: rgba(220, 38, 38, 0.1);';
+          icon = '🔴 ';
+        }
+        h += '<div style="padding: 10px 14px; border-radius: 6px; font-size: 13px; ' + borderStyle + ' ' + bgStyle + '">' + icon + esc(opt) + '</div>';
+      });
+      h += '</div>';
+      h += '<div style="margin-top: 14px; padding: 12px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;">';
+      h += '<b style="color: ' + (selectedIndex === ai.quiz.correctIndex ? 'var(--green)' : 'var(--red)') + ';">' + (selectedIndex === ai.quiz.correctIndex ? 'Tebrikler! Doğru cevap.' : 'Yanlış cevap.') + '</b>';
+      h += '<p style="margin: 6px 0 0 0; font-size: 12.5px; color: var(--muted);">' + esc(ai.quiz.explanation) + '</p>';
+      h += '</div>';
+      h += '<div style="margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--accent);">🔥 Mevcut Seri Skoru (Streak): ' + streak + ' gün</div>';
+    } else {
+      h += '<div style="display: flex; flex-direction: column; gap: 8px;" id="quiz-options-container">';
+      ai.quiz.options.forEach((opt, idx) => {
+        h += '<button class="btn" style="text-align: left; padding: 10px 14px; background: var(--bg-2); border: 1px solid var(--border); font-size: 13px; width: 100%; cursor: pointer;" onclick="submitQuizAnswer(' + idx + ', ' + ai.quiz.correctIndex + ', \'' + quizDate + '\')">' + esc(opt) + '</button>';
+      });
+      h += '</div>';
+      h += '<div id="quiz-streak-display" style="margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--accent);">🔥 Seri Skoru: ' + streak + ' gün</div>';
+    }
     h += '</div>';
   }
 
@@ -1289,6 +1370,91 @@ function decisionInsightCard(x) {
   '</div>';
 }
 
+function assetThesisCard(x) {
+  const key = x.market + ':' + x.symbol;
+  const note = JOURNAL.notes[key] || { thesis: '', invalidation: '' };
+  
+  const suggested = (window.FinansActionLayer && window.FinansActionLayer.buildAssetThesis)
+    ? window.FinansActionLayer.buildAssetThesis(x, DATA)
+    : { thesis: '', invalidation: '', catalysts: [] };
+
+  const thesisVal = note.thesis || '';
+  const invalidationVal = note.invalidation || '';
+
+  const catalystsHtml = (suggested.catalysts || []).map(c => '<li>' + esc(c) + '</li>').join('');
+
+  return '<div class="asset-thesis-wrapper">' +
+    '<div class="asset-thesis">' +
+      '<div>' +
+        '<h4>Yatırım Tezi</h4>' +
+        '<p>' + esc(note.thesis || suggested.thesis || 'Tez yok.') + '</p>' +
+      '</div>' +
+      '<div>' +
+        '<h4>Bozulma Koşulu</h4>' +
+        '<p>' + esc(note.invalidation || suggested.invalidation || 'Bozulma koşulu yok.') + '</p>' +
+      '</div>' +
+      '<div>' +
+        '<h4>Katalizörler</h4>' +
+        '<ul>' + catalystsHtml + '</ul>' +
+      '</div>' +
+    '</div>' +
+    '<form class="asset-note-form" data-market="' + x.market + '" data-symbol="' + x.symbol + '">' +
+      '<div class="note-grid">' +
+        '<label>Tez Notu' +
+          '<textarea name="thesis" placeholder="Örn: 50g hareketli ortalama üstünde kalırsa alım yönlü izlenecek.">' + esc(thesisVal) + '</textarea>' +
+        '</label>' +
+        '<label>Bozulma Notu' +
+          '<textarea name="invalidation" placeholder="Örn: Stop seviyesinin altında veya 50g ortalamanın altında kapanışlarda tez bozulur.">' + esc(invalidationVal) + '</textarea>' +
+        '</label>' +
+      '</div>' +
+      '<div class="note-actions">' +
+        '<button type="submit" class="btn">Notu Kaydet</button>' +
+        '<span class="note-status" id="note-status-' + x.market + '-' + x.symbol + '"></span>' +
+      '</div>' +
+    '</form>' +
+  '</div>';
+}
+
+function alertRulesCard(x) {
+  let weightPct = 0;
+  if (portfolioData && window.FinansActionLayer && window.FinansActionLayer.buildPortfolioActions) {
+    const portActions = window.FinansActionLayer.buildPortfolioActions({ data: DATA, portfolioData: portfolioData });
+    const row = portActions.rows.find(r => r.symbol === x.symbol);
+    if (row) weightPct = row.weightPct;
+  }
+  
+  const suggested = (window.FinansActionLayer && window.FinansActionLayer.buildAlertRules)
+    ? window.FinansActionLayer.buildAlertRules(x, { weightPct: weightPct })
+    : [];
+
+  let alertsHtml = '';
+  if (suggested.length === 0) {
+    alertsHtml = '<p class="muted compact">Önerilen alarm kuralı yok.</p>';
+  } else {
+    alertsHtml = suggested.map(a => {
+      const id = [x.market.toLowerCase(), x.symbol.toUpperCase(), a.trigger.toLowerCase()].join(':');
+      const activeAlert = (JOURNAL.alerts || []).find(y => y.id === id);
+      const isChecked = activeAlert && activeAlert.enabled;
+      
+      return '<form class="alert-toggle-form" data-market="' + x.market + '" data-symbol="' + x.symbol + '" data-trigger="' + esc(a.trigger) + '" data-action="' + esc(a.action) + '" style="margin-top:8px;">' +
+        '<label class="alert-switch">' +
+          '<input type="checkbox" ' + (isChecked ? 'checked' : '') + '>' +
+          '<span></span>' +
+        '</label>' +
+        '<div>' +
+          '<b>' + esc(a.trigger) + '</b>' +
+          '<span>' + esc(a.action) + '</span>' +
+        '</div>' +
+      '</form>';
+    }).join('');
+  }
+
+  return '<div class="alert-rules">' +
+    '<h4>Önerilen Alarm Kuralları</h4>' +
+    alertsHtml +
+  '</div>';
+}
+
 function drawDetailChart(idx, asset) {
   const canvasId = 'detail-chart-' + idx;
   const canvas = document.getElementById(canvasId);
@@ -1355,6 +1521,15 @@ function drawDetailChart(idx, asset) {
   });
 }
 
+function getScoreDelta(asset) {
+  const c = asset && asset.decision && asset.decision.confidence;
+  if (c && typeof c.scoreDelta === 'number') return c.scoreDelta;
+  if (c && typeof c.previousScore === 'number' && asset.analysis && typeof asset.analysis.score === 'number') {
+    return asset.analysis.score - c.previousScore;
+  }
+  return null;
+}
+
 function renderTable() {
   const list = currentList();
   
@@ -1362,11 +1537,26 @@ function renderTable() {
   Object.values(activeDetailCharts).forEach(chart => chart.destroy());
   activeDetailCharts = {};
   
+  const tsEl = $('#tableTimestamp');
+  if (tsEl && DATA.generatedAt) {
+    const timeStr = new Date(DATA.generatedAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    tsEl.textContent = 'Skorlar ' + timeStr + ' anlık görüntüsüne dayanır · gün içinde değişebilir';
+  }
+
   let html = '<table><thead><tr><th>Sembol</th><th>Fiyat</th><th>Gün %</th><th>RSI</th><th>MACD</th><th>50g %</th><th>Vol</th><th>Puan</th><th>Öneri</th></tr></thead><tbody>';
   list.forEach((x, idx) => {
     const a = x.analysis, i = x.ind || {}, s = i.signals || {};
     const chCls = (x.changePct || 0) >= 0 ? 'pos' : 'neg';
     const dist = s.distSma50;
+    
+    const delta = getScoreDelta(x);
+    let deltaHtml = '';
+    if (delta != null && delta !== 0) {
+      const deltaCls = delta > 0 ? 'pos' : 'neg';
+      const deltaSign = delta > 0 ? '+' : '';
+      deltaHtml = ' <span class="score-delta ' + deltaCls + '" style="font-size: 11px; font-weight: 800; margin-left: 5px;">' + deltaSign + delta + '</span>';
+    }
+
     html +=
       '<tr class="row" data-i="' + idx + '">' +
       '<td><span class="sym">' + x.symbol + '</span><div class="coname">' + (x.name || '') + '</div></td>' +
@@ -1376,11 +1566,13 @@ function renderTable() {
       '<td>' + macdCell(i) + '</td>' +
       '<td class="' + ((dist || 0) >= 0 ? 'pos' : 'neg') + '">' + (dist != null ? fmtPct(dist) : '–') + '</td>' +
       '<td>' + (i.atrPct != null ? '%' + i.atrPct : '–') + '</td>' +
-      '<td><span class="scorecell"><span class="scorebar"><i style="width:' + a.score + '%;background:' + toneColor(a.tone) + '"></i></span>' + a.score + '</span></td>' +
+      '<td><span class="scorecell"><span class="scorebar"><i style="width:' + a.score + '%;background:' + toneColor(a.tone) + '"></i></span>' + a.score + deltaHtml + '</span></td>' +
       '<td><span class="badge tone-' + a.tone + '">' + a.label + '</span></td>' +
       '</tr>' +
       '<tr class="detail" id="detail-' + idx + '" hidden><td colspan="9"><div class="detailwrap">' +
       decisionInsightCard(x) +
+      assetThesisCard(x) +
+      alertRulesCard(x) +
       '<div class="dtop"><div class="dsummary">' + a.summary + '</div><div class="detail-chart-box"><canvas id="detail-chart-' + idx + '"></canvas></div></div>' +
       subBars(a.sub) + decisionPanel(x) + indGrid(x) + reasonList(a.reasons) +
       '</div></td></tr>';
@@ -2892,6 +3084,183 @@ setView('overview');
 load();
 setInterval(silentRefresh, 10 * 60 * 1000);
 
+/* ---------- Otomasyon Karar ve Okuryazarlık Yardımcıları ---------- */
+function renderDailyDigest() {
+  const el = $('#dailyDigest');
+  if (!el) return;
+  if (!window.FinansActionLayer || !window.FinansActionLayer.buildDailyChangeDigest) { el.innerHTML = ''; return; }
+  const d = window.FinansActionLayer.buildDailyChangeDigest(DATA);
+  
+  const item = (x, dir) => {
+    const cls = dir === 'up' ? 'imp-pos' : 'imp-neg';
+    const sign = dir === 'up' ? '+' : '';
+    return '<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); font-size:12px;">' +
+      '<b>' + esc(x.symbol) + ' <span style="font-size:10px; color:var(--muted); text-transform:uppercase;">(' + esc(x.market) + ')</span></b>' +
+      '<div style="display:flex; gap:8px; align-items:center;">' +
+        '<span class="badge tone-' + x.tone + '" style="font-size:11px;">' + x.label + ' · ' + x.score + '</span>' +
+        '<span class="news-impact ' + cls + '" style="font-size:11px; padding:2px 6px; border-radius:4px; font-weight:700;">' + sign + x.delta + '</span>' +
+      '</div>' +
+    '</div>';
+  };
+  
+  const up = d.improving.length ? d.improving.map((x) => item(x, 'up')).join('') : '<p class="muted compact" style="font-size:12px;">Güçlenen belirgin sinyal yok.</p>';
+  const down = d.weakening.length ? d.weakening.map((x) => item(x, 'down')).join('') : '<p class="muted compact" style="font-size:12px;">Zayıflayan belirgin sinyal yok.</p>';
+  
+  el.innerHTML = '<div class="card reveal action-card">' +
+    '<div class="card-head"><h2>Bugün Ne Değişti?</h2><span class="card-sub">Dünkü skora göre karar radarı</span></div>' +
+    '<p class="action-headline" style="font-size:13.5px; font-weight:600; margin-bottom:14px; color:var(--accent);">' + esc(d.headline) + '</p>' +
+    '<div class="digest-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">' +
+      '<div><h3 style="font-size:12.5px; font-weight:700; margin-bottom:8px; color:var(--green);">🟢 Güçlenen Sinyaller</h3>' + up + '</div>' +
+      '<div><h3 style="font-size:12.5px; font-weight:700; margin-bottom:8px; color:var(--red);">🔴 Zayıflayan Sinyaller</h3>' + down + '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function renderPredictionScorecard() {
+  const el = $('#predictionScorecard');
+  if (!el) return;
+  if (!window.FinansActionLayer || !window.FinansActionLayer.buildPredictionScorecard) return;
+  
+  const card = window.FinansActionLayer.buildPredictionScorecard(JOURNAL);
+  
+  const last5 = card.last5Closed.length
+    ? card.last5Closed.map((p) => {
+        const sign = p.resultPct > 0 ? '+' : '';
+        const pctCls = p.resultPct > 0 ? 'imp-pos' : p.resultPct < 0 ? 'imp-neg' : 'imp-neutral';
+        const outcomeText = p.outcome === 'target-hit' ? 'Hedef Vuruldu' : p.outcome === 'stop-hit' ? 'Stop Oldu' : p.outcome === 'expired-win' ? 'Vade (Kâr)' : 'Vade (Zarar)';
+        return '<div class="scorecard-row" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding:6px 0; font-size:12px;">' +
+          '<b>' + esc(p.symbol) + ' <span style="font-size:10px; color:var(--muted); text-transform:uppercase;">(' + esc(p.market) + ')</span></b>' +
+          '<div style="display:flex; gap:10px; align-items:center;">' +
+            '<span style="font-size:11.5px;">' + esc(outcomeText) + '</span>' +
+            '<span class="news-impact ' + pctCls + '" style="font-size:11px; padding:2px 6px; border-radius:4px; font-weight:700;">' + sign + p.resultPct + '%</span>' +
+          '</div>' +
+        '</div>';
+      }).join('')
+    : '<p class="muted compact">Henüz kapanmış tahmin yok; kararlar kaydedildikçe isabet oranı burada birikecek.</p>';
+    
+  el.innerHTML = '<div class="card reveal scorecard-card">' +
+    '<div class="card-head"><h2>🎯 İsabet Karnesi</h2><span class="card-sub">Otomatik çözülen tahmin performansı</span></div>' +
+    '<div class="scorecard-metrics" style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align:center; margin-bottom:16px;">' +
+      '<div style="background:var(--bg-2); padding:10px; border-radius:6px;"><b>' + card.winRate + '%</b><span style="display:block; font-size:11px; color:var(--muted); margin-top:4px;">İsabet</span></div>' +
+      '<div style="background:var(--bg-2); padding:10px; border-radius:6px;"><b>' + card.open + '</b><span style="display:block; font-size:11px; color:var(--muted); margin-top:4px;">Açık</span></div>' +
+      '<div style="background:var(--bg-2); padding:10px; border-radius:6px;"><b>' + (card.avgResultPct > 0 ? '+' : '') + card.avgResultPct + '%</b><span style="display:block; font-size:11px; color:var(--muted); margin-top:4px;">Ort. Getiri</span></div>' +
+      '<div style="background:var(--bg-2); padding:10px; border-radius:6px;"><b>' + card.wins + '/' + card.losses + '</b><span style="display:block; font-size:11px; color:var(--muted); margin-top:4px;">Kazan/Kaybet</span></div>' +
+    '</div>' +
+    '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:16px; border-top:1px solid var(--border); padding-top:12px;">' +
+      '<div style="font-size:12px; line-height:1.4;">' +
+        '<h4 style="margin:0 0 6px 0; font-size:12px; font-weight:700;">🤖 Sistem Kararları</h4>' +
+        'Toplam: ' + card.bySource.system.total + ' · Kapanan: ' + card.bySource.system.closed + '<br>' +
+        'İsabet: <span style="font-weight:700; color:var(--accent);">' + card.bySource.system.winRate + '%</span> (Wins: ' + card.bySource.system.wins + ')' +
+      '</div>' +
+      '<div style="font-size:12px; line-height:1.4; border-left:1px solid var(--border); padding-left:14px;">' +
+        '<h4 style="margin:0 0 6px 0; font-size:12px; font-weight:700;">👤 Kullanıcı Notları</h4>' +
+        'Toplam: ' + card.bySource.user.total + ' · Kapanan: ' + card.bySource.user.closed + '<br>' +
+        'İsabet: <span style="font-weight:700; color:var(--accent);">' + card.bySource.user.winRate + '%</span> (Wins: ' + card.bySource.user.wins + ')' +
+      '</div>' +
+    '</div>' +
+    '<div style="border-top:1px solid var(--border); padding-top:12px;">' +
+      '<h4 style="margin:0 0 8px 0; font-size:12.5px; font-weight:700;">📜 Son 5 Çözülen Karar</h4>' +
+      '<div class="scorecard-list" style="display:flex; flex-direction:column; gap:4px;">' + last5 + '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+let calculatorListenersAttached = false;
+
+function renderLiteracyView() {
+  // 1. Fetch tips archive
+  fetch('/api/report', { cache: 'no-store' })
+    .then(r => r.json())
+    .then(data => {
+      const tips = data && data.tipsArchive;
+      renderTipsArchive(tips);
+    })
+    .catch(err => {
+      console.error('İpuçları yüklenemedi:', err);
+      renderTipsArchive([]);
+    });
+
+  // 2. Setup calculator listeners (only once)
+  if (!calculatorListenersAttached) {
+    const inputs = ['#calc-capital', '#calc-risk-pct', '#calc-price', '#calc-atr'];
+    inputs.forEach(sel => {
+      const el = $(sel);
+      if (el) {
+        el.addEventListener('input', updatePositionCalculator);
+      }
+    });
+    calculatorListenersAttached = true;
+  }
+  
+  // Initial calculation
+  updatePositionCalculator();
+  triggerRevealAnimations($('#view-literacy'));
+}
+
+function updatePositionCalculator() {
+  if (!window.FinansActionLayer || !window.FinansActionLayer.calculatePosition) return;
+  
+  const capital = parseFloat($('#calc-capital').value) || 0;
+  const riskPct = parseFloat($('#calc-risk-pct').value) || 0;
+  const price = parseFloat($('#calc-price').value) || 0;
+  const atr = parseFloat($('#calc-atr').value) || 0;
+  
+  const res = window.FinansActionLayer.calculatePosition(capital, riskPct, price, atr);
+  
+  if (res.available) {
+    $('#res-entry').textContent = fmtNum(res.entry, res.entry >= 1000 ? 0 : res.entry >= 1 ? 2 : 4);
+    $('#res-stop').textContent = fmtNum(res.stop, res.stop >= 1000 ? 0 : res.stop >= 1 ? 2 : 4);
+    $('#res-target').textContent = fmtNum(res.target, res.target >= 1000 ? 0 : res.target >= 1 ? 2 : 4);
+    $('#res-risk-amount').textContent = fmtNum(res.riskAmount, 2);
+    $('#res-units').textContent = res.units >= 1 ? fmtNum(Math.floor(res.units), 0) : fmtNum(res.units, 4);
+    $('#res-pos-amount').textContent = fmtNum(res.positionAmount, 2);
+  } else {
+    $('#res-entry').textContent = '–';
+    $('#res-stop').textContent = '–';
+    $('#res-target').textContent = '–';
+    $('#res-risk-amount').textContent = '–';
+    $('#res-units').textContent = '–';
+    $('#res-pos-amount').textContent = '–';
+  }
+}
+
+function renderTipsArchive(tips) {
+  const el = $('#tipsArchiveList');
+  if (!el) return;
+  
+  if (!tips || !tips.length) {
+    el.innerHTML = '<p class="muted" style="text-align:center; padding:12px;">Henüz arşivlenmiş ipucu yok.</p>';
+    return;
+  }
+  
+  const sorted = tips.slice().sort((a, b) => b.date.localeCompare(a.date));
+  
+  el.innerHTML = sorted.map(tip => {
+    return '<div style="background:var(--bg-2); border:1px solid var(--border); border-radius:8px; padding:16px;">' +
+      '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">' +
+        '<h4 style="margin:0; font-size:13.5px; font-weight:700;">' + esc(tip.title) + '</h4>' +
+        '<span style="font-size:10.5px; color:var(--muted); font-family:monospace;">' + esc(tip.date) + '</span>' +
+      '</div>' +
+      '<p style="margin:0; font-size:12.5px; color:var(--text); line-height:1.5;">' + esc(tip.body) + '</p>' +
+    '</div>';
+  }).join('');
+}
+
+window.submitQuizAnswer = function(selectedIndex, correctIndex, quizDate) {
+  const isCorrect = selectedIndex === correctIndex;
+  let streak = parseInt(localStorage.getItem('finans-quiz-streak') || '0', 10);
+  if (isCorrect) {
+    streak += 1;
+  } else {
+    streak = 0;
+  }
+  localStorage.setItem('finans-quiz-last-played', quizDate);
+  localStorage.setItem('finans-quiz-last-selected', selectedIndex);
+  localStorage.setItem('finans-quiz-streak', streak);
+  
+  renderReport();
+};
+
 /* ---------- GSAP Premium Animasyonları ---------- */
 function triggerRevealAnimations(container) {
   if (!container || !window.gsap || reduceMotion) return;
@@ -3029,3 +3398,89 @@ function initAnimations() {
     }
   });
 }
+
+// Delegated event listeners for note-saving form and suggested alert switch
+document.addEventListener('submit', async (e) => {
+  const noteForm = e.target.closest('.asset-note-form');
+  if (noteForm) {
+    e.preventDefault();
+    const market = noteForm.dataset.market;
+    const symbol = noteForm.dataset.symbol;
+    const key = market + ':' + symbol;
+    const thesis = noteForm.elements.thesis.value;
+    const invalidation = noteForm.elements.invalidation.value;
+
+    JOURNAL.notes[key] = {
+      thesis: thesis.trim(),
+      invalidation: invalidation.trim(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const statusEl = noteForm.querySelector('.note-status');
+    if (statusEl) statusEl.textContent = 'Kaydediliyor...';
+
+    try {
+      await saveJournal();
+      if (statusEl) statusEl.textContent = '✓ Kaydedildi';
+      // Refresh the row detail
+      const row = noteForm.closest('.detail');
+      if (row) {
+        const idx = row.id.replace('detail-', '');
+        const list = currentList();
+        const asset = list[idx];
+        if (asset) {
+          const wrapper = row.querySelector('.asset-thesis-wrapper');
+          if (wrapper) {
+            const nextCard = assetThesisCard(asset);
+            const temp = document.createElement('div');
+            temp.innerHTML = nextCard;
+            wrapper.replaceWith(temp.firstChild);
+          }
+        }
+      }
+    } catch (err) {
+      if (statusEl) statusEl.textContent = '✗ Hata oluştu';
+    }
+  }
+});
+
+document.addEventListener('change', async (e) => {
+  const alertSwitch = e.target.closest('.alert-toggle-form input[type="checkbox"]');
+  if (alertSwitch) {
+    const alertForm = alertSwitch.closest('.alert-toggle-form');
+    if (alertForm) {
+      const market = alertForm.dataset.market;
+      const symbol = alertForm.dataset.symbol;
+      const trigger = alertForm.dataset.trigger;
+      const action = alertForm.dataset.action;
+      const enabled = alertSwitch.checked;
+
+      const id = [market.toLowerCase(), symbol.toUpperCase(), trigger.toLowerCase()].join(':');
+      const alertObj = {
+        id,
+        market: market.toLowerCase(),
+        symbol: symbol.toUpperCase(),
+        trigger: trigger,
+        action: action,
+        enabled: enabled,
+        createdAt: new Date().toISOString()
+      };
+
+      JOURNAL.alerts = (JOURNAL.alerts || []).filter(x => x.id !== id);
+      if (enabled) {
+        JOURNAL.alerts.push(alertObj);
+      }
+
+      alertForm.classList.add('saving');
+      try {
+        await saveJournal();
+      } catch (err) {
+        console.error('Alarm kaydedilemedi:', err);
+        alertSwitch.checked = !enabled;
+      } finally {
+        alertForm.classList.remove('saving');
+      }
+    }
+  }
+});
+

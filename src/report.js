@@ -99,6 +99,35 @@ async function buildBaseReport() {
     calendar.error = String((e && e.message) || e);
   }
 
+  // Scorecard and resolved predictions integration
+  let scorecard = null;
+  let resolvedLastWeek = [];
+  try {
+    const { readJournal, buildPredictionScorecard } = require('./decision-journal');
+    const journal = await readJournal(path.join(DATA, 'journal.json'));
+    scorecard = buildPredictionScorecard(journal);
+    
+    const today = new Date();
+    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    resolvedLastWeek = journal.predictions
+      .filter((x) => x.outcome !== 'open' && x.resolvedAt && new Date(x.resolvedAt) >= sevenDaysAgo)
+      .map((x) => ({
+        id: x.id,
+        market: x.market,
+        symbol: x.symbol,
+        label: x.label,
+        score: x.score,
+        entry: x.entry,
+        target: x.target,
+        stop: x.stop,
+        outcome: x.outcome,
+        resolvedAt: x.resolvedAt,
+        resultPct: x.resultPct,
+      }));
+  } catch (err) {
+    console.error('⚠️ [report] Scorecard verisi yüklenemedi:', err.message);
+  }
+
   return {
     generatedAt: new Date().toISOString(),
     date: (snap.generatedAt || new Date().toISOString()).slice(0, 10),
@@ -113,6 +142,8 @@ async function buildBaseReport() {
     signals,
     risks,
     calendar,
+    scorecard,
+    resolvedLastWeek,
   };
 }
 

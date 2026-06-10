@@ -34,10 +34,17 @@ Not: `data/latest.json` dosyasını OKUMA (çok büyük, gereksiz token); tüm �
     "positioning": "Kısa-vade pozisyon disiplini (CFO): risk/ödül, seviyeler, ne zaman temkinli"
   },
   "todayFocus": "Bugün izlenecek 1-2 kritik şey",
-  "literacyTip": {"title": "başlık", "body": "güncel duruma bağlı 2-3 cümle eğitici ipucu"}
+  "literacyTip": {"title": "başlık", "body": "güncel duruma bağlı 2-3 cümle eğitici ipucu"},
+  "weeklyRetro": "Geçen haftaki makro/tahmin öngörülerinin (örn. faiz kararları, veri açıklamaları) geriye dönük değerlendirmesi ve çıkarılan ders (özellikle haftanın ilk raporlarında doldurulur)",
+  "quiz": {
+    "question": "Günün makroekonomik/indikatör verilerine dayalı, akıl yürütme (çıkarım) gerektiren çoktan seçmeli soru",
+    "options": ["Seçenek A", "Seçenek B", "Seçenek C", "Seçenek D"],
+    "correctIndex": 0,
+    "explanation": "Doğru cevabın gerekçesini açıklayan, cfo disiplininde eğitici 1-2 cümle"
+  }
 }
 ```
-weeklyOutlook.events: base.json calendar'dan EN kritik **5 olay** seç; her birinde consensus'u web'den doğrula, ifLower/ifHigher net ve aksiyon alınabilir olsun, etkilenen takip-listesi sembollerini bağla. worldNews 4-5 madde.
+weeklyOutlook.events: base.json calendar'dan EN kritik **5 olay** seç; her birinde consensus'u web'den doğrula, ifLower/ifHigher net ve aksiyon alınabilir olsun, etkilenen takip-listesi sembollerini bağla. worldNews 4-5 madde. quiz alanını her gün güncel veriler ve makro ortamı test edecek şekilde yenileyin.
 
 4. `data/_private/agent-journal.md` SONUNA bugünün tarihiyle ÖZEL ajan notu ekle (kullanıcıya GÖSTERİLMEZ; çalışma hafyzan): veri/skor anomalileri, takip listesi fikirleri, kalibrasyon önerileri, yarın izlenecekler, sistem akışı fikirleri. Dürüst ve teknik ol.
 

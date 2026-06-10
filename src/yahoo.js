@@ -20,12 +20,18 @@ async function fetchSeries(symbol) {
   const highs = [];
   const lows = [];
   const volumes = [];
+  const dates = [];
   for (let i = 0; i < closesRaw.length; i++) {
     if (typeof closesRaw[i] === 'number') {
       closes.push(closesRaw[i]);
       highs.push(typeof q.high[i] === 'number' ? q.high[i] : closesRaw[i]);
       lows.push(typeof q.low[i] === 'number' ? q.low[i] : closesRaw[i]);
       volumes.push(typeof q.volume[i] === 'number' ? q.volume[i] : 0);
+      if (r.timestamp && r.timestamp[i]) {
+        dates.push(new Date(r.timestamp[i] * 1000).toISOString().slice(0, 10));
+      } else {
+        dates.push(new Date().toISOString().slice(0, 10));
+      }
     }
   }
   const last = meta.regularMarketPrice != null ? meta.regularMarketPrice : (closes.length ? closes[closes.length - 1] : null);
@@ -46,7 +52,7 @@ async function fetchSeries(symbol) {
     high52: meta.fiftyTwoWeekHigh != null ? meta.fiftyTwoWeekHigh : null,
     low52: meta.fiftyTwoWeekLow != null ? meta.fiftyTwoWeekLow : null,
     volume: meta.regularMarketVolume != null ? meta.regularMarketVolume : null,
-    series: { closes, highs, lows, volumes },
+    series: { dates, closes, highs, lows, volumes },
   };
 }
 

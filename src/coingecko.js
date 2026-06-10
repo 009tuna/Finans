@@ -44,6 +44,7 @@ async function fetchSeries(binSym) {
   const data = await fetchJson('https://api.binance.com/api/v3/klines?symbol=' + binSym + '&interval=1d&limit=250', { retries: 3 });
   if (!Array.isArray(data) || !data.length) return null;
   return {
+    dates: data.map((k) => new Date(k[0]).toISOString().slice(0, 10)),
     closes: data.map((k) => parseFloat(k[4])),
     highs: data.map((k) => parseFloat(k[2])),
     lows: data.map((k) => parseFloat(k[3])),
