@@ -3723,13 +3723,21 @@ function initAnimations() {
   // Logo drawing and idle animations
   if (document.querySelector('.logo-svg') && !reduceMotion) {
     // Initial draw animation
-    gsap.fromTo('.logo-svg path', 
-      { strokeDasharray: 50, strokeDashoffset: 50, opacity: 0 }, 
-      { strokeDashoffset: 0, opacity: 1, duration: 1.2, stagger: 0.15, ease: 'power2.out' }
+    gsap.fromTo('.logo-trend, .logo-arrow', 
+      { strokeDasharray: 40, strokeDashoffset: 40, opacity: 0 }, 
+      { strokeDashoffset: 0, opacity: 1, duration: 1.2, ease: 'power2.out', stagger: 0.15 }
+    );
+    gsap.fromTo('.logo-hex, .logo-hex-inner', 
+      { scale: 0.8, opacity: 0, transformOrigin: '50% 50%' }, 
+      { scale: 1, opacity: (i, el) => el.classList.contains('logo-hex-inner') ? 0.15 : 0.3, duration: 1.2, ease: 'back.out(1.5)', stagger: 0.1 }
+    );
+    gsap.fromTo('.logo-node-1, .logo-node-2', 
+      { scale: 0, opacity: 0, transformOrigin: '50% 50%' }, 
+      { scale: 1, opacity: 1, duration: 0.6, delay: 0.8, ease: 'back.out(2)', stagger: 0.1 }
     );
     // Continuous idle breathing animation
     gsap.to('.logo-svg', {
-      y: -2,
+      y: -1.5,
       duration: 2.2,
       repeat: -1,
       yoyo: true,
@@ -3739,14 +3747,16 @@ function initAnimations() {
     const brand = document.querySelector('.brand');
     if (brand) {
       brand.addEventListener('mouseenter', () => {
-        gsap.to('.logo-p1', { y: -2.5, duration: 0.35, ease: 'power2.out' });
-        gsap.to('.logo-p2', { y: 2.5, duration: 0.35, ease: 'power2.out' });
-        gsap.to('.logo-p3', { scale: 1.05, transformOrigin: '50% 50%', duration: 0.35, ease: 'power2.out' });
+        gsap.to('.logo-hex', { rotate: 30, scale: 1.05, transformOrigin: '50% 50%', duration: 0.5, ease: 'power2.out' });
+        gsap.to('.logo-hex-inner', { rotate: -30, scale: 1.05, transformOrigin: '50% 50%', duration: 0.5, ease: 'power2.out' });
+        gsap.to('.logo-arrow', { x: 1, y: -1, scale: 1.1, transformOrigin: '20px 7px', duration: 0.4, ease: 'power2.out' });
+        gsap.to('.logo-node-1, .logo-node-2', { scale: 1.4, transformOrigin: '50% 50%', duration: 0.4, ease: 'back.out(2)', stagger: 0.05 });
       });
       brand.addEventListener('mouseleave', () => {
-        gsap.to('.logo-p1', { y: 0, duration: 0.35, ease: 'power2.out' });
-        gsap.to('.logo-p2', { y: 0, duration: 0.35, ease: 'power2.out' });
-        gsap.to('.logo-p3', { scale: 1, transformOrigin: '50% 50%', duration: 0.35, ease: 'power2.out' });
+        gsap.to('.logo-hex', { rotate: 0, scale: 1, transformOrigin: '50% 50%', duration: 0.4, ease: 'power2.out' });
+        gsap.to('.logo-hex-inner', { rotate: 0, scale: 1, transformOrigin: '50% 50%', duration: 0.4, ease: 'power2.out' });
+        gsap.to('.logo-arrow', { x: 0, y: 0, scale: 1, transformOrigin: '20px 7px', duration: 0.3, ease: 'power2.out' });
+        gsap.to('.logo-node-1, .logo-node-2', { scale: 1, transformOrigin: '50% 50%', duration: 0.3, ease: 'power2.out' });
       });
     }
   }
@@ -3758,87 +3768,125 @@ function initAnimations() {
     if (!view) return;
 
     if (view === 'overview') {
-      const boxes = btn.querySelectorAll('.ni svg rect');
-      if (boxes.length) {
-        gsap.killTweensOf(boxes);
-        gsap.to(boxes, {
-          scale: 1.22,
-          transformOrigin: '50% 50%',
-          stagger: 0.04,
-          duration: 0.22,
-          ease: 'back.out(2)'
-        });
-      }
+      const p1 = btn.querySelector('.ov-panel-1');
+      const p2 = btn.querySelector('.ov-panel-2');
+      const p3 = btn.querySelector('.ov-panel-3');
+      const chart = btn.querySelector('.ov-chart');
+      const dot = btn.querySelector('.ov-dot');
+      const border = btn.querySelector('.ov-border');
+      gsap.killTweensOf([p1, p2, p3, chart, dot, border]);
+      gsap.to([p1, p2, p3], { scale: 1.08, transformOrigin: '50% 50%', stagger: 0.04, duration: 0.25, ease: 'power2.out' });
+      gsap.to(border, { strokeDashoffset: 4, duration: 0.5, ease: 'linear', repeat: -1 });
+      gsap.fromTo(chart, { strokeDasharray: 20, strokeDashoffset: 20 }, { strokeDashoffset: 0, duration: 0.4, ease: 'power2.out' });
+      gsap.to(dot, { scale: 1.4, transformOrigin: '50% 50%', duration: 0.25, ease: 'power2.out' });
     } else if (view === 'us') {
-      const bars = btn.querySelectorAll('.ni svg line[class^="us-b"]');
-      const dollar = btn.querySelectorAll('.ni svg .us-d, .ni svg .us-dl');
-      gsap.killTweensOf([...bars, ...dollar]);
-      gsap.to(bars, { scaleY: 1.4, transformOrigin: '50% 100%', stagger: 0.04, duration: 0.22, ease: 'back.out(1.8)' });
-      gsap.to(dollar, { scale: 1.15, rotate: 12, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
+      const w1 = btn.querySelector('.us-wick-1');
+      const w2 = btn.querySelector('.us-wick-2');
+      const b1 = btn.querySelector('.us-body-1');
+      const b2 = btn.querySelector('.us-body-2');
+      const trend = btn.querySelector('.us-trend');
+      const badge = btn.querySelector('.us-badge');
+      const dollar = btn.querySelector('.us-dollar');
+      gsap.killTweensOf([w1, w2, b1, b2, trend, badge, dollar]);
+      gsap.to([w1, b1], { scaleY: 1.25, transformOrigin: '8px 20px', duration: 0.25, ease: 'back.out(1.5)' });
+      gsap.to([w2, b2], { scaleY: 1.25, transformOrigin: '16px 17px', delay: 0.05, duration: 0.25, ease: 'back.out(1.5)' });
+      gsap.fromTo(trend, { strokeDasharray: 15, strokeDashoffset: 15 }, { strokeDashoffset: 0, duration: 0.35, ease: 'power2.out' });
+      gsap.to([badge, dollar], { scale: 1.2, rotate: 15, transformOrigin: '16px 8px', duration: 0.25, ease: 'power2.out' });
     } else if (view === 'bist') {
-      const bars = btn.querySelectorAll('.ni svg line[class^="tr-b"]');
-      const lira = btn.querySelectorAll('.ni svg .tr-t');
-      const liraBars = btn.querySelectorAll('.ni svg .tr-tl1, .ni svg .tr-tl2');
-      gsap.killTweensOf([...bars, ...lira, ...liraBars]);
-      gsap.to(bars, { scaleY: 1.4, transformOrigin: '50% 100%', stagger: 0.04, duration: 0.22, ease: 'back.out(1.8)' });
-      gsap.to(lira, { scale: 1.1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
-      gsap.to(liraBars, { scaleX: 1.35, x: 1, transformOrigin: '0% 50%', duration: 0.2, ease: 'power2.out' });
+      const w1 = btn.querySelector('.tr-wick-1');
+      const w2 = btn.querySelector('.tr-wick-2');
+      const b1 = btn.querySelector('.tr-body-1');
+      const b2 = btn.querySelector('.tr-body-2');
+      const trend = btn.querySelector('.tr-trend');
+      const badge = btn.querySelector('.tr-badge');
+      const lira = btn.querySelector('.tr-lira');
+      gsap.killTweensOf([w1, w2, b1, b2, trend, badge, lira]);
+      gsap.to([w1, b1], { scaleY: 1.25, transformOrigin: '8px 19px', duration: 0.25, ease: 'back.out(1.5)' });
+      gsap.to([w2, b2], { scaleY: 1.25, transformOrigin: '16px 20px', delay: 0.05, duration: 0.25, ease: 'back.out(1.5)' });
+      gsap.fromTo(trend, { strokeDasharray: 15, strokeDashoffset: 15 }, { strokeDashoffset: 0, duration: 0.35, ease: 'power2.out' });
+      gsap.to([badge, lira], { scale: 1.2, rotate: -15, transformOrigin: '16px 10.5px', duration: 0.25, ease: 'power2.out' });
     } else if (view === 'crypto') {
-      const svg = btn.querySelector('.ni svg');
-      const center = btn.querySelector('.ni svg .cr-c');
-      const nodes = btn.querySelectorAll('.ni svg circle[class^="cr-n"]');
-      gsap.killTweensOf([svg, center, ...nodes]);
-      gsap.to(svg, { rotate: 60, transformOrigin: '12px 12px', duration: 0.45, ease: 'power2.out' });
-      gsap.to(nodes, { scale: 1.3, transformOrigin: '50% 50%', stagger: 0.03, duration: 0.22, ease: 'back.out(1.5)' });
-      gsap.to(center, { scale: 1.2, transformOrigin: '50% 50%', duration: 0.22, ease: 'power2.out' });
+      const hex = btn.querySelector('.cr-hex');
+      const ring = btn.querySelector('.cr-ring');
+      const core = btn.querySelector('.cr-core');
+      const lines = btn.querySelectorAll('.cr-line-v, .cr-line-l, .cr-line-r');
+      const nodes = btn.querySelectorAll('.cr-node');
+      gsap.killTweensOf([hex, ring, core, ...lines, ...nodes]);
+      gsap.to([hex, ...lines], { rotate: 60, transformOrigin: '12px 12px', duration: 0.5, ease: 'power2.out' });
+      gsap.to(ring, { scale: 1.25, transformOrigin: '12px 12px', duration: 0.3, ease: 'power2.out' });
+      gsap.to(core, { scale: 1.5, transformOrigin: '12px 12px', duration: 0.3, ease: 'power2.out' });
+      gsap.to(nodes, { scale: 1.4, transformOrigin: '50% 50%', stagger: 0.05, duration: 0.3, ease: 'back.out(2)' });
     } else if (view === 'portfolio') {
-      const body = btn.querySelector('.ni svg .pf-body');
-      const handle = btn.querySelector('.ni svg .pf-handle');
-      const lock = btn.querySelector('.ni svg .pf-lock');
-      gsap.killTweensOf([body, handle, lock]);
-      gsap.to(body, { scale: 1.06, y: -0.5, transformOrigin: '50% 100%', duration: 0.22, ease: 'back.out(1.5)' });
-      gsap.to(handle, { y: -1.5, transformOrigin: '50% 100%', duration: 0.22, ease: 'power2.out' });
-      gsap.to(lock, { rotate: 15, transformOrigin: '50% 0%', duration: 0.22, ease: 'power2.out' });
+      const body = btn.querySelector('.pf-safe-body');
+      const dial = btn.querySelector('.pf-dial');
+      const dialOuter = btn.querySelector('.pf-dial-outer');
+      const ticks = btn.querySelectorAll('.pf-tick');
+      const core = btn.querySelector('.pf-lock-core');
+      gsap.killTweensOf([body, dial, dialOuter, ...ticks, core]);
+      gsap.to(body, { scale: 1.04, transformOrigin: '50% 50%', duration: 0.25, ease: 'power2.out' });
+      gsap.to([dial, ...ticks], { rotate: 180, transformOrigin: '12px 12px', duration: 0.5, ease: 'power2.out' });
+      gsap.to(dialOuter, { rotate: -90, transformOrigin: '12px 12px', duration: 0.5, ease: 'power2.out' });
+      gsap.to(core, { scale: 1.3, transformOrigin: '12px 12px', duration: 0.25, ease: 'power2.out' });
     } else if (view === 'screener') {
-      const glass = btn.querySelectorAll('.ni svg .sc-glass, .ni svg .sc-handle, .ni svg .sc-l1, .ni svg .sc-l2');
-      gsap.killTweensOf(glass);
-      gsap.to(glass, {
+      const elementsToShake = btn.querySelectorAll('.sc-glass, .sc-glass-inner, .sc-cross-v, .sc-cross-h, .sc-handle');
+      const dot1 = btn.querySelector('.sc-dot-1');
+      const dot2 = btn.querySelector('.sc-dot-2');
+      gsap.killTweensOf([...elementsToShake, dot1, dot2]);
+      gsap.to(elementsToShake, {
         x: 1.5,
         y: -1.5,
-        duration: 0.15,
+        duration: 0.12,
         yoyo: true,
         repeat: 3,
         ease: 'sine.inOut'
       });
+      gsap.to(dot1, { scale: 1.4, x: -1, y: 1, transformOrigin: '50% 50%', duration: 0.3, ease: 'power2.out' });
+      gsap.to(dot2, { scale: 1.4, x: 1, y: -1, transformOrigin: '50% 50%', duration: 0.3, ease: 'power2.out' });
     } else if (view === 'backtest') {
-      const line = btn.querySelector('.ni svg .bt-line');
-      const arc = btn.querySelectorAll('.ni svg .bt-arc, .ni svg .bt-head');
-      gsap.killTweensOf([line, ...arc]);
-      gsap.fromTo(line, { scaleX: 0, transformOrigin: '0% 100%' }, { scaleX: 1, transformOrigin: '0% 100%', duration: 0.35, ease: 'power2.out' });
-      gsap.to(arc, { rotate: -360, transformOrigin: '12px 12px', duration: 0.45, ease: 'power2.inOut' });
+      const ni = btn.querySelector('.bt-node-in');
+      const proc = btn.querySelector('.bt-node-proc');
+      const no = btn.querySelector('.bt-node-out');
+      const loop = btn.querySelector('.bt-loop');
+      const arrow = btn.querySelector('.bt-arrow');
+      gsap.killTweensOf([ni, proc, no, loop, arrow]);
+      gsap.to(proc, { rotate: 90, transformOrigin: '12px 8px', duration: 0.45, ease: 'power2.out' });
+      gsap.to([ni, no], { scale: 1.25, transformOrigin: '50% 50%', stagger: 0.05, duration: 0.25, ease: 'back.out(2)' });
+      gsap.to(loop, { strokeDashoffset: -8, duration: 0.8, ease: 'linear', repeat: -1 });
+      gsap.to(arrow, { scale: 1.15, transformOrigin: '9px 11px', duration: 0.25, ease: 'power2.out' });
     } else if (view === 'forecast') {
-      const line = btn.querySelector('.ni svg .fc-line');
-      const low = btn.querySelector('.ni svg .fc-low');
-      const high = btn.querySelector('.ni svg .fc-high');
-      gsap.killTweensOf([line, low, high]);
-      gsap.to(low, { rotate: 7, transformOrigin: '14px 13px', duration: 0.25, ease: 'power2.out' });
-      gsap.to(high, { rotate: -7, transformOrigin: '14px 13px', duration: 0.25, ease: 'power2.out' });
-      gsap.to(line, { y: -1, duration: 0.18, ease: 'sine.out' });
+      const high = btn.querySelector('.fc-high');
+      const low = btn.querySelector('.fc-low');
+      const node = btn.querySelector('.fc-split-node');
+      const expected = btn.querySelector('.fc-expected');
+      const cone = btn.querySelector('.fc-cone');
+      gsap.killTweensOf([high, low, node, expected, cone]);
+      gsap.to(high, { rotate: -6, transformOrigin: '12px 14px', duration: 0.35, ease: 'power2.out' });
+      gsap.to(low, { rotate: 6, transformOrigin: '12px 14px', duration: 0.35, ease: 'power2.out' });
+      gsap.to(cone, { scaleY: 1.15, transformOrigin: '12px 14px', duration: 0.35, ease: 'power2.out' });
+      gsap.to(node, { scale: 1.4, transformOrigin: '50% 50%', duration: 0.25, ease: 'power2.out' });
+      gsap.to(expected, { scaleY: 1.1, transformOrigin: '12px 14px', duration: 0.25, ease: 'power2.out' });
     } else if (view === 'report') {
-      const fold = btn.querySelector('.ni svg .rp-fold');
-      const lines = btn.querySelectorAll('.ni svg line[class^="rp-l"]');
-      gsap.killTweensOf([fold, ...lines]);
-      gsap.to(fold, { scale: 1.15, x: -0.5, y: 0.5, transformOrigin: '100% 0%', duration: 0.22, ease: 'power2.out' });
-      gsap.fromTo(lines, { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, transformOrigin: '0% 50%', stagger: 0.06, duration: 0.28, ease: 'power2.out' });
+      const doc = btn.querySelector('.rp-doc');
+      const fold = btn.querySelector('.rp-fold');
+      const bars = btn.querySelectorAll('[class^="rp-bar-"]');
+      const lines = btn.querySelectorAll('[class^="rp-line-"]');
+      const hand = btn.querySelector('.rp-clock-hand');
+      gsap.killTweensOf([doc, fold, ...bars, ...lines, hand]);
+      gsap.to(doc, { scale: 1.03, transformOrigin: '50% 50%', duration: 0.25, ease: 'power2.out' });
+      gsap.to(fold, { x: -0.4, y: 0.4, scale: 1.1, transformOrigin: '100% 0%', duration: 0.25, ease: 'power2.out' });
+      gsap.fromTo(bars, { scaleY: 0.3, transformOrigin: '50% 100%' }, { scaleY: 1.2, transformOrigin: '50% 100%', stagger: 0.05, duration: 0.3, ease: 'back.out(1.5)' });
+      gsap.fromTo(lines, { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, transformOrigin: '0% 50%', stagger: 0.05, duration: 0.25, ease: 'power2.out' });
+      gsap.to(hand, { rotate: 360, transformOrigin: '17.5px 16.5px', duration: 0.5, ease: 'power2.out' });
     } else if (view === 'literacy') {
-      const l = btn.querySelector('.ni svg .lt-l');
-      const r = btn.querySelector('.ni svg .lt-r');
-      gsap.killTweensOf([l, r]);
-      const tl = gsap.timeline();
-      tl.to(l, { scaleX: 0.4, transformOrigin: '100% 50%', duration: 0.12, ease: 'power2.in' })
-        .to(l, { scaleX: 1, transformOrigin: '100% 50%', duration: 0.12, ease: 'power2.out' })
-        .to(r, { scaleX: 0.4, transformOrigin: '0% 50%', duration: 0.12, ease: 'power2.in' }, '-=0.12')
-        .to(r, { scaleX: 1, transformOrigin: '0% 50%', duration: 0.12, ease: 'power2.out' });
+      const l = btn.querySelector('.lt-page-l');
+      const r = btn.querySelector('.lt-page-r');
+      const star1 = btn.querySelector('.lt-star-1');
+      const star2 = btn.querySelector('.lt-star-2');
+      gsap.killTweensOf([l, r, star1, star2]);
+      gsap.to(star1, { rotate: 180, scale: 1.35, y: -1, transformOrigin: '12px 5px', duration: 0.45, ease: 'back.out(1.8)' });
+      gsap.to(star2, { rotate: -180, scale: 1.35, y: -1, transformOrigin: '17px 6px', duration: 0.45, delay: 0.05, ease: 'back.out(1.8)' });
+      gsap.to(l, { scaleX: 0.85, transformOrigin: '100% 50%', duration: 0.15, ease: 'power2.inOut', yoyo: true, repeat: 1 });
+      gsap.to(r, { scaleX: 0.85, transformOrigin: '0% 50%', duration: 0.15, delay: 0.05, ease: 'power2.inOut', yoyo: true, repeat: 1 });
     }
   }
 
@@ -3847,68 +3895,113 @@ function initAnimations() {
     if (!view) return;
 
     if (view === 'overview') {
-      const boxes = btn.querySelectorAll('.ni svg rect');
-      gsap.killTweensOf(boxes);
-      gsap.to(boxes, { scale: 1, transformOrigin: '50% 50%', duration: 0.18, ease: 'power2.out' });
+      const p1 = btn.querySelector('.ov-panel-1');
+      const p2 = btn.querySelector('.ov-panel-2');
+      const p3 = btn.querySelector('.ov-panel-3');
+      const chart = btn.querySelector('.ov-chart');
+      const dot = btn.querySelector('.ov-dot');
+      const border = btn.querySelector('.ov-border');
+      gsap.killTweensOf([p1, p2, p3, chart, dot, border]);
+      gsap.to([p1, p2, p3], { scale: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
+      gsap.to(border, { strokeDashoffset: 0, duration: 0.2, ease: 'power2.out' });
+      gsap.to(chart, { strokeDashoffset: 0, duration: 0.2, ease: 'power2.out' });
+      gsap.to(dot, { scale: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'us') {
-      const bars = btn.querySelectorAll('.ni svg line[class^="us-b"]');
-      const dollar = btn.querySelectorAll('.ni svg .us-d, .ni svg .us-dl');
-      gsap.killTweensOf([...bars, ...dollar]);
-      gsap.to(bars, { scaleY: 1, transformOrigin: '50% 100%', duration: 0.18, ease: 'power2.out' });
-      gsap.to(dollar, { scale: 1, rotate: 0, transformOrigin: '50% 50%', duration: 0.18, ease: 'power2.out' });
+      const w1 = btn.querySelector('.us-wick-1');
+      const w2 = btn.querySelector('.us-wick-2');
+      const b1 = btn.querySelector('.us-body-1');
+      const b2 = btn.querySelector('.us-body-2');
+      const trend = btn.querySelector('.us-trend');
+      const badge = btn.querySelector('.us-badge');
+      const dollar = btn.querySelector('.us-dollar');
+      gsap.killTweensOf([w1, w2, b1, b2, trend, badge, dollar]);
+      gsap.to([w1, b1, w2, b2], { scaleY: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
+      gsap.to(trend, { strokeDashoffset: 0, duration: 0.2, ease: 'power2.out' });
+      gsap.to([badge, dollar], { scale: 1, rotate: 0, transformOrigin: '16px 8px', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'bist') {
-      const bars = btn.querySelectorAll('.ni svg line[class^="tr-b"]');
-      const lira = btn.querySelectorAll('.ni svg .tr-t');
-      const liraBars = btn.querySelectorAll('.ni svg .tr-tl1, .ni svg .tr-tl2');
-      gsap.killTweensOf([...bars, ...lira, ...liraBars]);
-      gsap.to(bars, { scaleY: 1, transformOrigin: '50% 100%', duration: 0.18, ease: 'power2.out' });
-      gsap.to(lira, { scale: 1, transformOrigin: '50% 50%', duration: 0.18, ease: 'power2.out' });
-      gsap.to(liraBars, { scaleX: 1, x: 0, transformOrigin: '0% 50%', duration: 0.18, ease: 'power2.out' });
+      const w1 = btn.querySelector('.tr-wick-1');
+      const w2 = btn.querySelector('.tr-wick-2');
+      const b1 = btn.querySelector('.tr-body-1');
+      const b2 = btn.querySelector('.tr-body-2');
+      const trend = btn.querySelector('.tr-trend');
+      const badge = btn.querySelector('.tr-badge');
+      const lira = btn.querySelector('.tr-lira');
+      gsap.killTweensOf([w1, w2, b1, b2, trend, badge, lira]);
+      gsap.to([w1, b1, w2, b2], { scaleY: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
+      gsap.to(trend, { strokeDashoffset: 0, duration: 0.2, ease: 'power2.out' });
+      gsap.to([badge, lira], { scale: 1, rotate: 0, transformOrigin: '16px 10.5px', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'crypto') {
-      const svg = btn.querySelector('.ni svg');
-      const center = btn.querySelector('.ni svg .cr-c');
-      const nodes = btn.querySelectorAll('.ni svg circle[class^="cr-n"]');
-      gsap.killTweensOf([svg, center, ...nodes]);
-      gsap.to(svg, { rotate: 0, transformOrigin: '12px 12px', duration: 0.25, ease: 'power2.out' });
-      gsap.to(nodes, { scale: 1, transformOrigin: '50% 50%', duration: 0.18, ease: 'power2.out' });
-      gsap.to(center, { scale: 1, transformOrigin: '50% 50%', duration: 0.18, ease: 'power2.out' });
+      const hex = btn.querySelector('.cr-hex');
+      const ring = btn.querySelector('.cr-ring');
+      const core = btn.querySelector('.cr-core');
+      const lines = btn.querySelectorAll('.cr-line-v, .cr-line-l, .cr-line-r');
+      const nodes = btn.querySelectorAll('.cr-node');
+      gsap.killTweensOf([hex, ring, core, ...lines, ...nodes]);
+      gsap.to([hex, ...lines], { rotate: 0, transformOrigin: '12px 12px', duration: 0.3, ease: 'power2.out' });
+      gsap.to(ring, { scale: 1, transformOrigin: '12px 12px', duration: 0.2, ease: 'power2.out' });
+      gsap.to(core, { scale: 1, transformOrigin: '12px 12px', duration: 0.2, ease: 'power2.out' });
+      gsap.to(nodes, { scale: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'portfolio') {
-      const body = btn.querySelector('.ni svg .pf-body');
-      const handle = btn.querySelector('.ni svg .pf-handle');
-      const lock = btn.querySelector('.ni svg .pf-lock');
-      gsap.killTweensOf([body, handle, lock]);
-      gsap.to(body, { scale: 1, y: 0, transformOrigin: '50% 100%', duration: 0.18, ease: 'power2.out' });
-      gsap.to(handle, { y: 0, transformOrigin: '50% 100%', duration: 0.18, ease: 'power2.out' });
-      gsap.to(lock, { rotate: 0, transformOrigin: '50% 0%', duration: 0.18, ease: 'power2.out' });
+      const body = btn.querySelector('.pf-safe-body');
+      const dial = btn.querySelector('.pf-dial');
+      const dialOuter = btn.querySelector('.pf-dial-outer');
+      const ticks = btn.querySelectorAll('.pf-tick');
+      const core = btn.querySelector('.pf-lock-core');
+      gsap.killTweensOf([body, dial, dialOuter, ...ticks, core]);
+      gsap.to(body, { scale: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
+      gsap.to([dial, ...ticks], { rotate: 0, transformOrigin: '12px 12px', duration: 0.3, ease: 'power2.out' });
+      gsap.to(dialOuter, { rotate: 0, transformOrigin: '12px 12px', duration: 0.3, ease: 'power2.out' });
+      gsap.to(core, { scale: 1, transformOrigin: '12px 12px', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'screener') {
-      const glass = btn.querySelectorAll('.ni svg .sc-glass, .ni svg .sc-handle, .ni svg .sc-l1, .ni svg .sc-l2');
-      gsap.killTweensOf(glass);
-      gsap.to(glass, { x: 0, y: 0, duration: 0.18, ease: 'power2.out' });
+      const elementsToShake = btn.querySelectorAll('.sc-glass, .sc-glass-inner, .sc-cross-v, .sc-cross-h, .sc-handle');
+      const dot1 = btn.querySelector('.sc-dot-1');
+      const dot2 = btn.querySelector('.sc-dot-2');
+      gsap.killTweensOf([...elementsToShake, dot1, dot2]);
+      gsap.to(elementsToShake, { x: 0, y: 0, duration: 0.2, ease: 'power2.out' });
+      gsap.to([dot1, dot2], { scale: 1, x: 0, y: 0, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'backtest') {
-      const line = btn.querySelector('.ni svg .bt-line');
-      const arc = btn.querySelectorAll('.ni svg .bt-arc, .ni svg .bt-head');
-      gsap.killTweensOf([line, ...arc]);
-      gsap.to(line, { scaleX: 1, transformOrigin: '0% 100%', duration: 0.18, ease: 'power2.out' });
-      gsap.to(arc, { rotate: 0, transformOrigin: '12px 12px', duration: 0.25, ease: 'power2.out' });
+      const ni = btn.querySelector('.bt-node-in');
+      const proc = btn.querySelector('.bt-node-proc');
+      const no = btn.querySelector('.bt-node-out');
+      const loop = btn.querySelector('.bt-loop');
+      const arrow = btn.querySelector('.bt-arrow');
+      gsap.killTweensOf([ni, proc, no, loop, arrow]);
+      gsap.to(proc, { rotate: 0, transformOrigin: '12px 8px', duration: 0.25, ease: 'power2.out' });
+      gsap.to([ni, no], { scale: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
+      gsap.to(loop, { strokeDashoffset: 0, duration: 0.2, ease: 'power2.out' });
+      gsap.to(arrow, { scale: 1, transformOrigin: '9px 11px', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'forecast') {
-      const line = btn.querySelector('.ni svg .fc-line');
-      const low = btn.querySelector('.ni svg .fc-low');
-      const high = btn.querySelector('.ni svg .fc-high');
-      gsap.killTweensOf([line, low, high]);
-      gsap.to(low, { rotate: 0, transformOrigin: '14px 13px', duration: 0.18, ease: 'power2.out' });
-      gsap.to(high, { rotate: 0, transformOrigin: '14px 13px', duration: 0.18, ease: 'power2.out' });
-      gsap.to(line, { y: 0, duration: 0.18, ease: 'power2.out' });
+      const high = btn.querySelector('.fc-high');
+      const low = btn.querySelector('.fc-low');
+      const node = btn.querySelector('.fc-split-node');
+      const expected = btn.querySelector('.fc-expected');
+      const cone = btn.querySelector('.fc-cone');
+      gsap.killTweensOf([high, low, node, expected, cone]);
+      gsap.to(high, { rotate: 0, transformOrigin: '12px 14px', duration: 0.2, ease: 'power2.out' });
+      gsap.to(low, { rotate: 0, transformOrigin: '12px 14px', duration: 0.2, ease: 'power2.out' });
+      gsap.to(cone, { scaleY: 1, transformOrigin: '12px 14px', duration: 0.2, ease: 'power2.out' });
+      gsap.to(node, { scale: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
+      gsap.to(expected, { scaleY: 1, transformOrigin: '12px 14px', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'report') {
-      const fold = btn.querySelector('.ni svg .rp-fold');
-      const lines = btn.querySelectorAll('.ni svg line[class^="rp-l"]');
-      gsap.killTweensOf([fold, ...lines]);
-      gsap.to(fold, { scale: 1, x: 0, y: 0, transformOrigin: '100% 0%', duration: 0.18, ease: 'power2.out' });
-      gsap.to(lines, { scaleX: 1, transformOrigin: '0% 50%', duration: 0.18, ease: 'power2.out' });
+      const doc = btn.querySelector('.rp-doc');
+      const fold = btn.querySelector('.rp-fold');
+      const bars = btn.querySelectorAll('[class^="rp-bar-"]');
+      const lines = btn.querySelectorAll('[class^="rp-line-"]');
+      const hand = btn.querySelector('.rp-clock-hand');
+      gsap.killTweensOf([doc, fold, ...bars, ...lines, hand]);
+      gsap.to(doc, { scale: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
+      gsap.to(fold, { x: 0, y: 0, scale: 1, transformOrigin: '100% 0%', duration: 0.2, ease: 'power2.out' });
+      gsap.to(bars, { scaleY: 1, transformOrigin: '50% 100%', duration: 0.2, ease: 'power2.out' });
+      gsap.to(lines, { scaleX: 1, transformOrigin: '0% 50%', duration: 0.2, ease: 'power2.out' });
+      gsap.to(hand, { rotate: 0, transformOrigin: '17.5px 16.5px', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'literacy') {
-      const l = btn.querySelector('.ni svg .lt-l');
-      const r = btn.querySelector('.ni svg .lt-r');
-      gsap.killTweensOf([l, r]);
-      gsap.to([l, r], { scaleX: 1, transformOrigin: '50% 50%', duration: 0.18, ease: 'power2.out' });
+      const l = btn.querySelector('.lt-page-l');
+      const r = btn.querySelector('.lt-page-r');
+      const star1 = btn.querySelector('.lt-star-1');
+      const star2 = btn.querySelector('.lt-star-2');
+      gsap.killTweensOf([l, r, star1, star2]);
+      gsap.to([star1, star2], { rotate: 0, scale: 1, y: 0, duration: 0.2, ease: 'power2.out' });
+      gsap.to([l, r], { scaleX: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
     }
   }
 

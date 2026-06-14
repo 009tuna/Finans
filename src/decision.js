@@ -48,6 +48,97 @@ function buildTradePlan(asset, riskPct) {
   };
 }
 
+function isBuyRecommendation(asset) {
+  const a = asset && asset.analysis ? asset.analysis : {};
+  return a.tone === 'strong-buy' || a.tone === 'buy' || a.label === 'GUCLU AL' || a.label === 'AL';
+}
+
+function buildActionableTradePlan(asset, riskPct, decisionScore) {
+  if (!isBuyRecommendation(asset)) {
+    return {
+      available: false,
+      status: 'not-recommended',
+      reason: 'AL/GUCLU AL sinyali yok; giris, stop ve hedef seviyesi yayinlanmaz.',
+    };
+  }
+  if (decisionScore != null && decisionScore < 60) {
+    return {
+      available: false,
+      status: 'decision-blocked',
+      reason: 'Karar kalitesi dusuk; yeni giris plani yayinlanmaz.',
+    };
+  }
+  const plan = buildTradePlan(asset, riskPct);
+  if (!plan.available) {
+    return Object.assign({}, plan, { status: 'data-missing' });
+  }
+  return Object.assign({}, plan, {
+    status: 'candidate',
+    reason: 'AL sinyali icin ATR tabanli aday plan.',
+  });
+}
+
+function diffDays(laterIso, earlierIso) {
+  const later = new Date(laterIso);
+  const earlier = new Date(earlierIso);
+  if (isNaN(later.getTime()) || isNaN(earlier.getTime())) return null;
+  return Math.max(0, Math.floor((later.getTime() - earlier.getTime()) / 86400000));
+}
+
+function buildSignalHealth(asset, prediction, nowIso) {
+  if (!asset || !prediction || prediction.outcome !== 'open') return null;
+  const price = Number(asset.price);
+  const entry = Number(prediction.entry);
+  const stop = Number(prediction.stop);
+  const target = Number(prediction.target);
+  if (![price, entry, stop, target].every(Number.isFinite) || entry <= 0 || target <= entry || stop >= entry) {
+    return null;
+  }
+
+  const resultPct = round(((price - entry) / entry) * 100, 2);
+  const progressPct = round(((price - entry) / (target - entry)) * 100, 1);
+  const stopBufferPct = round(((price - stop) / entry) * 100, 2);
+  const targetGapPct = round(((target - price) / price) * 100, 2);
+  let status = 'healthy';
+  let label = 'Saglikli';
+  let reason = 'Fiyat giris ustunde; sinyal hedefe dogru izleniyor.';
+
+  if (price >= target) {
+    status = 'target-zone';
+    label = 'Hedef bolgesi';
+    reason = 'Fiyat hedef seviyesine ulasmis; sinyal kapatma/kar alma kontrolu ister.';
+  } else if (price <= stop) {
+    status = 'broken';
+    label = 'Stop riski';
+    reason = 'Fiyat stop seviyesinde veya altinda; sinyal sagligi bozuldu.';
+  } else if (price < entry) {
+    status = 'pullback';
+    label = 'Geri cekilme';
+    reason = 'Fiyat giris altinda ama stop ustunde; sinyal zayifliyor.';
+  }
+
+  return {
+    available: true,
+    predictionId: prediction.id,
+    source: prediction.source || 'system',
+    status,
+    label,
+    reason,
+    entry,
+    stop,
+    target,
+    currentPrice: price,
+    resultPct,
+    progressPct,
+    stopBufferPct,
+    targetGapPct,
+    riskReward: 2,
+    createdAt: prediction.createdAt,
+    horizonDays: prediction.horizonDays || 30,
+    ageDays: diffDays(nowIso || new Date().toISOString(), prediction.createdAt),
+  };
+}
+
 function buildFreshness(asset, now) {
   const t = asset && asset.quoteTime ? new Date(asset.quoteTime) : null;
   if (!t || isNaN(t.getTime())) {
@@ -141,11 +232,11 @@ function buildAssetDecision(asset, opts = {}) {
   const riskPct = typeof opts.riskPct === 'number' ? opts.riskPct : 2;
   const history = opts.history || [];
   const marketKey = opts.marketKey || marketPrefix(asset.market);
-  const trade = buildTradePlan(asset, riskPct);
   const freshness = buildFreshness(asset, now);
   const confidence = buildConfidence(asset, history, marketKey);
   const contradictions = buildContradictions(asset);
   const score = buildDecisionScore(freshness, confidence, contradictions);
+  const trade = buildActionableTradePlan(asset, riskPct, score);
 
   return {
     score,
@@ -154,7 +245,30 @@ function buildAssetDecision(asset, opts = {}) {
     confidence,
     contradictions,
     trade,
+    activeSignal: null,
   };
+}
+
+function attachSignalHealth(snapshot, journal) {
+  const predictions = Array.isArray(journal && journal.predictions) ? journal.predictions : [];
+  const openByKey = {};
+  predictions
+    .filter((p) => p && p.outcome === 'open' && (p.source || 'system') === 'system')
+    .forEach((p) => {
+      const key = String(p.market || '').toLowerCase() + ':' + String(p.symbol || '').toUpperCase();
+      const prev = openByKey[key];
+      if (!prev || String(p.createdAt || '') > String(prev.createdAt || '')) openByKey[key] = p;
+    });
+
+  const nowIso = snapshot && snapshot.generatedAt ? snapshot.generatedAt : new Date().toISOString();
+  ['us', 'bist', 'crypto'].forEach((market) => {
+    (snapshot && snapshot[market] ? snapshot[market] : []).forEach((asset) => {
+      if (!asset || !asset.decision) return;
+      const key = market + ':' + String(asset.symbol || '').toUpperCase();
+      asset.decision.activeSignal = buildSignalHealth(asset, openByKey[key], nowIso);
+    });
+  });
+  return snapshot;
 }
 
 function attachDecisionMetadata(snapshot, history, cfg = {}) {
@@ -173,7 +287,11 @@ function attachDecisionMetadata(snapshot, history, cfg = {}) {
 module.exports = {
   buildAssetDecision,
   attachDecisionMetadata,
+  attachSignalHealth,
   buildTradePlan,
+  buildActionableTradePlan,
+  buildSignalHealth,
+  isBuyRecommendation,
   buildFreshness,
   buildConfidence,
   buildContradictions,

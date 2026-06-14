@@ -83,7 +83,7 @@
     }
 
     // ---- İşlem planı (Katman 2: Aksiyon) ----
-    const t = d.trade || {};
+    const t = (d.activeSignal && d.activeSignal.available) ? d.activeSignal : (d.trade || {});
     let plan;
     if (t.available) {
       plan = money(t.entry, currency) + ' civarından al · stop ' + money(t.stop, currency) +
@@ -94,6 +94,9 @@
     }
 
     // ---- Karar kalitesi (Katman 2: Güven) ----
+    if (t.predictionId) {
+      plan = 'Aktif sistem sinyali ' + money(t.entry, currency) + ' girisinden izleniyor; stop ' + money(t.stop, currency) + ', hedef ' + money(t.target, currency) + '. Anlik sonuc ' + (t.resultPct >= 0 ? '+' : '') + t.resultPct + '%.';
+    }
     const qBits = [];
     if (d.freshness && d.freshness.label) qBits.push(d.freshness.label);
     if (d.confidence && d.confidence.label) qBits.push(d.confidence.label);

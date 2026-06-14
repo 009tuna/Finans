@@ -79,14 +79,18 @@ h1, h2, h3 { margin: 0; }
   place-items: center;
   width: 38px;
   height: 38px;
-  border-radius: 14px;
-  background: var(--accent);
-  filter: drop-shadow(0 8px 16px oklch(0% 0 0 / 0.3));
+  border-radius: 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / 0.05), 0 4px 12px oklch(0% 0 0 / 0.15);
+  position: relative;
+  overflow: hidden;
+  will-change: transform, box-shadow;
 }
 .brand-logo .logo-svg {
-  width: 22px;
-  height: 22px;
-  color: var(--sidebar);
+  width: 20px;
+  height: 20px;
+  color: var(--accent);
 }
 .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
 .brand-text strong { font-size: 16px; letter-spacing: .2px; }
@@ -113,7 +117,7 @@ h1, h2, h3 { margin: 0; }
   width: 15px;
   height: 15px;
   stroke: currentColor;
-  stroke-width: 2px;
+  stroke-width: inherit;
   transition: stroke 150ms var(--ease-out);
 }
 .navitem:hover .ni,
@@ -978,6 +982,29 @@ tr.row:hover { background: rgba(255,255,255,.025); }
   gap: 8px;
   margin-top: 8px;
 }
+.signal-health {
+  margin-top: 8px;
+  padding: 10px 11px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255,255,255,.025);
+}
+.signal-health b {
+  display: block;
+  color: var(--text);
+  font-size: 12.5px;
+  margin-bottom: 3px;
+}
+.signal-health span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.signal-health.sh-ok { border-color: rgba(40,215,147,.24); background: rgba(40,215,147,.035); }
+.signal-health.sh-pos { border-color: rgba(40,215,147,.36); background: rgba(40,215,147,.055); }
+.signal-health.sh-warn { border-color: rgba(234,179,8,.3); background: rgba(234,179,8,.04); }
+.signal-health.sh-neg { border-color: rgba(239,68,68,.32); background: rgba(239,68,68,.045); }
 .decision-alerts {
   display: flex;
   flex-direction: column;

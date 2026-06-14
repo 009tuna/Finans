@@ -7,7 +7,7 @@ const { fetchManyFundamentals } = require('./finnhub');
 const { fetchCryptoFull } = require('./coingecko');
 const { computeIndicators } = require('./indicators');
 const { scoreAsset } = require('./analyze');
-const { attachDecisionMetadata } = require('./decision');
+const { attachDecisionMetadata, attachSignalHealth } = require('./decision');
 const { saveSnapshot, appendHistory, getHistory } = require('./db');
 const { fetchFxRates } = require('./fx');
 const { fetchAssetChart } = require('./chart-data');
@@ -180,6 +180,7 @@ async function runAll() {
   // System predictions recording
   const { readJournal, writeJournal, recordPrediction } = require('./decision-journal');
   const JOURNAL_PATH = path.join(ROOT, 'data', 'journal.json');
+  let journalForSignals = null;
   try {
     const journal = await readJournal(JOURNAL_PATH);
     let updatedJournal = journal;
@@ -207,9 +208,12 @@ async function runAll() {
     recordList(snapshot.crypto);
     
     await writeJournal(JOURNAL_PATH, updatedJournal);
+    journalForSignals = updatedJournal;
   } catch (err) {
     console.error('⚠️ [fetch-all] Sistem tahminleri kaydedilemedi:', err.message);
   }
+
+  attachSignalHealth(snapshot, journalForSignals);
 
   // Supabase'e yaz (latest + history)
   await saveSnapshot(snapshot);

@@ -223,7 +223,9 @@ function bankingComponents(asset, snapshot, nowIso) {
   if (score >= 60 && !hasValuation) {
     out.push(component('compsValuationGap', -1, 'Yuksek teknik puana ragmen comps degerleme carpani yok', 'banking:comps', nowIso, 0.62));
   }
-  if (!asset.decision || !asset.decision.trade || asset.decision.trade.available !== true) {
+  const tone = asset.analysis && asset.analysis.tone;
+  const isBuy = tone === 'strong-buy' || tone === 'buy';
+  if (isBuy && (!asset.decision || !asset.decision.trade || asset.decision.trade.available !== true)) {
     out.push(component('modelAuditGap', -1, 'Trade modeli giris/stop/hedef denetimi tamam degil', 'banking:modelAudit', nowIso, 0.58));
   }
   const atrPct = asset.ind && Number(asset.ind.atrPct);

@@ -106,7 +106,7 @@ const thesis = buildAssetThesis(snapshot.us[0], {
   calendar: { companyNews: [{ symbol: 'AAPL', headline: 'Apple event expected this week', source: 'Yahoo' }] },
 });
 assert.ok(thesis.thesis.includes('Bekle'));
-assert.ok(thesis.invalidation.includes('$95'));
+assert.ok(thesis.invalidation.includes('Aktif AL sinyali yok'));
 assert.ok(thesis.catalysts[0].includes('Apple event'));
 console.log('   ok');
 
@@ -122,9 +122,11 @@ assert.ok(trust.items.some((x) => x.label === 'Yapay zeka katmani' && x.status =
 console.log('   ok');
 
 console.log('5. buildAlertRules suggests actionable rules...');
-const alerts = buildAlertRules(snapshot.us[0], { weightPct: 18 });
-assert.ok(alerts.some((a) => a.trigger.includes('stop')));
-assert.ok(alerts.some((a) => a.trigger.includes('MACD')));
+const holdAlerts = buildAlertRules(snapshot.us[0], { weightPct: 18 });
+assert.ok(!holdAlerts.some((a) => a.trigger.includes('stop')));
+assert.ok(holdAlerts.some((a) => a.trigger.includes('MACD')));
+const buyAlerts = buildAlertRules(snapshot.us[1], { weightPct: 18 });
+assert.ok(buyAlerts.some((a) => a.trigger.includes('stop')));
 console.log('   ok');
 
 console.log('6. buildPredictionScorecard computes metrics...');

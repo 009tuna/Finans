@@ -165,14 +165,14 @@
     if (!asset || !asset.analysis) return null;
     const label = asset.analysis.label || 'IZLE';
     const tone = asset.analysis.tone || 'hold';
-    const trade = asset.decision && asset.decision.trade;
+    const trade = activeLongPlan(asset);
     const pos = firstReason(asset, 'pos');
     const neg = firstReason(asset, 'neg');
     const verb = tone === 'strong-buy' || tone === 'buy' ? 'Alim tezi' : tone === 'hold' ? 'Bekle tezi' : 'Risk azaltma tezi';
     const thesis = verb + ': ' + (asset.symbol || '') + ' icin ana dayanak ' + (pos || asset.analysis.summary || 'teknik skor') + '.';
-    const invalidation = trade && trade.available && trade.stop != null
+    const invalidation = trade && trade.stop != null
       ? 'Tez ' + money(trade.stop, asset.currency) + ' stop altinda bozulur; bu seviyenin altinda karar tekrar okunmali.'
-      : 'Tez bozulma seviyesi icin ATR/fiyat verisi eksik; teknik skor dususu ana sinyal kabul edilmeli.';
+      : 'Aktif AL sinyali yok; yeni giris yerine skor/katalizor teyidi beklenmeli.';
     const catalysts = [];
     const news = reportBase && reportBase.calendar && reportBase.calendar.companyNews;
     (news || []).forEach(function (n) {
@@ -181,6 +181,18 @@
     if (!catalysts.length && neg) catalysts.push('Negatif teyit: ' + neg + '.');
     if (!catalysts.length) catalysts.push('Yaklasan ozel katalizor yok; fiyat/hacim teyidi izlenmeli.');
     return { thesis: thesis, invalidation: invalidation, catalysts: catalysts.slice(0, 3) };
+  }
+
+  function isBuyRecommendation(asset) {
+    const a = asset && asset.analysis ? asset.analysis : {};
+    return a.tone === 'strong-buy' || a.tone === 'buy' || a.label === 'GUCLU AL' || a.label === 'AL';
+  }
+
+  function activeLongPlan(asset) {
+    const d = asset && asset.decision ? asset.decision : {};
+    if (d.activeSignal && d.activeSignal.available) return d.activeSignal;
+    if (isBuyRecommendation(asset) && d.trade && d.trade.available) return d.trade;
+    return null;
   }
 
   function buildReportTrust(base, ai) {
@@ -201,8 +213,8 @@
   function buildAlertRules(asset, context) {
     if (!asset) return [];
     const alerts = [];
-    const trade = asset.decision && asset.decision.trade;
-    if (trade && trade.available && trade.stop != null) {
+    const trade = activeLongPlan(asset);
+    if (trade && trade.stop != null) {
       alerts.push({ tone: 'neg', trigger: asset.symbol + ' stop ' + money(trade.stop, asset.currency) + ' altina inerse', action: 'Tez bozuldu; pozisyonu azalt veya kapat.' });
     }
     const rsi = asset.ind && asset.ind.rsi;
@@ -516,7 +528,7 @@
     assetsByMarket(snapshot).forEach(function (asset) {
       const score = asset.analysis.score;
       const tone = asset.analysis.tone || 'hold';
-      const trade = asset.decision && asset.decision.trade;
+      const trade = activeLongPlan(asset);
       const note = journal && journal.notes ? journal.notes[journalKey(asset)] : null;
       const overlay = getOverlayForAsset(asset, reportBase || {});
       const gaps = overlayGaps(overlay);
@@ -526,7 +538,7 @@
       gaps.forEach(function (g) {
         if (missing.indexOf(g) < 0) missing.push(g);
       });
-      if (!trade || trade.available !== true) missing.push('giris/stop/hedef plani eksik');
+      if (!trade) missing.push('aktif giris/stop/hedef sinyali eksik');
       if (!snapshot || !snapshot.generatedAt) missing.push('snapshot tarihi eksik');
 
       let status = 'watch';
@@ -726,7 +738,7 @@
 
   function buildInvestmentCommitteeMemo(asset, snapshot, journal, reportBase) {
     const note = journal && journal.notes ? journal.notes[journalKey(asset)] : null;
-    const trade = asset && asset.decision && asset.decision.trade;
+    const trade = activeLongPlan(asset);
     const overlay = getOverlayForAsset(asset, reportBase || {});
     const tear = buildCompanyTearsheet(asset, snapshot, journal || {});
     const comps = buildCompsSnapshot(asset, snapshot || {});
@@ -735,13 +747,13 @@
       .concat(overlayGaps(overlay));
     if (!note || !note.thesis) gaps.unshift('onayli tez notu eksik');
     if (!note || !note.invalidation) gaps.unshift('tez bozulma kosulu eksik');
-    if (!trade || trade.available !== true) gaps.unshift('giris / stop / hedef plani eksik');
+    if (!trade) gaps.unshift('aktif giris / stop / hedef sinyali eksik');
     if (!snapshot || !snapshot.generatedAt) gaps.unshift('guncel snapshot zamani eksik');
 
     const score = asset && asset.analysis ? asset.analysis.score : null;
     let verdict = 'screen-grade';
     if (score != null && score < 35) verdict = 'blocked';
-    else if (!trade || trade.available !== true || !snapshot || !snapshot.generatedAt) verdict = 'blocked';
+    else if (!trade || !snapshot || !snapshot.generatedAt) verdict = 'blocked';
     else if (note && note.thesis && note.invalidation && score >= 60 && !overlayGaps(overlay).length) verdict = 'senior-review-ready';
 
     const decisionAsk = verdict === 'blocked'
@@ -757,7 +769,7 @@
     ];
     const riskTransmission = [
       note && note.invalidation ? 'Tez su kosulda bozulur: ' + note.invalidation : 'Bozulma kosulu yoksa asagi yonlu risk yonetilemez.',
-      trade && trade.available ? 'Stop/hedef plani ilk zarar ve odul sinirini tanimliyor.' : 'Islem plani yoksa pozisyon boyutu zarar butcesine baglanamaz.',
+      trade ? 'Aktif stop/hedef sinyali ilk zarar ve odul sinirini tanimliyor.' : 'Aktif AL sinyali yoksa pozisyon boyutu zarar butcesine baglanamaz.',
     ];
     if (overlay && overlay.totalAdjustment < 0) {
       riskTransmission.push('Makro/sinyal katmani ayarlanmis skoru ' + Math.abs(overlay.totalAdjustment) + ' puan azaltiyor.');
