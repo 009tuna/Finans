@@ -1,7 +1,8 @@
 # Finans Otomasyonu - DESIGN Context
 
-## 1. Color System (OKLCH)
+## 1. Color System (OKLCH) — Restrained Tek-Accent Stratejisi
 Tüm renkler modern OKLCH modelini temel alır. Nötr koyu tonlar, marka rengine (indigo, hue: 250) doğru hafifçe tint edilmiştir.
+Renk stratejisi **Restrained**: tinted nötraller + tek accent ≤%10 yüzey.
 
 | Token | OKLCH Tanımı | Hex Karşılığı | Kullanım Amacı |
 |---|---|---|---|
@@ -16,13 +17,15 @@ Tüm renkler modern OKLCH modelini temel alır. Nötr koyu tonlar, marka rengine
 | `--muted` | `oklch(68% 0.015 250)` | `#7f8798` | İkincil metinler ve açıklamalar |
 | `--muted-2` | `oklch(48% 0.012 250)` | `#525866` | Tablo başlıkları, devre dışı metinler |
 
-### Stratejik Renkler (Semaphores)
-* **Accent (Brand)**: `oklch(62% 0.16 250)` (`#4382ff`)
+### Tek Accent (Steel Blue)
+* **Accent (Brand)**: `oklch(68% 0.11 230)` (`#5b8fd9`) — Soğuk çelik mavi, profesyonel ve sakin
+* **Accent-Soft**: `oklch(68% 0.11 230 / 0.12)` — Hover ve subtle arka planlar
+
+### Semafor Renkleri (Yalnızca Durum Bildirimi)
 * **Green (Buy)**: `oklch(72% 0.15 145)` (`#28d793`)
 * **Red (Sell)**: `oklch(64% 0.18 25)` (`#ef4444`)
 * **Yellow (Hold)**: `oklch(80% 0.13 85)` (`#eab308`)
 * **Orange (Reduce)**: `oklch(72% 0.15 45)` (`#f97316`)
-* **Violet (Special)**: `oklch(70% 0.13 290)` (`#a78bfa`)
 
 ---
 
