@@ -3794,13 +3794,19 @@ function initAnimations() {
       gsap.fromTo(trend, { strokeDasharray: 25, strokeDashoffset: 25 }, { strokeDashoffset: 0, duration: 0.45, ease: 'power2.out', delay: 0.1 });
       gsap.fromTo(dot, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, transformOrigin: '50% 50%', duration: 0.3, ease: 'back.out(2)', delay: 0.35 });
     } else if (view === 'bist') {
-      const crescent = btn.querySelector('.tr-crescent');
-      const star = btn.querySelector('.tr-star');
+      const tl = btn.querySelector('.tr-tulip-l');
+      const tr = btn.querySelector('.tr-tulip-r');
+      const tc = btn.querySelector('.tr-tulip-c');
+      const stem = btn.querySelector('.tr-tulip-stem');
       const trend = btn.querySelector('.tr-trend');
       const dot = btn.querySelector('.tr-dot');
-      gsap.killTweensOf([crescent, star, trend, dot]);
-      gsap.fromTo(crescent, { scale: 0.8, rotate: -20 }, { scale: 1, rotate: 0, transformOrigin: '10px 12px', duration: 0.35, ease: 'back.out(1.5)' });
-      gsap.fromTo(star, { scale: 0, rotate: -180 }, { scale: 1, rotate: 0, transformOrigin: '16.5px 10.7px', duration: 0.45, ease: 'back.out(2)', delay: 0.1 });
+      gsap.killTweensOf([tl, tr, tc, stem, trend, dot]);
+      // Animate Tulip blooming
+      gsap.fromTo(stem, { scaleY: 0 }, { scaleY: 1, transformOrigin: '50% 100%', duration: 0.25, ease: 'power2.out' });
+      gsap.fromTo(tc, { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, transformOrigin: '12px 16px', duration: 0.35, ease: 'back.out(1.5)', delay: 0.05 });
+      gsap.fromTo(tl, { rotate: 15, scale: 0.8, transformOrigin: '12px 16px' }, { rotate: 0, scale: 1, duration: 0.35, ease: 'back.out(1.8)', delay: 0.1 });
+      gsap.fromTo(tr, { rotate: -15, scale: 0.8, transformOrigin: '12px 16px' }, { rotate: 0, scale: 1, duration: 0.35, ease: 'back.out(1.8)', delay: 0.1 });
+      // Draw trend path
       gsap.fromTo(trend, { strokeDasharray: 25, strokeDashoffset: 25 }, { strokeDashoffset: 0, duration: 0.45, ease: 'power2.out', delay: 0.1 });
       gsap.fromTo(dot, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, transformOrigin: '50% 50%', duration: 0.3, ease: 'back.out(2)', delay: 0.35 });
     } else if (view === 'crypto') {
@@ -3922,13 +3928,15 @@ function initAnimations() {
       gsap.to(trend, { strokeDashoffset: 0, duration: 0.2, ease: 'power2.out' });
       gsap.to(dot, { scale: 1, opacity: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'bist') {
-      const crescent = btn.querySelector('.tr-crescent');
-      const star = btn.querySelector('.tr-star');
+      const tl = btn.querySelector('.tr-tulip-l');
+      const tr = btn.querySelector('.tr-tulip-r');
+      const tc = btn.querySelector('.tr-tulip-c');
+      const stem = btn.querySelector('.tr-tulip-stem');
       const trend = btn.querySelector('.tr-trend');
       const dot = btn.querySelector('.tr-dot');
-      gsap.killTweensOf([crescent, star, trend, dot]);
-      gsap.to(crescent, { scale: 1, rotate: 0, transformOrigin: '10px 12px', duration: 0.2, ease: 'power2.out' });
-      gsap.to(star, { scale: 1, rotate: 0, transformOrigin: '16.5px 10.7px', duration: 0.2, ease: 'power2.out' });
+      gsap.killTweensOf([tl, tr, tc, stem, trend, dot]);
+      gsap.to([tl, tr, tc], { scale: 1, rotate: 0, opacity: 1, transformOrigin: '12px 16px', duration: 0.2, ease: 'power2.out' });
+      gsap.to(stem, { scaleY: 1, transformOrigin: '50% 100%', duration: 0.2, ease: 'power2.out' });
       gsap.to(trend, { strokeDashoffset: 0, duration: 0.2, ease: 'power2.out' });
       gsap.to(dot, { scale: 1, opacity: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'crypto') {
