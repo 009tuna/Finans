@@ -8,7 +8,7 @@
     "dev": "vercel dev",
     "fetch": "node src/fetch-all.js",
     "deploy": "vercel --prod",
-    "test": "node test/decision.test.js && node test/chart-data.test.js && node test/ui-contract.test.js && node test/forecast.test.js && node test/forecast-extended.test.js && node test/db-cache.test.js && node test/insights.test.js && node test/action-layer.test.js && node test/decision-journal.test.js && node test/indicators-regime.test.js && node test/analyze-regime.test.js && node test/costs.test.js && node test/market-regime.test.js && node test/prediction-resolver.test.js"
+    "test": "node test/decision.test.js && node test/chart-data.test.js && node test/ui-contract.test.js && node test/forecast.test.js && node test/forecast-extended.test.js && node test/db-cache.test.js && node test/insights.test.js && node test/action-layer.test.js && node test/signal-overlay.test.js && node test/decision-journal.test.js && node test/indicators-regime.test.js && node test/analyze-regime.test.js && node test/costs.test.js && node test/market-regime.test.js && node test/prediction-resolver.test.js"
   },
   "license": "MIT",
   "dependencies": {

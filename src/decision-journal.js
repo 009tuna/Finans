@@ -15,6 +15,9 @@ function normalizeJournal(input) {
     notes: input && input.notes && typeof input.notes === 'object' ? input.notes : {},
     alerts: Array.isArray(input && input.alerts) ? input.alerts : [],
     predictions: Array.isArray(input && input.predictions) ? input.predictions : [],
+    theses: input && input.theses && typeof input.theses === 'object' ? input.theses : {},
+    catalysts: Array.isArray(input && input.catalysts) ? input.catalysts : [],
+    riskRules: Array.isArray(input && input.riskRules) ? input.riskRules : [],
   };
 }
 

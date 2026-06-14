@@ -10,6 +10,13 @@ const {
   buildAlertRules,
   buildPredictionScorecard,
   calculatePosition,
+  buildIdeaFunnel,
+  buildCatalystCalendar,
+  buildCfoDecisionCockpit,
+  buildPortfolioRiskPlan,
+  buildCompanyTearsheet,
+  buildCompsSnapshot,
+  buildInvestmentCommitteeMemo,
 } = require('../public/action-layer.js');
 
 console.log('Action layer tests starting...\n');
@@ -156,6 +163,105 @@ assert.equal(calc1.positionAmount, 6600);
 
 const calcInvalid = calculatePosition(10000, 2, 0, 2);
 assert.equal(calcInvalid.available, false);
+console.log('   ok');
+
+console.log('8. buildIdeaFunnel separates candidates from recommendations...');
+const funnel = buildIdeaFunnel(snapshot, mockJournal);
+assert.equal(funnel.buckets.advance[0].symbol, 'AMD');
+assert.ok(funnel.buckets.watchlist.some((x) => x.symbol === 'AAPL'));
+assert.ok(funnel.buckets.reject.some((x) => x.symbol === 'XRP'));
+assert.ok(funnel.buckets.advance[0].nextWorkflow.includes('thesis'));
+assert.equal(funnel.buckets.advance[0].recommendation, false);
+console.log('   ok');
+
+console.log('9. buildCatalystCalendar ranks decision pressure...');
+const calendar = buildCatalystCalendar(snapshot, {
+  calendar: {
+    companyNews: [
+      { symbol: 'AAPL', headline: 'Apple event expected this week', source: 'Yahoo', date: '2026-06-10' },
+      { symbol: 'AMD', headline: 'AI accelerator launch window', source: 'IR', date: '2026-06-11' },
+    ],
+    economic: [
+      { event: 'CPI', date: '2026-06-12', importance: 'high', estimate: 3.2, actual: null },
+    ],
+  },
+});
+assert.equal(calendar.events[0].decisionPressure, 'high');
+assert.ok(calendar.events.some((x) => x.symbol === 'AMD' && x.thesisLink.includes('score')));
+assert.ok(calendar.prepQueue[0].action.includes('threshold'));
+console.log('   ok');
+
+console.log('10. buildPortfolioRiskPlan names binding risk constraints...');
+const riskPlan = buildPortfolioRiskPlan({ data: snapshot, portfolioData: portfolio, usdtry: 40 });
+assert.equal(riskPlan.status, 'concentrated');
+assert.equal(riskPlan.riskBudget.totalNavUsd, riskPlan.totalUsd);
+assert.equal(riskPlan.riskBudget.maxSingleNamePct, 35);
+assert.equal(riskPlan.riskBudget.maxCryptoPct, 50);
+assert.ok(riskPlan.riskBudget.bindingConstraint.includes('Crypto'));
+assert.ok(riskPlan.constraints.some((x) => x.kind === 'single-market'));
+assert.ok(riskPlan.monitoringRules.some((x) => x.action.includes('reduce')));
+assert.ok(riskPlan.targetAllocations.some((x) => x.symbol === 'XRP' && x.action === 'exit'));
+console.log('   ok');
+
+console.log('11. buildCfoDecisionCockpit ranks ready, gated and blocked decisions...');
+const cockpit = buildCfoDecisionCockpit(snapshot, mockJournal, {
+  signalOverlay: {
+    assets: {
+      'us:AMD': {
+        totalAdjustment: -2,
+        adjustedScore: 63,
+        status: 'watch',
+        components: [
+          { type: 'scenarioSensitivity', reason: 'Scenario sensitivity requires sizing work' },
+        ],
+      },
+      'crypto:XRP': {
+        totalAdjustment: -1,
+        adjustedScore: 22,
+        status: 'risk',
+        components: [
+          { type: 'thesisStatus', reason: 'Thesis missing' },
+        ],
+      },
+    },
+  },
+});
+assert.ok(cockpit.summary.includes('CFO'));
+assert.ok(cockpit.rows.length >= 2);
+assert.ok(cockpit.rows.some((x) => x.symbol === 'AMD' && x.status === 'gated'));
+assert.ok(cockpit.rows.some((x) => x.symbol === 'XRP' && x.status === 'blocked'));
+assert.ok(cockpit.rows[0].decisionAsk);
+assert.ok(cockpit.rows[0].missingEvidence.length >= 1);
+console.log('   ok');
+
+console.log('12. buildCompanyTearsheet and buildCompsSnapshot produce evidence-aware snapshots...');
+const tearsheet = buildCompanyTearsheet(snapshot.us[0], snapshot, mockJournal);
+assert.equal(tearsheet.symbol, 'AAPL');
+assert.ok(tearsheet.metrics.some((x) => x.label === 'Technical score'));
+assert.ok(tearsheet.gaps.some((x) => x.includes('fundamental')));
+const comps = buildCompsSnapshot(snapshot.us[0], snapshot);
+assert.equal(comps.target.symbol, 'AAPL');
+assert.ok(comps.peerSet.length >= 1);
+assert.ok(comps.readThrough.includes('peer'));
+console.log('   ok');
+
+console.log('13. buildInvestmentCommitteeMemo creates readiness verdicts...');
+const memoReady = buildInvestmentCommitteeMemo(snapshot.us[1], snapshot, {
+  notes: {
+    'us:AMD': {
+      thesis: 'AI accelerator cycle can support upside.',
+      invalidation: 'Break below stop invalidates the setup.',
+    },
+  },
+  predictions: [],
+}, {});
+assert.equal(memoReady.verdict, 'senior-review-ready');
+assert.ok(memoReady.sections.whatWeBelieve.length >= 1);
+assert.ok(memoReady.sections.nextActions.some((x) => x.includes('risk budget')));
+
+const memoBlocked = buildInvestmentCommitteeMemo(snapshot.crypto[0], snapshot, mockJournal, {});
+assert.equal(memoBlocked.verdict, 'blocked');
+assert.ok(memoBlocked.sections.evidenceGaps.length >= 1);
 console.log('   ok');
 
 console.log('\nAction layer tests passed.');

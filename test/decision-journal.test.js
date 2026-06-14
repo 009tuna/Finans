@@ -19,6 +19,9 @@ const empty = normalizeJournal(null);
 assert.deepEqual(empty.notes, {});
 assert.deepEqual(empty.alerts, []);
 assert.deepEqual(empty.predictions, []);
+assert.deepEqual(empty.theses, {});
+assert.deepEqual(empty.catalysts, []);
+assert.deepEqual(empty.riskRules, []);
 
 const withNote = upsertNote(empty, 'us', 'AAPL', {
   thesis: 'Trend devam ederse izlenir.',
@@ -68,5 +71,14 @@ writeJournalFile(file, withPrediction);
 const roundtrip = readJournalFile(file);
 assert.equal(roundtrip.predictions.length, 1);
 assert.equal(roundtrip.notes['us:AAPL'].thesis, 'Trend devam ederse izlenir.');
+
+const normalizedExtended = normalizeJournal({
+  theses: { 'us:AAPL': { status: 'watch', nextReview: '2026-06-30' } },
+  catalysts: [{ market: 'us', symbol: 'AAPL', event: 'WWDC', date: '2026-06-10' }],
+  riskRules: [{ market: 'us', symbol: 'AAPL', trigger: 'weight > 20%', action: 'trim' }],
+});
+assert.equal(normalizedExtended.theses['us:AAPL'].status, 'watch');
+assert.equal(normalizedExtended.catalysts[0].event, 'WWDC');
+assert.equal(normalizedExtended.riskRules[0].action, 'trim');
 
 console.log('decision journal tests passed');

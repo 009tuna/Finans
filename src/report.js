@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { fetchEconomic, fetchEarnings, fetchCompanyNews } = require('./calendar');
 const { getLatestSnapshot, saveReport } = require('./db');
+const { buildMacroSignalOverlay } = require('./signal-overlay');
 
 const ROOT = path.join(__dirname, '..');
 const DATA = path.join(ROOT, 'data');
@@ -17,6 +18,13 @@ function loadConfig() {
 }
 function ymd(d) {
   return d.toISOString().slice(0, 10);
+}
+function readJsonIfExists(filePath) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch (_) {
+    return null;
+  }
 }
 
 async function buildBaseReport() {
@@ -102,9 +110,10 @@ async function buildBaseReport() {
   // Scorecard and resolved predictions integration
   let scorecard = null;
   let resolvedLastWeek = [];
+  let journal = null;
   try {
     const { readJournal, buildPredictionScorecard } = require('./decision-journal');
-    const journal = await readJournal(path.join(DATA, 'journal.json'));
+    journal = await readJournal(path.join(DATA, 'journal.json'));
     scorecard = buildPredictionScorecard(journal);
     
     const today = new Date();
@@ -128,8 +137,9 @@ async function buildBaseReport() {
     console.error('⚠️ [report] Scorecard verisi yüklenemedi:', err.message);
   }
 
-  return {
-    generatedAt: new Date().toISOString(),
+  const generatedAt = new Date().toISOString();
+  const base = {
+    generatedAt,
     date: (snap.generatedAt || new Date().toISOString()).slice(0, 10),
     dataAsOf: snap.market || null,
     sentiment: { avg, label: sentLabel, gainers, total: all.length, buys },
@@ -145,6 +155,22 @@ async function buildBaseReport() {
     scorecard,
     resolvedLastWeek,
   };
+
+  try {
+    const aiReport = readJsonIfExists(path.join(REPORT_DIR, 'ai.json'));
+    base.signalOverlay = buildMacroSignalOverlay({
+      snapshot: snap,
+      aiReport,
+      baseReport: base,
+      journal,
+      now: generatedAt,
+    });
+  } catch (err) {
+    console.error('[report] Signal overlay uretilemedi:', err.message);
+    base.signalOverlay = null;
+  }
+
+  return base;
 }
 
 async function run() {

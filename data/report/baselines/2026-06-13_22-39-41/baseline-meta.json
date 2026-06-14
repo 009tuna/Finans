@@ -1,0 +1,10 @@
+﻿{
+    "savedAt":  "2026-06-13T22:39:41.4542204+03:00",
+    "purpose":  "Baseline snapshot for comparing current report quality against future Codex-generated reports",
+    "sourceDirectory":  "C:\\Users\\Monster\\Downloads\\Finans\\data\\report",
+    "copiedFiles":  [
+                        "base.json",
+                        "ai.json",
+                        "tips-archive.json"
+                    ]
+}
