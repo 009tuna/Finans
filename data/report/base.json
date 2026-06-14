@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-06-13T20:07:33.887Z",
-  "date": "2026-06-13",
+  "generatedAt": "2026-06-14T10:18:12.271Z",
+  "date": "2026-06-14",
   "dataAsOf": {
     "usAsOf": "2026-06-12T20:00:01.000Z",
     "bistAsOf": "2026-06-12T15:09:59.000Z",
-    "cryptoAsOf": "2026-06-13T11:43:05.555Z"
+    "cryptoAsOf": null
   },
   "sentiment": {
-    "avg": 49,
+    "avg": 59,
     "label": "Nötr",
-    "gainers": 31,
-    "total": 44,
+    "gainers": 20,
+    "total": 32,
     "buys": 13
   },
   "markets": {
@@ -36,13 +36,7 @@
     },
     "crypto": {
       "name": "Kripto",
-      "count": 12,
-      "avg": 24,
-      "topPick": {
-        "symbol": "BNB",
-        "score": 41,
-        "label": "AZALT"
-      }
+      "count": 0
     }
   },
   "opportunities": [
@@ -98,8 +92,7 @@
   "signals": {
     "overbought": [],
     "oversold": [
-      "us NFLX (RSI 29)",
-      "crypto AVAX (RSI 27.2)"
+      "us NFLX (RSI 29)"
     ],
     "goldenCross": [],
     "deathCross": [],
@@ -143,129 +136,24 @@
       "market": "bist",
       "symbol": "SASA",
       "reason": "Düşük teknik puan 29"
-    },
-    {
-      "market": "crypto",
-      "symbol": "BTC",
-      "reason": "Düşük teknik puan 24"
-    },
-    {
-      "market": "crypto",
-      "symbol": "ETH",
-      "reason": "Düşük teknik puan 20"
-    },
-    {
-      "market": "crypto",
-      "symbol": "SOL",
-      "reason": "Düşük teknik puan 22"
-    },
-    {
-      "market": "crypto",
-      "symbol": "XRP",
-      "reason": "Düşük teknik puan 20"
-    },
-    {
-      "market": "crypto",
-      "symbol": "ADA",
-      "reason": "Düşük teknik puan 22"
     }
   ],
   "calendar": {
-    "weekFrom": "2026-06-13",
-    "weekTo": "2026-06-19",
+    "weekFrom": "2026-06-14",
+    "weekTo": "2026-06-20",
     "economic": [],
     "earnings": [
       {
         "date": "2026-06-15",
-        "symbol": "DDDX",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
+        "symbol": "AIOT",
+        "hour": "bmo",
+        "epsEstimate": -0.0061,
+        "revenueEstimate": 115320863,
         "watch": false
       },
       {
         "date": "2026-06-15",
-        "symbol": "RYES",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
-        "watch": false
-      },
-      {
-        "date": "2026-06-15",
-        "symbol": "NMEX",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
-        "watch": false
-      },
-      {
-        "date": "2026-06-15",
-        "symbol": "TVTV",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
-        "watch": false
-      },
-      {
-        "date": "2026-06-15",
-        "symbol": "ENZ",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
-        "watch": false
-      },
-      {
-        "date": "2026-06-15",
-        "symbol": "SENR",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
-        "watch": false
-      },
-      {
-        "date": "2026-06-15",
-        "symbol": "KOAN",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
-        "watch": false
-      },
-      {
-        "date": "2026-06-15",
-        "symbol": "STRM",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
-        "watch": false
-      },
-      {
-        "date": "2026-06-15",
-        "symbol": "RFIL",
-        "hour": "amc",
-        "epsEstimate": 0.0918,
-        "revenueEstimate": 20059320,
-        "watch": false
-      },
-      {
-        "date": "2026-06-15",
-        "symbol": "KCRD",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
-        "watch": false
-      },
-      {
-        "date": "2026-06-15",
-        "symbol": "SNRG",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
-        "watch": false
-      },
-      {
-        "date": "2026-06-15",
-        "symbol": "EBZT",
+        "symbol": "BANX",
         "hour": "",
         "epsEstimate": null,
         "revenueEstimate": null,
@@ -281,33 +169,17 @@
       },
       {
         "date": "2026-06-15",
-        "symbol": "BANX",
+        "symbol": "CODA",
+        "hour": "bmo",
+        "epsEstimate": 0.1326,
+        "revenueEstimate": 7667340,
+        "watch": false
+      },
+      {
+        "date": "2026-06-15",
+        "symbol": "DDDX",
         "hour": "",
         "epsEstimate": null,
-        "revenueEstimate": null,
-        "watch": false
-      },
-      {
-        "date": "2026-06-15",
-        "symbol": "ZEOX",
-        "hour": "",
-        "epsEstimate": null,
-        "revenueEstimate": null,
-        "watch": false
-      },
-      {
-        "date": "2026-06-15",
-        "symbol": "VNCE",
-        "hour": "",
-        "epsEstimate": -0.1326,
-        "revenueEstimate": 64307940,
-        "watch": false
-      },
-      {
-        "date": "2026-06-15",
-        "symbol": "TBHC",
-        "hour": "",
-        "epsEstimate": -0.663,
         "revenueEstimate": null,
         "watch": false
       },
@@ -318,50 +190,139 @@
         "epsEstimate": -0.0052,
         "revenueEstimate": 60283147840,
         "watch": false
+      },
+      {
+        "date": "2026-06-15",
+        "symbol": "DOMO",
+        "hour": "amc",
+        "epsEstimate": -0.0673,
+        "revenueEstimate": 81342276,
+        "watch": false
+      },
+      {
+        "date": "2026-06-15",
+        "symbol": "EBZT",
+        "hour": "",
+        "epsEstimate": null,
+        "revenueEstimate": null,
+        "watch": false
+      },
+      {
+        "date": "2026-06-15",
+        "symbol": "ENZ",
+        "hour": "",
+        "epsEstimate": null,
+        "revenueEstimate": null,
+        "watch": false
+      },
+      {
+        "date": "2026-06-15",
+        "symbol": "IGC",
+        "hour": "",
+        "epsEstimate": -0.0212,
+        "revenueEstimate": 264115,
+        "watch": false
+      },
+      {
+        "date": "2026-06-15",
+        "symbol": "JRSH",
+        "hour": "bmo",
+        "epsEstimate": -0.0102,
+        "revenueEstimate": 36924000,
+        "watch": false
+      },
+      {
+        "date": "2026-06-15",
+        "symbol": "KCRD",
+        "hour": "",
+        "epsEstimate": null,
+        "revenueEstimate": null,
+        "watch": false
+      },
+      {
+        "date": "2026-06-15",
+        "symbol": "KOAN",
+        "hour": "",
+        "epsEstimate": null,
+        "revenueEstimate": null,
+        "watch": false
+      },
+      {
+        "date": "2026-06-15",
+        "symbol": "LVO",
+        "hour": "amc",
+        "epsEstimate": -0.2929,
+        "revenueEstimate": 20304282,
+        "watch": false
+      },
+      {
+        "date": "2026-06-15",
+        "symbol": "NMEX",
+        "hour": "",
+        "epsEstimate": null,
+        "revenueEstimate": null,
+        "watch": false
+      },
+      {
+        "date": "2026-06-15",
+        "symbol": "POWW",
+        "hour": "",
+        "epsEstimate": -0.0102,
+        "revenueEstimate": 12954000,
+        "watch": false
+      },
+      {
+        "date": "2026-06-15",
+        "symbol": "RFIL",
+        "hour": "amc",
+        "epsEstimate": 0.0918,
+        "revenueEstimate": 20059320,
+        "watch": false
+      },
+      {
+        "date": "2026-06-15",
+        "symbol": "RYES",
+        "hour": "",
+        "epsEstimate": null,
+        "revenueEstimate": null,
+        "watch": false
       }
     ],
     "companyNews": [
       {
-        "symbol": "AAPL",
-        "headline": "Wall Street’s Top Billionaires Are Changing Their Mind About Apple (AAPL)",
-        "source": "Yahoo",
-        "url": "https://finnhub.io/api/news?id=2a5d83d923fcf4627fc9d731e37679d6e7148208832fa311ab7df2fb0a1081b7",
-        "datetime": 1781365360
-      },
-      {
         "symbol": "MSFT",
-        "headline": "IREN Secures $3.65B GPU Financing Facility for Microsoft AI Cloud Expansion",
+        "headline": "3 Genius Stocks I'm Buying Instead of the SpaceX IPO",
         "source": "Yahoo",
-        "url": "https://finnhub.io/api/news?id=7720a35e9a7ff43387876b082d69c6c4a005792bbc803638aab300c2b65eeed8",
-        "datetime": 1781375910
+        "url": "https://finnhub.io/api/news?id=fff634b31b368b7066fd705ba8a6cf5af8145f0a82d5f0fafa4cd1ab550613d1",
+        "datetime": 1781424300
       },
       {
         "symbol": "NVDA",
-        "headline": "Down 50% Over the Past Year, Is There Anything Adobe Can Do to Rebound?",
+        "headline": "Berkshire Hathaway's Greg Abel Just Made a Big Bet on Who Will Win the AI Races -- And He's Even Tipping the Scale in Its Favor",
         "source": "Yahoo",
-        "url": "https://finnhub.io/api/news?id=3f1bf7aa88888fa7f14395884864c56776c7caaf53591559f46d695a1c407f7b",
-        "datetime": 1781379660
+        "url": "https://finnhub.io/api/news?id=139702b5026cdc501a4b7314c6a3c9fdac439507e853d5c0b9c53b3526b42d1f",
+        "datetime": 1781430600
       },
       {
         "symbol": "GOOGL",
-        "headline": "Truist Reiterates “Buy” Rating On Meta Platforms (META) With $840 PT",
+        "headline": "How Booking won online travel & can it win AI travel?",
         "source": "Yahoo",
-        "url": "https://finnhub.io/api/news?id=de1eb89e0cd71a536a0df5ef00c8a1f7b9f984629c421888965b9db96ce39f7b",
-        "datetime": 1781373590
+        "url": "https://finnhub.io/api/news?id=5dee81ae6891b5adea2566657d0edf39b48a7812ebaf75092fee563f2e12b4a6",
+        "datetime": 1781425617
       },
       {
         "symbol": "AMZN",
-        "headline": "Amazon.com, Inc. (AMZN) Pursues Canadian Bond to Finance $200B AI Data Center Investment Spree",
+        "headline": "Forget SpaceX: 3 Stocks That Are Brilliant Buys Right Now",
         "source": "Yahoo",
-        "url": "https://finnhub.io/api/news?id=d20e8b6c5fdbc661a16bdbf66ed29f562dac31227eaa3310c5b4352eab051807",
-        "datetime": 1781378711
+        "url": "https://finnhub.io/api/news?id=7cb7b77bf1065acec24e7b62a998d13f7793f148d241b223dbaf07f7e58423a7",
+        "datetime": 1781430300
       },
       {
         "symbol": "META",
-        "headline": "Truist Reiterates “Buy” Rating On Meta Platforms (META) With $840 PT",
-        "source": "Yahoo",
-        "url": "https://finnhub.io/api/news?id=de1eb89e0cd71a536a0df5ef00c8a1f7b9f984629c421888965b9db96ce39f7b",
-        "datetime": 1781373590
+        "headline": "Meta At 17x P/E: Investing Doesn't Get Any Easier",
+        "source": "SeekingAlpha",
+        "url": "https://finnhub.io/api/news?id=3a615536cf2aa9978251873e519d1b30717dbd985a77f5ce80fe9fc64031d750",
+        "datetime": 1781414723
       }
     ]
   },
@@ -390,18 +351,18 @@
   },
   "resolvedLastWeek": [],
   "signalOverlay": {
-    "generatedAt": "2026-06-13T20:07:33.887Z",
-    "expiresAt": "2026-06-15T08:07:33.887Z",
+    "generatedAt": "2026-06-14T10:18:12.271Z",
+    "expiresAt": "2026-06-15T22:18:12.271Z",
     "maxAdjustment": 8,
     "market": {
       "us": {
         "market": "us",
-        "adjustment": 0,
-        "confidence": 0.35,
-        "reason": "ABD makro metni notr",
+        "adjustment": -1,
+        "confidence": 0.6,
+        "reason": "ABD makro metni baskilayici",
         "source": "ai-report:commentary",
-        "asOf": "2026-06-13T20:07:33.887Z",
-        "expiresAt": "2026-06-15T08:07:33.887Z"
+        "asOf": "2026-06-14T10:18:12.271Z",
+        "expiresAt": "2026-06-15T22:18:12.271Z"
       },
       "bist": {
         "market": "bist",
@@ -409,8 +370,8 @@
         "confidence": 0.35,
         "reason": "BIST makro metni notr",
         "source": "ai-report:commentary",
-        "asOf": "2026-06-13T20:07:33.887Z",
-        "expiresAt": "2026-06-15T08:07:33.887Z"
+        "asOf": "2026-06-14T10:18:12.271Z",
+        "expiresAt": "2026-06-15T22:18:12.271Z"
       },
       "crypto": {
         "market": "crypto",
@@ -418,8 +379,8 @@
         "confidence": 0.35,
         "reason": "Kripto makro metni notr",
         "source": "ai-report:commentary",
-        "asOf": "2026-06-13T20:07:33.887Z",
-        "expiresAt": "2026-06-15T08:07:33.887Z"
+        "asOf": "2026-06-14T10:18:12.271Z",
+        "expiresAt": "2026-06-15T22:18:12.271Z"
       }
     },
     "assets": {
@@ -427,19 +388,42 @@
         "market": "us",
         "symbol": "AAPL",
         "technicalScore": 49,
-        "totalAdjustment": 1,
-        "adjustedScore": 50,
-        "status": "watch",
-        "confidence": 0.55,
+        "totalAdjustment": -4,
+        "adjustedScore": 45,
+        "status": "risk",
+        "confidence": 0.66,
         "components": [
           {
-            "type": "companyNews",
-            "adjustment": 1,
-            "confidence": 0.55,
-            "reason": "AAPL haber katalizoru: Wall Street’s Top Billionaires Are Changing Their Mind About Apple (AAPL)",
-            "source": "Yahoo",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "type": "macro",
+            "adjustment": -1,
+            "market": "us",
+            "confidence": 0.6,
+            "reason": "ABD makro metni baskilayici",
+            "source": "ai-report:commentary",
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
+          },
+          {
+            "type": "fedDecision",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -2,
+            "confidence": 0.78,
+            "source": "Federal Reserve June 2026 calendar; BLS CPI May 2026; Michigan Surveys of Consumers June 2026",
+            "reason": "17 Haziran Fed toplantısı öncesi ABD manşet TÜFE %4,2 ve 1 yıllık enflasyon beklentisi %4,6; erken güvercinleşme zemini zayıf.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "usRetailSales",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.61,
+            "source": "MarketWatch U.S. Economic Calendar June 17 2026",
+            "reason": "17 Haziran perakende satış beklentisi manşette +%0,5; veri Fed günüyle çakıştığı için beklenti hatası ABD büyüme hisselerinde oynaklığı artırır.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-17T18:00:00.000Z"
           }
         ],
         "expiredComponents": [
@@ -458,19 +442,62 @@
         "market": "us",
         "symbol": "MSFT",
         "technicalScore": 50,
-        "totalAdjustment": 0,
-        "adjustedScore": 50,
-        "status": "neutral",
-        "confidence": 0.55,
+        "totalAdjustment": -3,
+        "adjustedScore": 47,
+        "status": "watch",
+        "confidence": 0.62,
         "components": [
+          {
+            "type": "macro",
+            "adjustment": -1,
+            "market": "us",
+            "confidence": 0.6,
+            "reason": "ABD makro metni baskilayici",
+            "source": "ai-report:commentary",
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
+          },
+          {
+            "type": "fedDecision",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -2,
+            "confidence": 0.78,
+            "source": "Federal Reserve June 2026 calendar; BLS CPI May 2026; Michigan Surveys of Consumers June 2026",
+            "reason": "17 Haziran Fed toplantısı öncesi ABD manşet TÜFE %4,2 ve 1 yıllık enflasyon beklentisi %4,6; erken güvercinleşme zemini zayıf.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "usRetailSales",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.61,
+            "source": "MarketWatch U.S. Economic Calendar June 17 2026",
+            "reason": "17 Haziran perakende satış beklentisi manşette +%0,5; veri Fed günüyle çakıştığı için beklenti hatası ABD büyüme hisselerinde oynaklığı artırır.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-17T18:00:00.000Z"
+          },
+          {
+            "type": "enterpriseAiDemand",
+            "market": "us",
+            "symbol": "MSFT",
+            "adjustment": 1,
+            "confidence": 0.64,
+            "source": "Oracle FY2026 Q4 results announcement June 10 2026; Accenture Q3 FY2026 earnings date announcement June 2 2026",
+            "reason": "Kurumsal AI talebinin zayıflamadığına dair iki ayrı okuma var; Oracle sonucu bunu gösterdi, Accenture bilançosu bunu sınayacak.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-19T21:00:00.000Z"
+          },
           {
             "type": "companyNews",
             "adjustment": 1,
             "confidence": 0.55,
-            "reason": "MSFT haber katalizoru: IREN Secures $3.65B GPU Financing Facility for Microsoft AI Cloud Expansion",
+            "reason": "MSFT haber katalizoru: 3 Genius Stocks I'm Buying Instead of the SpaceX IPO",
             "source": "Yahoo",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "thesisStatus",
@@ -478,8 +505,8 @@
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -488,19 +515,62 @@
         "market": "us",
         "symbol": "NVDA",
         "technicalScore": 55,
-        "totalAdjustment": 0,
-        "adjustedScore": 55,
-        "status": "neutral",
-        "confidence": 0.55,
+        "totalAdjustment": -2,
+        "adjustedScore": 53,
+        "status": "watch",
+        "confidence": 0.64,
         "components": [
+          {
+            "type": "macro",
+            "adjustment": -1,
+            "market": "us",
+            "confidence": 0.6,
+            "reason": "ABD makro metni baskilayici",
+            "source": "ai-report:commentary",
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
+          },
+          {
+            "type": "fedDecision",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -2,
+            "confidence": 0.78,
+            "source": "Federal Reserve June 2026 calendar; BLS CPI May 2026; Michigan Surveys of Consumers June 2026",
+            "reason": "17 Haziran Fed toplantısı öncesi ABD manşet TÜFE %4,2 ve 1 yıllık enflasyon beklentisi %4,6; erken güvercinleşme zemini zayıf.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "usRetailSales",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.61,
+            "source": "MarketWatch U.S. Economic Calendar June 17 2026",
+            "reason": "17 Haziran perakende satış beklentisi manşette +%0,5; veri Fed günüyle çakıştığı için beklenti hatası ABD büyüme hisselerinde oynaklığı artırır.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-17T18:00:00.000Z"
+          },
+          {
+            "type": "aiCapexReadThrough",
+            "market": "us",
+            "symbol": "NVDA",
+            "adjustment": 2,
+            "confidence": 0.74,
+            "source": "Oracle FY2026 Q4 results announcement June 10 2026",
+            "reason": "Oracle'ın bulut gelirleri yıllık %39 büyüdü; AI altyapı talebi canlı kaldığı için NVDA için sektör aktarımı pozitif.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-19T21:00:00.000Z"
+          },
           {
             "type": "companyNews",
             "adjustment": 1,
             "confidence": 0.55,
-            "reason": "NVDA haber katalizoru: Down 50% Over the Past Year, Is There Anything Adobe Can Do to Rebound?",
+            "reason": "NVDA haber katalizoru: Berkshire Hathaway's Greg Abel Just Made a Big Bet on Who Will Win the AI Races -- And He's Even Tipping the Scale in Its Favor",
             "source": "Yahoo",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "thesisStatus",
@@ -508,8 +578,8 @@
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -518,19 +588,51 @@
         "market": "us",
         "symbol": "GOOGL",
         "technicalScore": 45,
-        "totalAdjustment": 0,
-        "adjustedScore": 45,
-        "status": "neutral",
-        "confidence": 0.55,
+        "totalAdjustment": -4,
+        "adjustedScore": 41,
+        "status": "risk",
+        "confidence": 0.62,
         "components": [
+          {
+            "type": "macro",
+            "adjustment": -1,
+            "market": "us",
+            "confidence": 0.6,
+            "reason": "ABD makro metni baskilayici",
+            "source": "ai-report:commentary",
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
+          },
+          {
+            "type": "fedDecision",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -2,
+            "confidence": 0.78,
+            "source": "Federal Reserve June 2026 calendar; BLS CPI May 2026; Michigan Surveys of Consumers June 2026",
+            "reason": "17 Haziran Fed toplantısı öncesi ABD manşet TÜFE %4,2 ve 1 yıllık enflasyon beklentisi %4,6; erken güvercinleşme zemini zayıf.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "usRetailSales",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.61,
+            "source": "MarketWatch U.S. Economic Calendar June 17 2026",
+            "reason": "17 Haziran perakende satış beklentisi manşette +%0,5; veri Fed günüyle çakıştığı için beklenti hatası ABD büyüme hisselerinde oynaklığı artırır.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-17T18:00:00.000Z"
+          },
           {
             "type": "companyNews",
             "adjustment": 1,
             "confidence": 0.55,
-            "reason": "GOOGL haber katalizoru: Truist Reiterates “Buy” Rating On Meta Platforms (META) With $840 PT",
+            "reason": "GOOGL haber katalizoru: How Booking won online travel & can it win AI travel?",
             "source": "Yahoo",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "thesisStatus",
@@ -538,8 +640,8 @@
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -548,19 +650,51 @@
         "market": "us",
         "symbol": "AMZN",
         "technicalScore": 42,
-        "totalAdjustment": 0,
-        "adjustedScore": 42,
-        "status": "neutral",
-        "confidence": 0.55,
+        "totalAdjustment": -4,
+        "adjustedScore": 38,
+        "status": "risk",
+        "confidence": 0.62,
         "components": [
+          {
+            "type": "macro",
+            "adjustment": -1,
+            "market": "us",
+            "confidence": 0.6,
+            "reason": "ABD makro metni baskilayici",
+            "source": "ai-report:commentary",
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
+          },
+          {
+            "type": "fedDecision",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -2,
+            "confidence": 0.78,
+            "source": "Federal Reserve June 2026 calendar; BLS CPI May 2026; Michigan Surveys of Consumers June 2026",
+            "reason": "17 Haziran Fed toplantısı öncesi ABD manşet TÜFE %4,2 ve 1 yıllık enflasyon beklentisi %4,6; erken güvercinleşme zemini zayıf.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "usRetailSales",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.61,
+            "source": "MarketWatch U.S. Economic Calendar June 17 2026",
+            "reason": "17 Haziran perakende satış beklentisi manşette +%0,5; veri Fed günüyle çakıştığı için beklenti hatası ABD büyüme hisselerinde oynaklığı artırır.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-17T18:00:00.000Z"
+          },
           {
             "type": "companyNews",
             "adjustment": 1,
             "confidence": 0.55,
-            "reason": "AMZN haber katalizoru: Amazon.com, Inc. (AMZN) Pursues Canadian Bond to Finance $200B AI Data Center Investment Spree",
+            "reason": "AMZN haber katalizoru: Forget SpaceX: 3 Stocks That Are Brilliant Buys Right Now",
             "source": "Yahoo",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "thesisStatus",
@@ -568,8 +702,8 @@
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -578,19 +712,51 @@
         "market": "us",
         "symbol": "META",
         "technicalScore": 54,
-        "totalAdjustment": 0,
-        "adjustedScore": 54,
-        "status": "neutral",
-        "confidence": 0.55,
+        "totalAdjustment": -4,
+        "adjustedScore": 50,
+        "status": "risk",
+        "confidence": 0.62,
         "components": [
+          {
+            "type": "macro",
+            "adjustment": -1,
+            "market": "us",
+            "confidence": 0.6,
+            "reason": "ABD makro metni baskilayici",
+            "source": "ai-report:commentary",
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
+          },
+          {
+            "type": "fedDecision",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -2,
+            "confidence": 0.78,
+            "source": "Federal Reserve June 2026 calendar; BLS CPI May 2026; Michigan Surveys of Consumers June 2026",
+            "reason": "17 Haziran Fed toplantısı öncesi ABD manşet TÜFE %4,2 ve 1 yıllık enflasyon beklentisi %4,6; erken güvercinleşme zemini zayıf.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "usRetailSales",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.61,
+            "source": "MarketWatch U.S. Economic Calendar June 17 2026",
+            "reason": "17 Haziran perakende satış beklentisi manşette +%0,5; veri Fed günüyle çakıştığı için beklenti hatası ABD büyüme hisselerinde oynaklığı artırır.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-17T18:00:00.000Z"
+          },
           {
             "type": "companyNews",
             "adjustment": 1,
             "confidence": 0.55,
-            "reason": "META haber katalizoru: Truist Reiterates “Buy” Rating On Meta Platforms (META) With $840 PT",
-            "source": "Yahoo",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "reason": "META haber katalizoru: Meta At 17x P/E: Investing Doesn't Get Any Easier",
+            "source": "SeekingAlpha",
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "thesisStatus",
@@ -598,8 +764,8 @@
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -608,19 +774,51 @@
         "market": "us",
         "symbol": "TSLA",
         "technicalScore": 56,
-        "totalAdjustment": -1,
-        "adjustedScore": 55,
-        "status": "watch",
-        "confidence": 0.55,
+        "totalAdjustment": -5,
+        "adjustedScore": 51,
+        "status": "risk",
+        "confidence": 0.64,
         "components": [
+          {
+            "type": "macro",
+            "adjustment": -1,
+            "market": "us",
+            "confidence": 0.6,
+            "reason": "ABD makro metni baskilayici",
+            "source": "ai-report:commentary",
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
+          },
+          {
+            "type": "fedDecision",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -2,
+            "confidence": 0.78,
+            "source": "Federal Reserve June 2026 calendar; BLS CPI May 2026; Michigan Surveys of Consumers June 2026",
+            "reason": "17 Haziran Fed toplantısı öncesi ABD manşet TÜFE %4,2 ve 1 yıllık enflasyon beklentisi %4,6; erken güvercinleşme zemini zayıf.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "usRetailSales",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.61,
+            "source": "MarketWatch U.S. Economic Calendar June 17 2026",
+            "reason": "17 Haziran perakende satış beklentisi manşette +%0,5; veri Fed günüyle çakıştığı için beklenti hatası ABD büyüme hisselerinde oynaklığı artırır.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-17T18:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -629,19 +827,62 @@
         "market": "us",
         "symbol": "AMD",
         "technicalScore": 69,
-        "totalAdjustment": -2,
-        "adjustedScore": 67,
-        "status": "watch",
-        "confidence": 0.56,
+        "totalAdjustment": -5,
+        "adjustedScore": 64,
+        "status": "risk",
+        "confidence": 0.63,
         "components": [
+          {
+            "type": "macro",
+            "adjustment": -1,
+            "market": "us",
+            "confidence": 0.6,
+            "reason": "ABD makro metni baskilayici",
+            "source": "ai-report:commentary",
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
+          },
+          {
+            "type": "fedDecision",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -2,
+            "confidence": 0.78,
+            "source": "Federal Reserve June 2026 calendar; BLS CPI May 2026; Michigan Surveys of Consumers June 2026",
+            "reason": "17 Haziran Fed toplantısı öncesi ABD manşet TÜFE %4,2 ve 1 yıllık enflasyon beklentisi %4,6; erken güvercinleşme zemini zayıf.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "usRetailSales",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.61,
+            "source": "MarketWatch U.S. Economic Calendar June 17 2026",
+            "reason": "17 Haziran perakende satış beklentisi manşette +%0,5; veri Fed günüyle çakıştığı için beklenti hatası ABD büyüme hisselerinde oynaklığı artırır.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-17T18:00:00.000Z"
+          },
+          {
+            "type": "aiCapexReadThrough",
+            "market": "us",
+            "symbol": "AMD",
+            "adjustment": 1,
+            "confidence": 0.68,
+            "source": "Oracle FY2026 Q4 results announcement June 10 2026",
+            "reason": "Bulut altyapı talebi güçlü kaldığı için AMD tarafında da ikinci sıra AI harcama desteği var; fakat Fed riski NVDA kadar net pozitif yazdırmıyor.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-19T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "scenarioSensitivity",
@@ -649,8 +890,8 @@
             "confidence": 0.56,
             "reason": "Senaryo hassasiyeti yuksek; sizing/stres testi gerekli",
             "source": "banking:scenario",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -659,19 +900,51 @@
         "market": "us",
         "symbol": "AVGO",
         "technicalScore": 45,
-        "totalAdjustment": -1,
-        "adjustedScore": 44,
-        "status": "watch",
-        "confidence": 0.55,
+        "totalAdjustment": -5,
+        "adjustedScore": 40,
+        "status": "risk",
+        "confidence": 0.64,
         "components": [
+          {
+            "type": "macro",
+            "adjustment": -1,
+            "market": "us",
+            "confidence": 0.6,
+            "reason": "ABD makro metni baskilayici",
+            "source": "ai-report:commentary",
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
+          },
+          {
+            "type": "fedDecision",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -2,
+            "confidence": 0.78,
+            "source": "Federal Reserve June 2026 calendar; BLS CPI May 2026; Michigan Surveys of Consumers June 2026",
+            "reason": "17 Haziran Fed toplantısı öncesi ABD manşet TÜFE %4,2 ve 1 yıllık enflasyon beklentisi %4,6; erken güvercinleşme zemini zayıf.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "usRetailSales",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.61,
+            "source": "MarketWatch U.S. Economic Calendar June 17 2026",
+            "reason": "17 Haziran perakende satış beklentisi manşette +%0,5; veri Fed günüyle çakıştığı için beklenti hatası ABD büyüme hisselerinde oynaklığı artırır.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-17T18:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -680,19 +953,51 @@
         "market": "us",
         "symbol": "NFLX",
         "technicalScore": 30,
-        "totalAdjustment": -1,
-        "adjustedScore": 29,
-        "status": "watch",
-        "confidence": 0.55,
+        "totalAdjustment": -5,
+        "adjustedScore": 25,
+        "status": "risk",
+        "confidence": 0.64,
         "components": [
+          {
+            "type": "macro",
+            "adjustment": -1,
+            "market": "us",
+            "confidence": 0.6,
+            "reason": "ABD makro metni baskilayici",
+            "source": "ai-report:commentary",
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
+          },
+          {
+            "type": "fedDecision",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -2,
+            "confidence": 0.78,
+            "source": "Federal Reserve June 2026 calendar; BLS CPI May 2026; Michigan Surveys of Consumers June 2026",
+            "reason": "17 Haziran Fed toplantısı öncesi ABD manşet TÜFE %4,2 ve 1 yıllık enflasyon beklentisi %4,6; erken güvercinleşme zemini zayıf.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "usRetailSales",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.61,
+            "source": "MarketWatch U.S. Economic Calendar June 17 2026",
+            "reason": "17 Haziran perakende satış beklentisi manşette +%0,5; veri Fed günüyle çakıştığı için beklenti hatası ABD büyüme hisselerinde oynaklığı artırır.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-17T18:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -701,19 +1006,51 @@
         "market": "us",
         "symbol": "PLTR",
         "technicalScore": 42,
-        "totalAdjustment": -1,
-        "adjustedScore": 41,
-        "status": "watch",
-        "confidence": 0.55,
+        "totalAdjustment": -5,
+        "adjustedScore": 37,
+        "status": "risk",
+        "confidence": 0.64,
         "components": [
+          {
+            "type": "macro",
+            "adjustment": -1,
+            "market": "us",
+            "confidence": 0.6,
+            "reason": "ABD makro metni baskilayici",
+            "source": "ai-report:commentary",
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
+          },
+          {
+            "type": "fedDecision",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -2,
+            "confidence": 0.78,
+            "source": "Federal Reserve June 2026 calendar; BLS CPI May 2026; Michigan Surveys of Consumers June 2026",
+            "reason": "17 Haziran Fed toplantısı öncesi ABD manşet TÜFE %4,2 ve 1 yıllık enflasyon beklentisi %4,6; erken güvercinleşme zemini zayıf.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "usRetailSales",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.61,
+            "source": "MarketWatch U.S. Economic Calendar June 17 2026",
+            "reason": "17 Haziran perakende satış beklentisi manşette +%0,5; veri Fed günüyle çakıştığı için beklenti hatası ABD büyüme hisselerinde oynaklığı artırır.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-17T18:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -722,19 +1059,62 @@
         "market": "us",
         "symbol": "COIN",
         "technicalScore": 46,
-        "totalAdjustment": -2,
-        "adjustedScore": 44,
-        "status": "watch",
-        "confidence": 0.56,
+        "totalAdjustment": -8,
+        "adjustedScore": 38,
+        "status": "risk",
+        "confidence": 0.64,
         "components": [
+          {
+            "type": "macro",
+            "adjustment": -1,
+            "market": "us",
+            "confidence": 0.6,
+            "reason": "ABD makro metni baskilayici",
+            "source": "ai-report:commentary",
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
+          },
+          {
+            "type": "fedDecision",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -2,
+            "confidence": 0.78,
+            "source": "Federal Reserve June 2026 calendar; BLS CPI May 2026; Michigan Surveys of Consumers June 2026",
+            "reason": "17 Haziran Fed toplantısı öncesi ABD manşet TÜFE %4,2 ve 1 yıllık enflasyon beklentisi %4,6; erken güvercinleşme zemini zayıf.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "usRetailSales",
+            "market": "us",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.61,
+            "source": "MarketWatch U.S. Economic Calendar June 17 2026",
+            "reason": "17 Haziran perakende satış beklentisi manşette +%0,5; veri Fed günüyle çakıştığı için beklenti hatası ABD büyüme hisselerinde oynaklığı artırır.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-17T18:00:00.000Z"
+          },
+          {
+            "type": "btcLiquidity",
+            "market": "us",
+            "symbol": "COIN",
+            "adjustment": -2,
+            "confidence": 0.76,
+            "source": "CoinDesk June 11 2026 ETF outflows report; CoinDesk June 10 2026 BTC ETF assets report",
+            "reason": "COIN, ETF akışı ve kripto işlem iştahına doğrudan bağlı; mevcut çıkış rejimi sürerken çarpan genişlemesi savunmasız.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "scenarioSensitivity",
@@ -742,8 +1122,8 @@
             "confidence": 0.56,
             "reason": "Senaryo hassasiyeti yuksek; sizing/stres testi gerekli",
             "source": "banking:scenario",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -752,19 +1132,41 @@
         "market": "bist",
         "symbol": "THYAO",
         "technicalScore": 93,
-        "totalAdjustment": -4,
-        "adjustedScore": 89,
+        "totalAdjustment": -6,
+        "adjustedScore": 87,
         "status": "risk",
-        "confidence": 0.6,
+        "confidence": 0.62,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "oilSensitivity",
+            "market": "bist",
+            "symbol": "THYAO",
+            "adjustment": -1,
+            "confidence": 0.57,
+            "source": "BLS CPI May 2026 energy table",
+            "reason": "ABD enerji enflasyonu yıllık %23,5 ve jet-fuel benzeri maliyet baskısı hâlâ önemli; THYAO'nun çok güçlü teknik skoruna rağmen makro maliyet marjı tamamen rahat değil.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -772,8 +1174,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "compsValuationGap",
@@ -781,8 +1183,8 @@
             "confidence": 0.62,
             "reason": "Yuksek teknik puana ragmen comps degerleme carpani yok",
             "source": "banking:comps",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "scenarioSensitivity",
@@ -790,8 +1192,8 @@
             "confidence": 0.56,
             "reason": "Senaryo hassasiyeti yuksek; sizing/stres testi gerekli",
             "source": "banking:scenario",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -800,19 +1202,30 @@
         "market": "bist",
         "symbol": "ASELS",
         "technicalScore": 46,
-        "totalAdjustment": -2,
-        "adjustedScore": 44,
+        "totalAdjustment": -3,
+        "adjustedScore": 43,
         "status": "watch",
-        "confidence": 0.61,
+        "confidence": 0.65,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -820,8 +1233,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -830,19 +1243,30 @@
         "market": "bist",
         "symbol": "KCHOL",
         "technicalScore": 45,
-        "totalAdjustment": -2,
-        "adjustedScore": 43,
+        "totalAdjustment": -3,
+        "adjustedScore": 42,
         "status": "watch",
-        "confidence": 0.61,
+        "confidence": 0.65,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -850,8 +1274,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -860,19 +1284,41 @@
         "market": "bist",
         "symbol": "GARAN",
         "technicalScore": 76,
-        "totalAdjustment": -4,
-        "adjustedScore": 72,
-        "status": "risk",
-        "confidence": 0.6,
+        "totalAdjustment": -3,
+        "adjustedScore": 73,
+        "status": "watch",
+        "confidence": 0.64,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "tcmbCarry",
+            "market": "bist",
+            "symbol": "GARAN",
+            "adjustment": 2,
+            "confidence": 0.71,
+            "source": "TCMB Press Release on Interest Rates June 11 2026; Anadolu Agency BIST close June 12 2026",
+            "reason": "TCMB'nin %37'yi koruyup sıkılığı sürdürmesi ve BIST'te güçlü kapanış, GARAN üzerindeki kısa vadeli momentum baskısını destekliyor.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -880,8 +1326,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "compsValuationGap",
@@ -889,8 +1335,8 @@
             "confidence": 0.62,
             "reason": "Yuksek teknik puana ragmen comps degerleme carpani yok",
             "source": "banking:comps",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "scenarioSensitivity",
@@ -898,8 +1344,8 @@
             "confidence": 0.56,
             "reason": "Senaryo hassasiyeti yuksek; sizing/stres testi gerekli",
             "source": "banking:scenario",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -908,19 +1354,41 @@
         "market": "bist",
         "symbol": "AKBNK",
         "technicalScore": 90,
-        "totalAdjustment": -4,
-        "adjustedScore": 86,
-        "status": "risk",
-        "confidence": 0.6,
+        "totalAdjustment": -3,
+        "adjustedScore": 87,
+        "status": "watch",
+        "confidence": 0.64,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "tcmbCarry",
+            "market": "bist",
+            "symbol": "AKBNK",
+            "adjustment": 2,
+            "confidence": 0.71,
+            "source": "TCMB Press Release on Interest Rates June 11 2026; Anadolu Agency BIST close June 12 2026",
+            "reason": "Sıkı politika tonu korunurken banka momentumunun teknikle aynı yöne bakması AKBNK için kısa vadeli destek.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -928,8 +1396,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "compsValuationGap",
@@ -937,8 +1405,8 @@
             "confidence": 0.62,
             "reason": "Yuksek teknik puana ragmen comps degerleme carpani yok",
             "source": "banking:comps",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "scenarioSensitivity",
@@ -946,8 +1414,8 @@
             "confidence": 0.56,
             "reason": "Senaryo hassasiyeti yuksek; sizing/stres testi gerekli",
             "source": "banking:scenario",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -956,19 +1424,41 @@
         "market": "bist",
         "symbol": "ISCTR",
         "technicalScore": 84,
-        "totalAdjustment": -4,
-        "adjustedScore": 80,
-        "status": "risk",
-        "confidence": 0.6,
+        "totalAdjustment": -3,
+        "adjustedScore": 81,
+        "status": "watch",
+        "confidence": 0.64,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "tcmbCarry",
+            "market": "bist",
+            "symbol": "ISCTR",
+            "adjustment": 2,
+            "confidence": 0.7,
+            "source": "TCMB Press Release on Interest Rates June 11 2026; Anadolu Agency BIST close June 12 2026",
+            "reason": "Politika faizinin korunması ve yukarı risk vurgusu, ISCTR için kısa vadede net negatif değil; teknik momentumla birlikte çalışıyor.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -976,8 +1466,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "compsValuationGap",
@@ -985,8 +1475,8 @@
             "confidence": 0.62,
             "reason": "Yuksek teknik puana ragmen comps degerleme carpani yok",
             "source": "banking:comps",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "scenarioSensitivity",
@@ -994,8 +1484,8 @@
             "confidence": 0.56,
             "reason": "Senaryo hassasiyeti yuksek; sizing/stres testi gerekli",
             "source": "banking:scenario",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -1004,19 +1494,30 @@
         "market": "bist",
         "symbol": "BIMAS",
         "technicalScore": 63,
-        "totalAdjustment": -3,
-        "adjustedScore": 60,
-        "status": "watch",
-        "confidence": 0.62,
+        "totalAdjustment": -4,
+        "adjustedScore": 59,
+        "status": "risk",
+        "confidence": 0.64,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -1024,8 +1525,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "compsValuationGap",
@@ -1033,8 +1534,8 @@
             "confidence": 0.62,
             "reason": "Yuksek teknik puana ragmen comps degerleme carpani yok",
             "source": "banking:comps",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -1043,19 +1544,30 @@
         "market": "bist",
         "symbol": "FROTO",
         "technicalScore": 53,
-        "totalAdjustment": -2,
-        "adjustedScore": 51,
+        "totalAdjustment": -3,
+        "adjustedScore": 50,
         "status": "watch",
-        "confidence": 0.61,
+        "confidence": 0.65,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -1063,8 +1575,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -1073,19 +1585,30 @@
         "market": "bist",
         "symbol": "TUPRS",
         "technicalScore": 52,
-        "totalAdjustment": -2,
-        "adjustedScore": 50,
+        "totalAdjustment": -3,
+        "adjustedScore": 49,
         "status": "watch",
-        "confidence": 0.61,
+        "confidence": 0.65,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -1093,8 +1616,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -1103,19 +1626,30 @@
         "market": "bist",
         "symbol": "SAHOL",
         "technicalScore": 88,
-        "totalAdjustment": -4,
-        "adjustedScore": 84,
+        "totalAdjustment": -5,
+        "adjustedScore": 83,
         "status": "risk",
-        "confidence": 0.6,
+        "confidence": 0.63,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -1123,8 +1657,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "compsValuationGap",
@@ -1132,8 +1666,8 @@
             "confidence": 0.62,
             "reason": "Yuksek teknik puana ragmen comps degerleme carpani yok",
             "source": "banking:comps",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "scenarioSensitivity",
@@ -1141,8 +1675,8 @@
             "confidence": 0.56,
             "reason": "Senaryo hassasiyeti yuksek; sizing/stres testi gerekli",
             "source": "banking:scenario",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -1151,19 +1685,30 @@
         "market": "bist",
         "symbol": "TCELL",
         "technicalScore": 75,
-        "totalAdjustment": -4,
-        "adjustedScore": 71,
+        "totalAdjustment": -5,
+        "adjustedScore": 70,
         "status": "risk",
-        "confidence": 0.6,
+        "confidence": 0.63,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -1171,8 +1716,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "compsValuationGap",
@@ -1180,8 +1725,8 @@
             "confidence": 0.62,
             "reason": "Yuksek teknik puana ragmen comps degerleme carpani yok",
             "source": "banking:comps",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "scenarioSensitivity",
@@ -1189,8 +1734,8 @@
             "confidence": 0.56,
             "reason": "Senaryo hassasiyeti yuksek; sizing/stres testi gerekli",
             "source": "banking:scenario",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -1199,19 +1744,30 @@
         "market": "bist",
         "symbol": "EREGL",
         "technicalScore": 72,
-        "totalAdjustment": -4,
-        "adjustedScore": 68,
+        "totalAdjustment": -5,
+        "adjustedScore": 67,
         "status": "risk",
-        "confidence": 0.6,
+        "confidence": 0.63,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -1219,8 +1775,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "compsValuationGap",
@@ -1228,8 +1784,8 @@
             "confidence": 0.62,
             "reason": "Yuksek teknik puana ragmen comps degerleme carpani yok",
             "source": "banking:comps",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "scenarioSensitivity",
@@ -1237,8 +1793,8 @@
             "confidence": 0.56,
             "reason": "Senaryo hassasiyeti yuksek; sizing/stres testi gerekli",
             "source": "banking:scenario",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -1247,19 +1803,30 @@
         "market": "bist",
         "symbol": "SISE",
         "technicalScore": 55,
-        "totalAdjustment": -2,
-        "adjustedScore": 53,
+        "totalAdjustment": -3,
+        "adjustedScore": 52,
         "status": "watch",
-        "confidence": 0.61,
+        "confidence": 0.65,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -1267,8 +1834,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -1277,19 +1844,41 @@
         "market": "bist",
         "symbol": "YKBNK",
         "technicalScore": 93,
-        "totalAdjustment": -4,
-        "adjustedScore": 89,
-        "status": "risk",
-        "confidence": 0.6,
+        "totalAdjustment": -3,
+        "adjustedScore": 90,
+        "status": "watch",
+        "confidence": 0.64,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
+          {
+            "type": "tcmbCarry",
+            "market": "bist",
+            "symbol": "YKBNK",
+            "adjustment": 2,
+            "confidence": 0.7,
+            "source": "TCMB Press Release on Interest Rates June 11 2026; Anadolu Agency BIST close June 12 2026",
+            "reason": "YKBNK zaten teknik liderlerden biri; TCMB sonrası sıkı duruşun korunması bu momentumu kısa vadede teyit ediyor.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -1297,8 +1886,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "compsValuationGap",
@@ -1306,8 +1895,8 @@
             "confidence": 0.62,
             "reason": "Yuksek teknik puana ragmen comps degerleme carpani yok",
             "source": "banking:comps",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "scenarioSensitivity",
@@ -1315,8 +1904,8 @@
             "confidence": 0.56,
             "reason": "Senaryo hassasiyeti yuksek; sizing/stres testi gerekli",
             "source": "banking:scenario",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -1325,19 +1914,30 @@
         "market": "bist",
         "symbol": "ENKAI",
         "technicalScore": 40,
-        "totalAdjustment": -2,
-        "adjustedScore": 38,
+        "totalAdjustment": -3,
+        "adjustedScore": 37,
         "status": "watch",
-        "confidence": 0.61,
+        "confidence": 0.65,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -1345,8 +1945,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -1355,19 +1955,30 @@
         "market": "bist",
         "symbol": "TTKOM",
         "technicalScore": 81,
-        "totalAdjustment": -4,
-        "adjustedScore": 77,
+        "totalAdjustment": -5,
+        "adjustedScore": 76,
         "status": "risk",
-        "confidence": 0.6,
+        "confidence": 0.63,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -1375,8 +1986,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "compsValuationGap",
@@ -1384,8 +1995,8 @@
             "confidence": 0.62,
             "reason": "Yuksek teknik puana ragmen comps degerleme carpani yok",
             "source": "banking:comps",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "scenarioSensitivity",
@@ -1393,8 +2004,8 @@
             "confidence": 0.56,
             "reason": "Senaryo hassasiyeti yuksek; sizing/stres testi gerekli",
             "source": "banking:scenario",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -1403,19 +2014,30 @@
         "market": "bist",
         "symbol": "PGSUS",
         "technicalScore": 62,
-        "totalAdjustment": -3,
-        "adjustedScore": 59,
-        "status": "watch",
-        "confidence": 0.62,
+        "totalAdjustment": -4,
+        "adjustedScore": 58,
+        "status": "risk",
+        "confidence": 0.64,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -1423,8 +2045,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "compsValuationGap",
@@ -1432,8 +2054,8 @@
             "confidence": 0.62,
             "reason": "Yuksek teknik puana ragmen comps degerleme carpani yok",
             "source": "banking:comps",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -1442,19 +2064,30 @@
         "market": "bist",
         "symbol": "ASTOR",
         "technicalScore": 29,
-        "totalAdjustment": -3,
-        "adjustedScore": 26,
-        "status": "watch",
-        "confidence": 0.6,
+        "totalAdjustment": -4,
+        "adjustedScore": 25,
+        "status": "risk",
+        "confidence": 0.63,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -1462,8 +2095,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "scenarioSensitivity",
@@ -1471,8 +2104,8 @@
             "confidence": 0.56,
             "reason": "Senaryo hassasiyeti yuksek; sizing/stres testi gerekli",
             "source": "banking:scenario",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -1481,19 +2114,30 @@
         "market": "bist",
         "symbol": "TOASO",
         "technicalScore": 65,
-        "totalAdjustment": -3,
-        "adjustedScore": 62,
-        "status": "watch",
-        "confidence": 0.62,
+        "totalAdjustment": -4,
+        "adjustedScore": 61,
+        "status": "risk",
+        "confidence": 0.64,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -1501,8 +2145,8 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "compsValuationGap",
@@ -1510,8 +2154,8 @@
             "confidence": 0.62,
             "reason": "Yuksek teknik puana ragmen comps degerleme carpani yok",
             "source": "banking:comps",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
@@ -1520,19 +2164,30 @@
         "market": "bist",
         "symbol": "SASA",
         "technicalScore": 29,
-        "totalAdjustment": -2,
-        "adjustedScore": 27,
+        "totalAdjustment": -3,
+        "adjustedScore": 26,
         "status": "watch",
-        "confidence": 0.61,
+        "confidence": 0.65,
         "components": [
+          {
+            "type": "tlPressure",
+            "market": "bist",
+            "symbol": null,
+            "adjustment": -1,
+            "confidence": 0.72,
+            "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+            "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan.",
+            "asOf": "2026-06-14T10:12:27.681Z",
+            "expiresAt": "2026-06-18T21:00:00.000Z"
+          },
           {
             "type": "thesisStatus",
             "adjustment": -1,
             "confidence": 0.55,
             "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
             "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           },
           {
             "type": "tearsheetCompleteness",
@@ -1540,268 +2195,16 @@
             "confidence": 0.68,
             "reason": "Tearsheet temel veri eksigi tasiyor",
             "source": "banking:tearsheet",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
-          }
-        ],
-        "expiredComponents": []
-      },
-      "crypto:BTC": {
-        "market": "crypto",
-        "symbol": "BTC",
-        "technicalScore": 24,
-        "totalAdjustment": -1,
-        "adjustedScore": 23,
-        "status": "watch",
-        "confidence": 0.55,
-        "components": [
-          {
-            "type": "thesisStatus",
-            "adjustment": -1,
-            "confidence": 0.55,
-            "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
-            "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
-          }
-        ],
-        "expiredComponents": []
-      },
-      "crypto:ETH": {
-        "market": "crypto",
-        "symbol": "ETH",
-        "technicalScore": 20,
-        "totalAdjustment": -1,
-        "adjustedScore": 19,
-        "status": "watch",
-        "confidence": 0.55,
-        "components": [
-          {
-            "type": "thesisStatus",
-            "adjustment": -1,
-            "confidence": 0.55,
-            "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
-            "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
-          }
-        ],
-        "expiredComponents": []
-      },
-      "crypto:SOL": {
-        "market": "crypto",
-        "symbol": "SOL",
-        "technicalScore": 22,
-        "totalAdjustment": -1,
-        "adjustedScore": 21,
-        "status": "watch",
-        "confidence": 0.55,
-        "components": [
-          {
-            "type": "thesisStatus",
-            "adjustment": -1,
-            "confidence": 0.55,
-            "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
-            "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
-          }
-        ],
-        "expiredComponents": []
-      },
-      "crypto:BNB": {
-        "market": "crypto",
-        "symbol": "BNB",
-        "technicalScore": 41,
-        "totalAdjustment": -1,
-        "adjustedScore": 40,
-        "status": "watch",
-        "confidence": 0.55,
-        "components": [
-          {
-            "type": "thesisStatus",
-            "adjustment": -1,
-            "confidence": 0.55,
-            "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
-            "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
-          }
-        ],
-        "expiredComponents": []
-      },
-      "crypto:XRP": {
-        "market": "crypto",
-        "symbol": "XRP",
-        "technicalScore": 20,
-        "totalAdjustment": -1,
-        "adjustedScore": 19,
-        "status": "watch",
-        "confidence": 0.55,
-        "components": [
-          {
-            "type": "thesisStatus",
-            "adjustment": -1,
-            "confidence": 0.55,
-            "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
-            "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
-          }
-        ],
-        "expiredComponents": []
-      },
-      "crypto:ADA": {
-        "market": "crypto",
-        "symbol": "ADA",
-        "technicalScore": 22,
-        "totalAdjustment": -1,
-        "adjustedScore": 21,
-        "status": "watch",
-        "confidence": 0.55,
-        "components": [
-          {
-            "type": "thesisStatus",
-            "adjustment": -1,
-            "confidence": 0.55,
-            "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
-            "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
-          }
-        ],
-        "expiredComponents": []
-      },
-      "crypto:AVAX": {
-        "market": "crypto",
-        "symbol": "AVAX",
-        "technicalScore": 19,
-        "totalAdjustment": -1,
-        "adjustedScore": 18,
-        "status": "watch",
-        "confidence": 0.55,
-        "components": [
-          {
-            "type": "thesisStatus",
-            "adjustment": -1,
-            "confidence": 0.55,
-            "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
-            "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
-          }
-        ],
-        "expiredComponents": []
-      },
-      "crypto:DOGE": {
-        "market": "crypto",
-        "symbol": "DOGE",
-        "technicalScore": 22,
-        "totalAdjustment": -1,
-        "adjustedScore": 21,
-        "status": "watch",
-        "confidence": 0.55,
-        "components": [
-          {
-            "type": "thesisStatus",
-            "adjustment": -1,
-            "confidence": 0.55,
-            "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
-            "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
-          }
-        ],
-        "expiredComponents": []
-      },
-      "crypto:LINK": {
-        "market": "crypto",
-        "symbol": "LINK",
-        "technicalScore": 24,
-        "totalAdjustment": -1,
-        "adjustedScore": 23,
-        "status": "watch",
-        "confidence": 0.55,
-        "components": [
-          {
-            "type": "thesisStatus",
-            "adjustment": -1,
-            "confidence": 0.55,
-            "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
-            "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
-          }
-        ],
-        "expiredComponents": []
-      },
-      "crypto:DOT": {
-        "market": "crypto",
-        "symbol": "DOT",
-        "technicalScore": 22,
-        "totalAdjustment": -1,
-        "adjustedScore": 21,
-        "status": "watch",
-        "confidence": 0.55,
-        "components": [
-          {
-            "type": "thesisStatus",
-            "adjustment": -1,
-            "confidence": 0.55,
-            "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
-            "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
-          }
-        ],
-        "expiredComponents": []
-      },
-      "crypto:TRX": {
-        "market": "crypto",
-        "symbol": "TRX",
-        "technicalScore": 31,
-        "totalAdjustment": -1,
-        "adjustedScore": 30,
-        "status": "watch",
-        "confidence": 0.55,
-        "components": [
-          {
-            "type": "thesisStatus",
-            "adjustment": -1,
-            "confidence": 0.55,
-            "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
-            "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
-          }
-        ],
-        "expiredComponents": []
-      },
-      "crypto:SUI": {
-        "market": "crypto",
-        "symbol": "SUI",
-        "technicalScore": 21,
-        "totalAdjustment": -1,
-        "adjustedScore": 20,
-        "status": "watch",
-        "confidence": 0.55,
-        "components": [
-          {
-            "type": "thesisStatus",
-            "adjustment": -1,
-            "confidence": 0.55,
-            "reason": "Tez status eksik; pozisyon aksiyonu zayif kanitli",
-            "source": "journal:notes",
-            "asOf": "2026-06-13T20:07:33.887Z",
-            "expiresAt": "2026-06-15T08:07:33.887Z"
+            "asOf": "2026-06-14T10:18:12.271Z",
+            "expiresAt": "2026-06-15T22:18:12.271Z"
           }
         ],
         "expiredComponents": []
       }
     },
     "summary": {
-      "boosted": 1,
-      "reduced": 38,
+      "boosted": 0,
+      "reduced": 32,
       "highPressure": 6,
       "stale": 1
     }

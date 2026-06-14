@@ -5,8 +5,13 @@
     "title": "Manşet enflasyon ile çekirdek enflasyon farkı"
   },
   {
+    "body": "Panelde bugün 8 coin'in tamamı RSI 30 altında ve mean-reversion mantığı 'alım bölgesi' der. Ama bu kural YATAY piyasada çalışır; düşüş TRENDİNDE (BTC zirveden -%51, ETF'lerden 10 günde 3 milyar $ çıkış) aşırı satım haftalarca aşırı satım kalabilir — buna 'düşen bıçağı yakalamak' denir. Doğru yaklaşım: göstergenin değil, teyidin peşinden git — fiyatın kritik desteğin (60k) üstünde günlük kapanış yapması, hacmin satış tarafında kuruması ve bir makro katalizör (bugün soft TÜFE gibi). Üçü birleşmeden RSI 20 'fırsat' değil, sadece istatistiktir.",
     "date": "2026-06-10",
-    "title": "Aşırı satım her zaman 'ucuz' demek değildir — düşen bıçak ve rejim farkı",
-    "body": "Panelde bugün 8 coin'in tamamı RSI 30 altında ve mean-reversion mantığı 'alım bölgesi' der. Ama bu kural YATAY piyasada çalışır; düşüş TRENDİNDE (BTC zirveden -%51, ETF'lerden 10 günde 3 milyar $ çıkış) aşırı satım haftalarca aşırı satım kalabilir — buna 'düşen bıçağı yakalamak' denir. Doğru yaklaşım: göstergenin değil, teyidin peşinden git — fiyatın kritik desteğin (60k) üstünde günlük kapanış yapması, hacmin satış tarafında kuruması ve bir makro katalizör (bugün soft TÜFE gibi). Üçü birleşmeden RSI 20 'fırsat' değil, sadece istatistiktir."
+    "title": "Aşırı satım her zaman 'ucuz' demek değildir — düşen bıçak ve rejim farkı"
+  },
+  {
+    "date": "2026-06-14",
+    "title": "Nominal güç ile reel güç aynı şey değildir",
+    "body": "Perakende satışlar veya ciro verileri güçlü göründüğünde çoğu kişi otomatik olarak talebin güçlü olduğunu sanıyor. Bu tembel bir okuma. 10 Haziran 2026 TÜFE verisinde enerji yıllık %23,5 arttı; böyle bir ortamda satışların artması, satılan miktarın değil fiyat etiketinin şişmesi de olabilir. CFO disiplini şunu sorar: hacim mi büyüdü, fiyat mı yükseldi, marj bunu taşıyor mu?"
   }
 ]

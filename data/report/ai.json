@@ -1,94 +1,281 @@
 {
-  "generatedAt": "2026-06-10T07:05:00.000Z",
-  "macroSummary": "Risk iştahı kırılgan-temkinli: İran-İsrail'in saldırıları karşılıklı durdurması petrolü 90$ altına çekti ve enerji şokunu yumuşattı, ancak bu rahatlama Mayıs verilerine henüz yansımadı — bugün 15:30'da açıklanacak ABD TÜFE'sinin manşette %4,2'ye yükselmesi bekleniyor. Vadeli piyasalar yıl sonuna kadar en az bir Fed faiz ARTIRIMI fiyatlıyor; 16-17 Haziran'da Kevin Warsh'ın başkan olarak ilk FOMC toplantısı var ve bugünkü TÜFE o toplantının tonunu belirleyecek. Yarın ECB (%91 ihtimalle 25bp artırım) + TCMB (%37'de sabit beklentisi) + ABD ÜFE üçlüsüyle haftanın en yoğun 48 saatine giriyoruz. Kripto tarafında yapısal satış sürüyor: BTC hafta sonu 2024'ten bu yana ilk kez 60.000$ altını gördü.",
+  "date": "2026-06-14",
+  "generatedAt": "2026-06-14T10:12:27.681Z",
+  "macroSummary": "Küresel risk iştahı toparlanmış değil; sadece panikten temkinli dengeye geçti. ABD'de 10 Haziran 2026 tarihli Mayıs TÜFE verisi manşette yıllık %4,2'ye çıktı, 12 Haziran 2026 tarihli Michigan öncü anketi tüketici güvenini 49,8'de ve 1 yıllık enflasyon beklentisini %4,6'da bıraktı; yani Fed'in 17 Haziran 2026 toplantısında rahatlama bahanesi yok. Türkiye tarafında TCMB 11 Haziran 2026'da politika faizini %37'de sabit tutup sıkılığı korudu, ama aynı hafta USD/TRY 12 Haziran 2026'da 46,2606 ile yeni zirve gördü; BIST'teki güç para birimi riskini sıfırlamıyor. Kriptoda asıl hikaye fiyat değil fonlama: spot BTC ETF'lerinden Mayıs ortasından beri yaklaşık 5,75 milyar dolar çıkış var ve bu, tepki rallilerini zayıf bırakıyor.",
   "worldNews": [
-    {"title": "İran ve İsrail karşılıklı saldırıları durdurdu; WTI petrol 95$'dan 90$ altına geriledi — enerji şoku yumuşuyor", "impact": "olumlu"},
-    {"title": "Bitcoin hafta sonu 60.000$ altını test etti; spot ETF'lerden 10 günde ~3 milyar $ çıkış, Strategy ilk kez BTC sattı", "impact": "olumsuz"},
-    {"title": "Çip sektörü 5 Haziran çöküşünün ardından toparlandı: Google'dan Intel'e 3 milyon AI çip siparişi, SOX endeksi +%5,6", "impact": "olumlu"},
-    {"title": "ECB yarın %91 ihtimalle 25bp artırıma gidiyor; euro bölgesi enflasyonu %3'e yükseldi, Lagarde tahmin revizyonu sinyali verdi", "impact": "olumsuz"},
-    {"title": "Türkiye'de yıl sonu enflasyon beklentisi %29'a yükseldi; ekonomistlerin büyük çoğunluğu TCMB'den sabit faiz bekliyor", "impact": "nötr"}
+    {
+      "title": "ABD Mayıs TÜFE'si 10 Haziran 2026'da yıllık %4,2'ye yükseldi; enerji kalemi dezenflasyon hikayesini bozuyor.",
+      "impact": "olumsuz"
+    },
+    {
+      "title": "12 Haziran 2026 Michigan öncü verisinde tüketici güveni 49,8'e indi, 1 yıllık enflasyon beklentisi ise hâlâ %4,6; büyüme zayıflarken fiyat baskısı bitmiyor.",
+      "impact": "olumsuz"
+    },
+    {
+      "title": "Fed'in 16-17 Haziran 2026 toplantısı ve 17 Haziran basın toplantısı haftanın ana fiyatlayıcısı; piyasa temel senaryosu faizin 3,50-%3,75 bandında sabit kalması.",
+      "impact": "nötr"
+    },
+    {
+      "title": "TCMB 11 Haziran 2026'da politika faizini %37'de tuttu ve enflasyon yukarı risklerine dikkat çekti; bu bankalar için kısa vadede destekleyici, TL için ise tek başına yeterli değil.",
+      "impact": "nötr"
+    },
+    {
+      "title": "Oracle 10 Haziran 2026 sonuçlarında bulut gelirlerini yıllık %39 büyüttü; AI altyapı talebi hâlâ sert ve bu çip/hiperscaler zincirini canlı tutuyor.",
+      "impact": "olumlu"
+    }
   ],
   "commentary": {
-    "us": "Panel duyarlılığı temkinli (43/100); çip toparlanması (Intel +11%, Micron +10%) henüz tek günlük ve bugünkü TÜFE'ye rehin. AMD 65 puanla AL bölgesinde ama 52H bandının %88'inde ve MACD negatif — tepe riski nedeniyle TÜFE öncesi yeni giriş için uygun zemin değil.",
-    "bist": "Listenin en güçlü cephesi: TTKOM (72, %216 hacim patlaması) lider, dört büyük banka (YKBNK 71, GARAN, AKBNK, ISCTR) momentum sinyali veriyor. Ancak yarın 14:00 TCMB kararı öncesi pozisyon büyütmek erken; sabit faiz + şahin metin senaryosu bankalar için nötr-pozitif.",
-    "crypto": "Takipteki 8 coin'in tamamı aşırı satımda (BTC RSI 23,7 · AVAX 19,3) — istatistiksel tepki potansiyeli yüksek ama ETF çıkışları ve balina satışı sürerken bu bir 'düşen bıçak'. BTC 60.000$ üstünde tutunma + bugünkü TÜFE'nin beklenti altı gelmesi birleşirse tepki rallisi tetiklenebilir; aksi halde 50.000$ senaryoları konuşulur."
+    "us": "Teknik tablo ABD'de zayıf: panel ortalaması 49 ve açık risk, 17 Haziran 2026 Fed toplantısına kadar makro tarafın gölgesinde kalıyor. AMD 69 puanla listenin en temiz ABD ismi, ama 10 Haziran TÜFE sonrası enflasyon/Fed fiyatlaması sertleştiği için teyitsiz momentum kovalamak gereksiz risk.",
+    "bist": "BIST tarafı panelin güçlü ayağı; ortalama 65 ve en iyi altı fırsatın tamamı BIST hisselerinden geliyor. Ama burada rehavet yapılmaz: 12 Haziran 2026 kapanışında BIST 100 13.938,48 ile güçlü dursa da USD/TRY aynı hafta 46,2606'yı gördü; yani bankacılık momentumu var, para birimi kırılganlığı da masada.",
+    "crypto": "Repo verisi kriptoyu teknik olarak değerlendirmeye yetmiyor çünkü bugünkü fetch CoinGecko tarafında tamamen düştü; bu yüzden dış veriyle konuşmak zorundayız. Dış veri kötü: ETF çıkışları sürüyor, BTC için ana mesele fiyat seviyesi değil talep ve fonlama akışının zayıf kalması."
   },
   "weeklyOutlook": {
-    "cfoSummary": "Haftanın ana riski bugün-yarın penceresinde sıkışmış durumda: bugün ABD TÜFE, yarın ECB + TCMB + ABD ÜFE üçlüsü. Çarşamba 15:30 - Perşembe 15:30 arası yılın en oynak 24 saatlerinden biri olmaya aday. Pozisyon duruşu: nakit payı yüksek, yeni giriş TÜFE sonrası teyide şartlanmış, mevcut pozisyonlarda ATR bazlı stop disiplini. Aşırı satım kripto tepkisi cazip görünse de katalizör (soft TÜFE) gelmeden alım disiplinsizliktir.",
+    "cfoSummary": "Bu haftanın ana riski tek başına Fed değil; Fed öncesi gelen veri akışı ile Fed'in aynı yöne bakıp bakmayacağı. 17 Haziran 2026 Çarşamba günü perakende satışlar ve Fed aynı gün fiyatlanacağı için özellikle ABD büyüme/iskonto oranı hassas hisselerde ikili kırılma riski var. Türkiye tarafında yeni faiz kararı geride kaldı ama 18 Haziran 2026'ya kadar gelecek PPK özeti, sıkılığın dili konusunda banka rallisinin kalıcılığını test edecek. Pozisyon duruşu net: BIST momentumunu körlemesine büyütme, ABD'de makro teyit gelmeden yeni beta alma, kriptoda ise veri beslemesi toparlanmadan sinyal varmış gibi davranma.",
     "events": [
       {
-        "event": "ABD TÜFE (Mayıs)",
-        "date": "2026-06-10",
-        "importance": "high",
-        "consensus": "Manşet +%0,5 aylık / %4,2 yıllık (önceki %3,8); çekirdek +%0,3 aylık / %2,9 yıllık (önceki %2,8)",
-        "myCall": "Manşet %4,2-4,4 (Mayıs'ta enerji şoku zirvedeydi, ateşkes etkisi bu veride YOK); çekirdek %2,9 civarı — makas açık kalır",
-        "reasoning": "MUFG ve FactSet konsensüsü %4,2 YoY'de hizalı; Cleveland Fed nowcast'i de benzer. Nisan'daki %3,8 şokunun ana sürücüsü enerjiydi ve Mayıs'ta petrol 95$'a kadar çıktı. Çekirdeğin %2,9'da görece sakin kalması 'geçici şok' tezini destekler.",
-        "ifLower": "Beklentiden düşük (manşet ≤%4,0 / aylık ≤%0,3): Nasdaq'ta rahatlama rallisi, tahvil faizleri geriler, aşırı satımdaki kripto sert tepki verir (BTC 64-66k bandı), Fed artırım fiyatlaması çözülür — panel listesinde AMD ve coinler en hızlı kazananlar olur",
-        "ifHigher": "Beklentiden yüksek (manşet ≥%4,4 / aylık ≥%0,6): S&P 7.300 altı test, çipte ikinci satış dalgası, BTC 60k desteği kırılır (50k senaryoları), Warsh'ın ilk toplantısına artırım baskısıyla girilir",
-        "affected": ["AMD", "NVDA", "AAPL", "BTC", "ETH", "SOL"]
-      },
-      {
-        "event": "ECB Faiz Kararı + Lagarde Basın Toplantısı",
-        "date": "2026-06-11",
-        "importance": "high",
-        "consensus": "Piyasa %91 ihtimalle 25bp artırım fiyatlıyor → depo faizi %2,25; Eylül'de ikinci artırıma %50 ihtimal",
-        "myCall": "25bp artırım + 'bundan sonrası veri bağımlı' dengeli ton — ateşkes sonrası agresif şahinlikten kaçınır",
-        "reasoning": "Euro bölgesi enflasyonu İran savaşı kaynaklı enerji fiyatlarıyla %3'e çıktı; 'Büyük Dörtlü' ülke verileri inatçı yüksek. Lagarde Mart'taki %2,6 tahmininin yukarı revize edileceğini açıkça söyledi. Ateşkes haberi son anda tonu yumuşatabilir ama kararı değiştirmez.",
-        "ifLower": "Sabit bırakırsa (sürpriz): EUR zayıflar, küresel risk iştahı kısa vadede artar, 'merkez bankaları enflasyona rağmen duruyor' algısı hisseleri destekler",
-        "ifHigher": "Artırım + Eylül'e net sinyal: küresel sıkılaşma teması güçlenir, büyüme/teknoloji hisseleri ve kripto baskılanır, dolar endeksi üzerinden TL'ye dolaylı baskı",
-        "affected": ["AMD", "AAPL", "BTC", "GARAN"]
-      },
-      {
-        "event": "TCMB PPK Faiz Kararı (14:00 TR)",
-        "date": "2026-06-11",
-        "importance": "high",
-        "consensus": "33 ekonomistin 27'si %37'de sabit; 6'sı +300bp ile %40 bekliyor. Yıl sonu TÜFE beklentisi %29'a yükseldi",
-        "myCall": "Sabit %37 + şahin metin (indirim sinyalinin tamamen silinmesi); +300bp ihtimali düşük ama sıfır değil",
-        "reasoning": "Anket konsensüsü net (27/33 sabit), ancak yıl sonu enflasyon beklentisinin %29'a tırmanması TCMB'yi en azından sözel sıkılaştırmaya zorlar. Küresel tarafta ECB artırımı ve Fed artırım fiyatlaması TCMB'ye 'bekle-gör' alanı bırakıyor.",
-        "ifLower": "Sürpriz indirim: TL'de sert değer kaybı, BIST'te kur şoku satışı — bankalar dahil tüm liste negatif etkilenir",
-        "ifHigher": "+300bp artırım: TL güçlenir, kısa vadede bankacılık marj endişesi yaratsa da yabancı girişi beklentisiyle GARAN/AKBNK/ISCTR orta vadede pozitif ayrışır",
-        "affected": ["GARAN", "AKBNK", "ISCTR", "YKBNK", "TTKOM"]
-      },
-      {
-        "event": "ABD ÜFE (Mayıs)",
-        "date": "2026-06-11",
-        "importance": "high",
-        "consensus": "+%0,7 aylık (önceki +%1,4)",
-        "myCall": "%0,5-0,7 — petrolün aydan aya zirve yapması pipeline baskısını canlı tutar, ama Nisan'a göre yavaşlama",
-        "reasoning": "ÜFE, TÜFE'nin öncüsü; Nisan'daki %1,4'lük şok büyük ölçüde enerjiydi. Mayıs sonu enerji zirvesi nedeniyle yavaşlama sınırlı kalabilir — TÜFE soft gelse bile sıcak ÜFE rahatlamayı budayabilir.",
-        "ifLower": "≤%0,4: 'enflasyon zirve yaptı' tezi güçlenir, TÜFE rahatlamasını teyit eder ve rallinin ikinci ayağını açar",
-        "ifHigher": "≥%0,9: pipeline baskısı algısı — TÜFE soft gelmiş olsa bile kazanımlar geri verilir",
-        "affected": ["AMD", "AAPL", "BTC"]
-      },
-      {
-        "event": "Michigan Tüketici Güveni + Enflasyon Beklentileri (öncü)",
-        "date": "2026-06-12",
+        "event": "Empire State imalat endeksi",
+        "date": "2026-06-15",
         "importance": "medium",
-        "consensus": "Güvenin zayıf seyri, 1 yıllık enflasyon beklentisinin yüksek kalması bekleniyor",
-        "myCall": "Stagflasyon karışımı teyidi: zayıf güven + yapışkan beklenti — haftayı temkinli kapattırır",
-        "reasoning": "Enerji şoku dönemlerinde hane halkı enflasyon beklentisi manşetten hızlı bozulur; Fed (özellikle yeni başkan Warsh) beklenti çıpasına hassas. Cuma kapanışı öncesi pozisyon hafifletme akışı görülebilir.",
-        "ifLower": "Beklentiler gerilerse: 'şok geçici' tezi güçlenir, haftalık kapanış pozitif biter",
-        "ifHigher": "1Y beklenti yükselirse: Warsh'ın ilk FOMC'sine şahin baskı artar, Pazartesi gap-down riski",
-        "affected": ["AAPL", "AMD", "BTC"]
+        "consensus": "Haziran beklentisi 13,9; önceki 19,6.",
+        "myCall": "Beklentinin hafif altında, ama hâlâ pozitif bölgede bir veri bekliyorum.",
+        "reasoning": "New York Fed takvimine göre veri 15 Haziran 2026'da geliyor. Yüksek enerji ve fiyat baskısı sürerken Michigan güveninin 49,8'e inmiş olması imalat beklentilerinin de bir miktar törpülenmesine işaret ediyor.",
+        "ifLower": "10 altına sarkarsa büyüme hassas isimlerde kısa vadeli satış gelir; PLTR ve NFLX gibi zaten teknik olarak zayıf ABD hisseleri daha kırılgan görünür.",
+        "ifHigher": "15+ gelirse büyüme korkusu sınırlanır; AMD ve NVDA gibi döngüsel teknoloji isimlerinde Fed öncesi nefes alma görülebilir.",
+        "affected": [
+          "AMD",
+          "NVDA",
+          "PLTR",
+          "NFLX"
+        ]
+      },
+      {
+        "event": "FOMC faiz kararı ve SEP",
+        "date": "2026-06-17",
+        "importance": "high",
+        "consensus": "Piyasa faizin 3,50-%3,75 bandında sabit kalmasını ana senaryo görüyor; olasılık haber akışında %96-%98,5 bandında fiyatlandı.",
+        "myCall": "Faiz sabit, ton ise şahin-nötr kalır; 10 Haziran 2026 TÜFE ve 12 Haziran 2026 Michigan enflasyon beklentileri Fed'e erken gevşeme alanı bırakmıyor.",
+        "reasoning": "Fed takviminde toplantı 16-17 Haziran 2026 ve basın toplantısı 17 Haziran 2026'da. BLS verisinde manşet TÜFE %4,2 ve çekirdek %2,9; Michigan'da 1 yıllık beklenti %4,6. Bu kombinasyon veri bağımlı ama rahat olmayan bir Fed üretir.",
+        "ifLower": "Beklenenden güvercin ton gelirse uzun duration teknoloji ve kripto rahatlar; AMD, NVDA, TSLA ve COIN ilk tepkiyi verir.",
+        "ifHigher": "Şahin ton veya daha az indirim patikası gelirse iskonto oranı baskısı artar; TSLA, COIN ve yüksek beta teknoloji yeniden ezilir.",
+        "affected": [
+          "AMD",
+          "NVDA",
+          "TSLA",
+          "COIN"
+        ]
+      },
+      {
+        "event": "ABD Mayıs perakende satışlar",
+        "date": "2026-06-17",
+        "importance": "high",
+        "consensus": "Manşet aylık +%0,5; otomotiv hariç +%0,6. Nisan manşet veri +%0,5'ti.",
+        "myCall": "Nominal veri beklenti civarı gelse bile enflasyon etkisi yüzünden reel okuma zayıf kalır.",
+        "reasoning": "MarketWatch takviminde 17 Haziran 2026 için beklenti +%0,5 manşet ve +%0,6 ex-autos. Nisan verisinin de enerji kaynaklı şiştiğini biliyoruz; Mayıs'ta da yüksek fiyat seviyesi hacim yanılsaması yaratabilir.",
+        "ifLower": "+%0,3 ve altı gelirse büyüme yavaşlama anlatısı güçlenir; AMZN ve AAPL gibi tüketim duyarlı mega-cap'lerde kar realizasyonu görülebilir.",
+        "ifHigher": "+%0,7 ve üzeri gelirse ekonomi sert fren yapmıyor algısı oluşur; ancak Fed ile birlikte okunacağı için tahvil faizleri yükselirse kazançlar sınırlı kalabilir.",
+        "affected": [
+          "AMZN",
+          "AAPL",
+          "META",
+          "TSLA"
+        ]
+      },
+      {
+        "event": "TCMB PPK toplantı özeti sonrası TL/banka testi",
+        "date": "2026-06-18",
+        "importance": "high",
+        "consensus": "11 Haziran 2026 kararının özeti, sıkı duruşun dilini teyit edecek; piyasa mevcut %37 politika faizinin korunmasını zaten fiyatladı.",
+        "myCall": "Özet metinde enflasyon yukarı riskleri ve gerektiğinde ilave sıkılaşma vurgusu korunur.",
+        "reasoning": "TCMB 11 Haziran 2026 kararında faizi %37'de tuttu ve enflasyon görünümünde bozulma halinde sıkılaşma mesajını açık bıraktı. Aynı hafta katılımcı anketinde yıl sonu TÜFE beklentisi %29,14 ve yıl sonu USD/TRY beklentisi 51,4692 oldu; bu, sözlü sıkılığın geri çekilmesini zorlaştırıyor.",
+        "ifLower": "Metin yumuşarsa TL baskısı büyür; GARAN, AKBNK, ISCTR ve YKBNK'da momentum korunmakta zorlanır.",
+        "ifHigher": "Daha sert sıkılık tonu gelirse bankalar görece dirençli kalabilir; ama kur ve tahvil faiz tepkisi izlenmeden agresif pozisyon büyütmek yine hatadır.",
+        "affected": [
+          "GARAN",
+          "AKBNK",
+          "ISCTR",
+          "YKBNK",
+          "TTKOM"
+        ]
+      },
+      {
+        "event": "İşsizlik maaşı başvuruları ve Accenture bilançosu",
+        "date": "2026-06-18",
+        "importance": "medium",
+        "consensus": "İlk işsizlik başvuruları 225 bin bekleniyor; önceki 229 bin. Accenture için dış piyasa beklentisi gelir 18,742 milyar $, EPS 3,69.",
+        "myCall": "İşsizlik başvurularında hafif normalleşme, Accenture tarafında ise AI talebinin canlı kaldığını gösteren ama marj disiplini sorgulanan bir bilanço bekliyorum.",
+        "reasoning": "Investing.com takviminde 18 Haziran 2026 için 225 bin işsizlik başvurusu beklentisi var. Accenture, 2 Haziran 2026'da 18 Haziran sonuç tarihini duyurdu; piyasa önizlemeleri AI talebini güçlü, fakat fiyatlama için rehberlik kalitesini kritik görüyor.",
+        "ifLower": "Başvurular 220 bin altına iner ve ACN güçlü rehberlik verirse kurumsal teknoloji harcaması anlatısı güçlenir; MSFT, NVDA ve PLTR pozitif okur.",
+        "ifHigher": "Başvurular 235 bin üstü ve ACN rehberliği yumuşak gelirse büyüme endişesi geri gelir; PLTR, MSFT ve yüksek beklenti taşıyan AI zinciri baskı görür.",
+        "affected": [
+          "MSFT",
+          "NVDA",
+          "PLTR",
+          "AMD"
+        ]
       }
     ],
-    "earningsFocus": "Takip listesinde bu hafta önemli bilanço yok (takvimdeki NAVN ve diğerleri izleme dışı küçük şirketler). Odak tamamen makro veride — bilanço sezonu arası bu hafta, endeks hareketleri sektör rotasyonundan çok faiz beklentisiyle yönlenecek.",
-    "positioning": "CFO disiplini: (1) Bugün 15:30 öncesi YENİ pozisyon yok — mevcut kazançlarda stop'lar ATR 1,5x'e çekilmeli. (2) Kripto aşırı satım tepkisi ancak soft TÜFE + BTC'nin 60k üstünde günlük kapanışıyla oynanır; iki teyit olmadan dokunma. (3) BIST bankacılık momentumu gerçek ama TCMB sonrasına kademeli giriş planla — sabit+şahin senaryoda kademeli al, sürpriz indirimde tamamen uzak dur. (4) Risk/ödül 2'nin altındaki hiçbir kurulum bu haftaki oynaklığa değmez."
+    "earningsFocus": "Takip listesinin doğrudan içinden büyük bilanço yok; bu yüzden bilanço etkisini sektör aktarımı üzerinden okumak gerekiyor. 18 Haziran 2026 Accenture sonucu kurumsal AI talebi için, 10 Haziran 2026 Oracle sonucu ise bulut/altyapı harcamasının hâlâ güçlü kaldığına dair okuma veriyor; bu, doğrudan AMD, NVDA, MSFT ve AMZN için ikinci dereceden katalizör.",
+    "positioning": "Kısa vade disiplininde üç kural var. Bir: BIST'te bankalar güçlü diye kur riskini yok sayma; TL kırılganlığı sürdükçe kademesiz büyütme saçma olur. İki: ABD'de Fed günü öncesi özellikle TSLA, COIN ve NFLX gibi zayıf veya yüksek beta isimlerde stop gevşetme. Üç: Kriptoda veri beslemesi ve ETF akışı düzelmeden 'ucuzladı' diye ortalama düşürmek, veri yokluğunu görüş sanmak olur."
   },
-  "todayFocus": "Tek belirleyici: 15:30 TR ABD Mayıs TÜFE'si — manşet/çekirdek makasını oku (manşet %4,2+ ama çekirdek %2,9'da kalırsa 'geçici enerji şoku' tezi yaşar). İkinci izleme: BTC'nin gün içinde 60.000$ üstünde tutunup tutunamadığı — kırılırsa yarınki ECB/TCMB gününe zayıf girilir.",
+  "todayFocus": "Bugün asıl izlenecek şey fiyat değil hazırlık. 17 Haziran 2026 Fed + perakende satışlar kombinasyonuna girerken ABD tarafında hangi pozisyonun sadece beta taşıdığını, BIST tarafında ise banka rallisinin ne kadarının TL baskısını absorbe edebildiğini ayır.",
   "literacyTip": {
-    "title": "Aşırı satım her zaman 'ucuz' demek değildir — düşen bıçak ve rejim farkı",
-    "body": "Panelde bugün 8 coin'in tamamı RSI 30 altında ve mean-reversion mantığı 'alım bölgesi' der. Ama bu kural YATAY piyasada çalışır; düşüş TRENDİNDE (BTC zirveden -%51, ETF'lerden 10 günde 3 milyar $ çıkış) aşırı satım haftalarca aşırı satım kalabilir — buna 'düşen bıçağı yakalamak' denir. Doğru yaklaşım: göstergenin değil, teyidin peşinden git — fiyatın kritik desteğin (60k) üstünde günlük kapanış yapması, hacmin satış tarafında kuruması ve bir makro katalizör (bugün soft TÜFE gibi). Üçü birleşmeden RSI 20 'fırsat' değil, sadece istatistiktir."
+    "title": "Nominal güç ile reel güç aynı şey değildir",
+    "body": "Perakende satışlar veya ciro verileri güçlü göründüğünde çoğu kişi otomatik olarak talebin güçlü olduğunu sanıyor. Bu tembel bir okuma. 10 Haziran 2026 TÜFE verisinde enerji yıllık %23,5 arttı; böyle bir ortamda satışların artması, satılan miktarın değil fiyat etiketinin şişmesi de olabilir. CFO disiplini şunu sorar: hacim mi büyüdü, fiyat mı yükseldi, marj bunu taşıyor mu?"
   },
-  "weeklyRetro": "Geçen haftaki çağrıların karnesi: (1) 'TÜFE yüksek gelirse BTC 60k testi' uyarısı yönünde DOĞRU ama zamanlamada erken çıktı — BTC veriyi beklemeden hafta sonu 60k altını gördü; ders: aşırı satım piyasasında destekler katalizör beklemez. (2) Çip oynaklığı uyarısı isabetliydi: 5 Haziran'da SOX -%10,3 (2020'den beri en sert düşüş), ardından 8 Haziran'da +%5,6 toparlanma — 'oynaklık iki yönlü keser' dersi. (3) Sistemin yeni isabet karnesi bu sabah ilk iki tahminini kaydetti (TTKOM, YKBNK — 30 gün vadeli); önümüzdeki haftalardan itibaren bu bölümde gerçek isabet verisi raporlanacak.",
+  "weeklyRetro": "Skor kartı tarafında hâlâ kapanmış tahmin yok: base verisinde 10 tahminin 10'u da açık, dolayısıyla sistem isabeti üzerinden böbürlenecek veri yok. Geçen haftanın gerçek dersi makrodaydı: 10 Haziran 2026 ABD TÜFE'si yeniden ısındı, 12 Haziran 2026 Michigan güveni 49,8 ile zayıf kaldı ve aynı gün BIST 100 haftayı %1,42 artıyla 13.938,48'de kapattı. Yani hisse ekranı ile makro ekranı aynı şeyi söylemiyor; BIST momentumu iyi, ama TL ve küresel iskonto oranı baskısı hâlâ canlı. Kripto tarafında ise bugünkü repo akışında veri eksikliği yaşandığı için sistemin 'bilmiyorum' deme disiplini doğruydu; uydurma teknik rahatlama üretmekten iyidir.",
   "quiz": {
-    "question": "Piyasa yarınki ECB toplantısında %91 ihtimalle 25bp faiz artırımı fiyatlıyor. Artırım GELİRSE ama Lagarde 'bundan sonrası veri bağımlı' diyerek temkinli konuşursa, EUR ve risk iştahında en olası İLK tepki hangisidir?",
+    "question": "17 Haziran 2026'da Fed faizi sabit bırakırsa ama aynı gün perakende satışlar +%0,5 civarında gelir ve Fed enflasyon nedeniyle şahin tonda kalırsa, aşağıdakilerden hangisi en mantıklı ilk okuma olur?",
     "options": [
-      "EUR sert yükselir, hisseler satılır — artırım her zaman para birimini güçlendirir",
-      "Tepki sınırlı kalır, hatta EUR gevşeyebilir — '%91 fiyatlanmış' haber gerçekleştiğinde yeni bilgi içermez ('beklentiyi al, gerçeği sat')",
-      "Hiçbir tepki olmaz — merkez bankası kararları sadece tahvil piyasasını etkiler"
+      "Büyüme sağlam, Fed şahin; bu yüzden yüksek beta teknoloji ve kripto aynı anda en rahat alan olur.",
+      "Nominal talep zayıf değil ama iskonto oranı baskısı sürer; kalite ve nakit akışı güçlü isimler görece dayanıklı, yüksek beta daha kırılgan kalır.",
+      "Perakende satışlar geldiği anda enflasyon artık önemsizleşir; Fed tonu fiyatlamayı bırakır.",
+      "ABD verileri sadece ABD hisselerini etkiler; BIST bankaları ve COIN için çıkarım yapmak hatalıdır."
     ],
     "correctIndex": 1,
-    "explanation": "Piyasalar beklentiyi önceden fiyatlar: %91 ihtimal verilen bir artırım gerçekleştiğinde 'sürpriz' sıfıra yakındır, bu yüzden asıl hareket karara değil TONA gelir. Güvercin ton ('veri bağımlı') gelecekteki artırım beklentisini çözerse EUR gevşeyebilir. CFO dersi: olayın kendisine değil, fiyatlanmamış kısmına pozisyon alınır."
+    "explanation": "Doğru okuma, verileri tek başına değil birlikte okumaktır. Perakende satışların fena gelmemesi büyümenin çökmemesi demektir, ama Fed şahin kaldığında iskonto oranı baskısı yüksek beta çarpanlarını yine ezer. CFO mantığıyla önce fonlama maliyetini, sonra büyüme hikayesini tartarsın."
+  },
+  "macroSignalOverlay": {
+    "summary": "Makro overlay teknik skorların yerine geçmiyor; yalnızca 17-18 Haziran veri/Fed/TCMB penceresinin kısa vadeli baskısını ve AI-talep devamlılığını puanlıyor.",
+    "signals": [
+      {
+        "type": "fedDecision",
+        "market": "us",
+        "adjustment": -2,
+        "confidence": 0.78,
+        "source": "Federal Reserve June 2026 calendar; BLS CPI May 2026; Michigan Surveys of Consumers June 2026",
+        "asOf": "2026-06-14T10:12:27.681Z",
+        "expiresAt": "2026-06-18T21:00:00.000Z",
+        "reason": "17 Haziran Fed toplantısı öncesi ABD manşet TÜFE %4,2 ve 1 yıllık enflasyon beklentisi %4,6; erken güvercinleşme zemini zayıf."
+      },
+      {
+        "type": "usRetailSales",
+        "market": "us",
+        "adjustment": -1,
+        "confidence": 0.61,
+        "source": "MarketWatch U.S. Economic Calendar June 17 2026",
+        "asOf": "2026-06-14T10:12:27.681Z",
+        "expiresAt": "2026-06-17T18:00:00.000Z",
+        "reason": "17 Haziran perakende satış beklentisi manşette +%0,5; veri Fed günüyle çakıştığı için beklenti hatası ABD büyüme hisselerinde oynaklığı artırır."
+      },
+      {
+        "type": "aiCapexReadThrough",
+        "market": "us",
+        "symbol": "NVDA",
+        "adjustment": 2,
+        "confidence": 0.74,
+        "source": "Oracle FY2026 Q4 results announcement June 10 2026",
+        "asOf": "2026-06-14T10:12:27.681Z",
+        "expiresAt": "2026-06-19T21:00:00.000Z",
+        "reason": "Oracle'ın bulut gelirleri yıllık %39 büyüdü; AI altyapı talebi canlı kaldığı için NVDA için sektör aktarımı pozitif."
+      },
+      {
+        "type": "aiCapexReadThrough",
+        "market": "us",
+        "symbol": "AMD",
+        "adjustment": 1,
+        "confidence": 0.68,
+        "source": "Oracle FY2026 Q4 results announcement June 10 2026",
+        "asOf": "2026-06-14T10:12:27.681Z",
+        "expiresAt": "2026-06-19T21:00:00.000Z",
+        "reason": "Bulut altyapı talebi güçlü kaldığı için AMD tarafında da ikinci sıra AI harcama desteği var; fakat Fed riski NVDA kadar net pozitif yazdırmıyor."
+      },
+      {
+        "type": "enterpriseAiDemand",
+        "market": "us",
+        "symbol": "MSFT",
+        "adjustment": 1,
+        "confidence": 0.64,
+        "source": "Oracle FY2026 Q4 results announcement June 10 2026; Accenture Q3 FY2026 earnings date announcement June 2 2026",
+        "asOf": "2026-06-14T10:12:27.681Z",
+        "expiresAt": "2026-06-19T21:00:00.000Z",
+        "reason": "Kurumsal AI talebinin zayıflamadığına dair iki ayrı okuma var; Oracle sonucu bunu gösterdi, Accenture bilançosu bunu sınayacak."
+      },
+      {
+        "type": "btcLiquidity",
+        "market": "crypto",
+        "adjustment": -3,
+        "confidence": 0.83,
+        "source": "CoinDesk June 11 2026 ETF outflows report; CoinDesk June 10 2026 BTC ETF assets report",
+        "asOf": "2026-06-14T10:12:27.681Z",
+        "expiresAt": "2026-06-18T21:00:00.000Z",
+        "reason": "Spot BTC ETF'lerinden Mayıs ortasından beri yaklaşık 5,75 milyar dolar çıkış oldu ve toplam varlıklar 9 Haziran 2026 itibarıyla 77,58 milyar dolara geriledi; fonlama akışı hâlâ baskılayıcı."
+      },
+      {
+        "type": "btcLiquidity",
+        "market": "us",
+        "symbol": "COIN",
+        "adjustment": -2,
+        "confidence": 0.76,
+        "source": "CoinDesk June 11 2026 ETF outflows report; CoinDesk June 10 2026 BTC ETF assets report",
+        "asOf": "2026-06-14T10:12:27.681Z",
+        "expiresAt": "2026-06-18T21:00:00.000Z",
+        "reason": "COIN, ETF akışı ve kripto işlem iştahına doğrudan bağlı; mevcut çıkış rejimi sürerken çarpan genişlemesi savunmasız."
+      },
+      {
+        "type": "tlPressure",
+        "market": "bist",
+        "adjustment": -1,
+        "confidence": 0.72,
+        "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+        "asOf": "2026-06-14T10:12:27.681Z",
+        "expiresAt": "2026-06-18T21:00:00.000Z",
+        "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan."
+      },
+      {
+        "type": "tcmbCarry",
+        "market": "bist",
+        "symbol": "GARAN",
+        "adjustment": 2,
+        "confidence": 0.71,
+        "source": "TCMB Press Release on Interest Rates June 11 2026; Anadolu Agency BIST close June 12 2026",
+        "asOf": "2026-06-14T10:12:27.681Z",
+        "expiresAt": "2026-06-18T21:00:00.000Z",
+        "reason": "TCMB'nin %37'yi koruyup sıkılığı sürdürmesi ve BIST'te güçlü kapanış, GARAN üzerindeki kısa vadeli momentum baskısını destekliyor."
+      },
+      {
+        "type": "tcmbCarry",
+        "market": "bist",
+        "symbol": "AKBNK",
+        "adjustment": 2,
+        "confidence": 0.71,
+        "source": "TCMB Press Release on Interest Rates June 11 2026; Anadolu Agency BIST close June 12 2026",
+        "asOf": "2026-06-14T10:12:27.681Z",
+        "expiresAt": "2026-06-18T21:00:00.000Z",
+        "reason": "Sıkı politika tonu korunurken banka momentumunun teknikle aynı yöne bakması AKBNK için kısa vadeli destek."
+      },
+      {
+        "type": "tcmbCarry",
+        "market": "bist",
+        "symbol": "ISCTR",
+        "adjustment": 2,
+        "confidence": 0.7,
+        "source": "TCMB Press Release on Interest Rates June 11 2026; Anadolu Agency BIST close June 12 2026",
+        "asOf": "2026-06-14T10:12:27.681Z",
+        "expiresAt": "2026-06-18T21:00:00.000Z",
+        "reason": "Politika faizinin korunması ve yukarı risk vurgusu, ISCTR için kısa vadede net negatif değil; teknik momentumla birlikte çalışıyor."
+      },
+      {
+        "type": "tcmbCarry",
+        "market": "bist",
+        "symbol": "YKBNK",
+        "adjustment": 2,
+        "confidence": 0.7,
+        "source": "TCMB Press Release on Interest Rates June 11 2026; Anadolu Agency BIST close June 12 2026",
+        "asOf": "2026-06-14T10:12:27.681Z",
+        "expiresAt": "2026-06-18T21:00:00.000Z",
+        "reason": "YKBNK zaten teknik liderlerden biri; TCMB sonrası sıkı duruşun korunması bu momentumu kısa vadede teyit ediyor."
+      },
+      {
+        "type": "oilSensitivity",
+        "market": "bist",
+        "symbol": "THYAO",
+        "adjustment": -1,
+        "confidence": 0.57,
+        "source": "BLS CPI May 2026 energy table",
+        "asOf": "2026-06-14T10:12:27.681Z",
+        "expiresAt": "2026-06-18T21:00:00.000Z",
+        "reason": "ABD enerji enflasyonu yıllık %23,5 ve jet-fuel benzeri maliyet baskısı hâlâ önemli; THYAO'nun çok güçlü teknik skoruna rağmen makro maliyet marjı tamamen rahat değil."
+      }
+    ]
   }
 }

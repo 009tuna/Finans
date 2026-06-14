@@ -137,3 +137,24 @@ Amaç: günlük akışı zamanla iyileştirmek — kalibrasyon, veri kalitesi, t
 - 11 Haz: ECB (%91 artirim fiyatli) + TCMB 14:00 (27/33 sabit %37) + ABD UFE — uclu pencere.
 - BTC 60k gunluk kapanis ustu mu? Kirilirsa 50k senaryolari.
 - Bugunku TUFE myCall'i: manset %4.2-4.4 / cekirdek ~%2.9 — yarin gerceklesmeyle karsilastir (weeklyRetro besini).
+## 2026-06-14 (6. calistirma - gunluk zamanlanmis gorev)
+
+**Veri/skor anomalileri**
+- `fetch-all` bugun ABD 12 / BIST 20 / Kripto 0 dondu; CoinGecko `markets` cagrilari tamamen patladigi icin kripto teknik katmani guvenilmez. AI raporunda kripto yorumu repo verisinden degil, dis makro + ETF akisindan kuruldu; bu dogruydu, cunku "bilmiyorum" demeden teknik sinyal uydurmak daha kotu.
+- `report.js` ekonomik takvimi 0 olay olarak yazdi. Oysa ayni hafta Fed (16-17 Haz), perakende satislar (17 Haz), ilk issizlik basvurulari (18 Haz) ve TCMB PPK ozeti akisi var. Finnhub ekonomik takvim beslemesi ya bosta ya da filtre asiri dar; bu alan icin ikincil provider dusunulmeli.
+- BIST agirlikli teknik guc korunuyor: ilk 6 firsatin tamami BIST ve banka/momentum ekseni baskin. Bu iyi ama kur riskiyle ayni anda var; UI'da kullaniciya "momentum var, makro zemin kusursuz degil" demek lazim.
+
+**Takip listesi fikirleri**
+- Banka momentumu (GARAN/AKBNK/ISCTR/YKBNK) teknik olarak hakli gorunuyor; yarin sonrasi is kur/TL cephesine bagli. Eger USDTRY yukari gitmeye devam ederken bankalar da guclu kalirsa yerli momentum baskin demektir.
+- Oracle sonucu AI capex tarafini yeniden besledi; AMD/NVDA/MSFT zinciri icin Accenture sonucunu ikinci teyit olarak izle.
+- COIN icin teknikten once ETF akisina bak. ETF cikisi durmadan COIN'de kalici hikaye kurmak laf kalabaligi.
+
+**Kalibrasyon onerileri**
+1. Kripto fetch tam basarisizsa base/report tarafinda `cryptoDataStale` gibi acik bayrak yazdir; bugun count=0 ama nedenini sadece log bilen goruyor.
+2. Economic calendar bos dondugunde son kullanici raporu otomatik olarak "external calendar fallback used" gibi bir not tasiyabilmeli.
+3. Macro overlay'e tarih-bazli catalyst pressure ozeti UI'da gorunur olmali; su an `signalOverlay` var ama kullanici Fed/CPI/BTC likidite baskisini tek satirda gormuyor.
+
+**Yarin/hafta ici izle**
+- 17 Haz 2026: Fed + perakende satislar ayni gun. ABD riskini burada ayikla.
+- 18 Haz 2026: issizlik basvurulari, Philly/kurumsal harcama okumasi ve TCMB karar ozetinin tonu.
+- CoinGecko erisimi kendiliginden duzeliyor mu? Duzelmiyorsa bu artik gecici glitch degil, veri kaynagi sorunu.
