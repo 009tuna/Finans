@@ -10,6 +10,7 @@ const {
   upsertNote,
   upsertAlert,
   recordPrediction,
+  appendDecisionAudit,
   buildPredictionScorecard,
   readJournalFile,
   writeJournalFile,
@@ -22,6 +23,9 @@ assert.deepEqual(empty.predictions, []);
 assert.deepEqual(empty.theses, {});
 assert.deepEqual(empty.catalysts, []);
 assert.deepEqual(empty.riskRules, []);
+assert.deepEqual(empty.decisionAudits, []);
+assert.deepEqual(empty.learningRules, []);
+assert.deepEqual(empty.reviewQueue, []);
 
 const withNote = upsertNote(empty, 'us', 'AAPL', {
   thesis: 'Trend devam ederse izlenir.',
@@ -76,9 +80,20 @@ const normalizedExtended = normalizeJournal({
   theses: { 'us:AAPL': { status: 'watch', nextReview: '2026-06-30' } },
   catalysts: [{ market: 'us', symbol: 'AAPL', event: 'WWDC', date: '2026-06-10' }],
   riskRules: [{ market: 'us', symbol: 'AAPL', trigger: 'weight > 20%', action: 'trim' }],
+  decisionAudits: [{ id: 'audit-1' }],
+  learningRules: [{ id: 'rule-1' }],
+  reviewQueue: [{ id: 'queue-1' }],
 });
 assert.equal(normalizedExtended.theses['us:AAPL'].status, 'watch');
 assert.equal(normalizedExtended.catalysts[0].event, 'WWDC');
 assert.equal(normalizedExtended.riskRules[0].action, 'trim');
+assert.equal(normalizedExtended.decisionAudits[0].id, 'audit-1');
+assert.equal(normalizedExtended.learningRules[0].id, 'rule-1');
+assert.equal(normalizedExtended.reviewQueue[0].id, 'queue-1');
+
+const withAudit = appendDecisionAudit(empty, { id: 'us:AAPL:2026-06-08:audit', symbol: 'AAPL' });
+assert.equal(withAudit.decisionAudits.length, 1);
+const duplicateAudit = appendDecisionAudit(withAudit, { id: 'us:AAPL:2026-06-08:audit', symbol: 'AAPL' });
+assert.equal(duplicateAudit.decisionAudits.length, 1);
 
 console.log('decision journal tests passed');

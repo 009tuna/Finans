@@ -3780,31 +3780,29 @@ function initAnimations() {
       gsap.fromTo(chart, { strokeDasharray: 20, strokeDashoffset: 20 }, { strokeDashoffset: 0, duration: 0.4, ease: 'power2.out' });
       gsap.to(dot, { scale: 1.4, transformOrigin: '50% 50%', duration: 0.25, ease: 'power2.out' });
     } else if (view === 'us') {
-      const w1 = btn.querySelector('.us-wick-1');
-      const w2 = btn.querySelector('.us-wick-2');
-      const b1 = btn.querySelector('.us-body-1');
-      const b2 = btn.querySelector('.us-body-2');
+      const col1 = btn.querySelector('.us-col-1');
+      const col2 = btn.querySelector('.us-col-2');
+      const col3 = btn.querySelector('.us-col-3');
+      const roof = btn.querySelector('.us-roof');
+      const base = btn.querySelector('.us-base');
       const trend = btn.querySelector('.us-trend');
-      const badge = btn.querySelector('.us-badge');
-      const dollar = btn.querySelector('.us-dollar');
-      gsap.killTweensOf([w1, w2, b1, b2, trend, badge, dollar]);
-      gsap.to([w1, b1], { scaleY: 1.25, transformOrigin: '8px 20px', duration: 0.25, ease: 'back.out(1.5)' });
-      gsap.to([w2, b2], { scaleY: 1.25, transformOrigin: '16px 17px', delay: 0.05, duration: 0.25, ease: 'back.out(1.5)' });
-      gsap.fromTo(trend, { strokeDasharray: 15, strokeDashoffset: 15 }, { strokeDashoffset: 0, duration: 0.35, ease: 'power2.out' });
-      gsap.to([badge, dollar], { scale: 1.2, rotate: 15, transformOrigin: '16px 8px', duration: 0.25, ease: 'power2.out' });
+      const dot = btn.querySelector('.us-dot');
+      gsap.killTweensOf([col1, col2, col3, roof, base, trend, dot]);
+      gsap.fromTo(base, { scaleX: 0 }, { scaleX: 1, transformOrigin: '50% 50%', duration: 0.25, ease: 'power2.out' });
+      gsap.fromTo([col1, col2, col3], { scaleY: 0 }, { scaleY: 1, transformOrigin: '50% 100%', duration: 0.3, ease: 'back.out(1.5)', stagger: 0.06, delay: 0.05 });
+      gsap.fromTo(roof, { scale: 0.8, y: -2, opacity: 0 }, { scale: 1, y: 0, opacity: 1, transformOrigin: '50% 50%', duration: 0.3, ease: 'back.out(1.5)', delay: 0.15 });
+      gsap.fromTo(trend, { strokeDasharray: 25, strokeDashoffset: 25 }, { strokeDashoffset: 0, duration: 0.45, ease: 'power2.out', delay: 0.1 });
+      gsap.fromTo(dot, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, transformOrigin: '50% 50%', duration: 0.3, ease: 'back.out(2)', delay: 0.35 });
     } else if (view === 'bist') {
-      const w1 = btn.querySelector('.tr-wick-1');
-      const w2 = btn.querySelector('.tr-wick-2');
-      const b1 = btn.querySelector('.tr-body-1');
-      const b2 = btn.querySelector('.tr-body-2');
+      const crescent = btn.querySelector('.tr-crescent');
+      const star = btn.querySelector('.tr-star');
       const trend = btn.querySelector('.tr-trend');
-      const badge = btn.querySelector('.tr-badge');
-      const lira = btn.querySelector('.tr-lira');
-      gsap.killTweensOf([w1, w2, b1, b2, trend, badge, lira]);
-      gsap.to([w1, b1], { scaleY: 1.25, transformOrigin: '8px 19px', duration: 0.25, ease: 'back.out(1.5)' });
-      gsap.to([w2, b2], { scaleY: 1.25, transformOrigin: '16px 20px', delay: 0.05, duration: 0.25, ease: 'back.out(1.5)' });
-      gsap.fromTo(trend, { strokeDasharray: 15, strokeDashoffset: 15 }, { strokeDashoffset: 0, duration: 0.35, ease: 'power2.out' });
-      gsap.to([badge, lira], { scale: 1.2, rotate: -15, transformOrigin: '16px 10.5px', duration: 0.25, ease: 'power2.out' });
+      const dot = btn.querySelector('.tr-dot');
+      gsap.killTweensOf([crescent, star, trend, dot]);
+      gsap.fromTo(crescent, { scale: 0.8, rotate: -20 }, { scale: 1, rotate: 0, transformOrigin: '10px 12px', duration: 0.35, ease: 'back.out(1.5)' });
+      gsap.fromTo(star, { scale: 0, rotate: -180 }, { scale: 1, rotate: 0, transformOrigin: '16.5px 10.7px', duration: 0.45, ease: 'back.out(2)', delay: 0.1 });
+      gsap.fromTo(trend, { strokeDasharray: 25, strokeDashoffset: 25 }, { strokeDashoffset: 0, duration: 0.45, ease: 'power2.out', delay: 0.1 });
+      gsap.fromTo(dot, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, transformOrigin: '50% 50%', duration: 0.3, ease: 'back.out(2)', delay: 0.35 });
     } else if (view === 'crypto') {
       const hex = btn.querySelector('.cr-hex');
       const ring = btn.querySelector('.cr-ring');
@@ -3812,10 +3810,12 @@ function initAnimations() {
       const lines = btn.querySelectorAll('.cr-line-v, .cr-line-l, .cr-line-r');
       const nodes = btn.querySelectorAll('.cr-node');
       gsap.killTweensOf([hex, ring, core, ...lines, ...nodes]);
-      gsap.to([hex, ...lines], { rotate: 60, transformOrigin: '12px 12px', duration: 0.5, ease: 'power2.out' });
-      gsap.to(ring, { scale: 1.25, transformOrigin: '12px 12px', duration: 0.3, ease: 'power2.out' });
-      gsap.to(core, { scale: 1.5, transformOrigin: '12px 12px', duration: 0.3, ease: 'power2.out' });
-      gsap.to(nodes, { scale: 1.4, transformOrigin: '50% 50%', stagger: 0.05, duration: 0.3, ease: 'back.out(2)' });
+      // Blockchain data crawl animations
+      gsap.to(hex, { strokeDashoffset: -12, duration: 1.2, ease: 'linear', repeat: -1 });
+      gsap.to(lines, { strokeDashoffset: -10, duration: 1, ease: 'linear', repeat: -1 });
+      gsap.to(ring, { rotate: 360, transformOrigin: '12px 12px', duration: 2.5, ease: 'linear', repeat: -1 });
+      gsap.to(core, { scale: 1.3, transformOrigin: '12px 12px', duration: 0.6, ease: 'sine.inOut', repeat: -1, yoyo: true });
+      gsap.to(nodes, { scale: 1.4, transformOrigin: '50% 50%', duration: 0.5, ease: 'sine.inOut', repeat: -1, yoyo: true, stagger: 0.1 });
     } else if (view === 'portfolio') {
       const body = btn.querySelector('.pf-safe-body');
       const dial = btn.querySelector('.pf-dial');
@@ -3860,11 +3860,12 @@ function initAnimations() {
       const expected = btn.querySelector('.fc-expected');
       const cone = btn.querySelector('.fc-cone');
       gsap.killTweensOf([high, low, node, expected, cone]);
-      gsap.to(high, { rotate: -6, transformOrigin: '12px 14px', duration: 0.35, ease: 'power2.out' });
-      gsap.to(low, { rotate: 6, transformOrigin: '12px 14px', duration: 0.35, ease: 'power2.out' });
-      gsap.to(cone, { scaleY: 1.15, transformOrigin: '12px 14px', duration: 0.35, ease: 'power2.out' });
-      gsap.to(node, { scale: 1.4, transformOrigin: '50% 50%', duration: 0.25, ease: 'power2.out' });
-      gsap.to(expected, { scaleY: 1.1, transformOrigin: '12px 14px', duration: 0.25, ease: 'power2.out' });
+      // Continuous breathing fan chart animation
+      gsap.to(high, { rotate: -8, transformOrigin: '12px 14px', duration: 1.2, ease: 'sine.inOut', repeat: -1, yoyo: true });
+      gsap.to(low, { rotate: 8, transformOrigin: '12px 14px', duration: 1.2, ease: 'sine.inOut', repeat: -1, yoyo: true });
+      gsap.to(cone, { scaleY: 1.25, transformOrigin: '12px 14px', duration: 1.2, ease: 'sine.inOut', repeat: -1, yoyo: true });
+      gsap.to(expected, { rotate: 4, transformOrigin: '12px 14px', duration: 0.8, ease: 'sine.inOut', repeat: -1, yoyo: true });
+      gsap.to(node, { scale: 1.3, transformOrigin: '50% 50%', duration: 0.6, ease: 'sine.inOut', repeat: -1, yoyo: true });
     } else if (view === 'report') {
       const doc = btn.querySelector('.rp-doc');
       const fold = btn.querySelector('.rp-fold');
@@ -3907,29 +3908,29 @@ function initAnimations() {
       gsap.to(chart, { strokeDashoffset: 0, duration: 0.2, ease: 'power2.out' });
       gsap.to(dot, { scale: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'us') {
-      const w1 = btn.querySelector('.us-wick-1');
-      const w2 = btn.querySelector('.us-wick-2');
-      const b1 = btn.querySelector('.us-body-1');
-      const b2 = btn.querySelector('.us-body-2');
+      const col1 = btn.querySelector('.us-col-1');
+      const col2 = btn.querySelector('.us-col-2');
+      const col3 = btn.querySelector('.us-col-3');
+      const roof = btn.querySelector('.us-roof');
+      const base = btn.querySelector('.us-base');
       const trend = btn.querySelector('.us-trend');
-      const badge = btn.querySelector('.us-badge');
-      const dollar = btn.querySelector('.us-dollar');
-      gsap.killTweensOf([w1, w2, b1, b2, trend, badge, dollar]);
-      gsap.to([w1, b1, w2, b2], { scaleY: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
+      const dot = btn.querySelector('.us-dot');
+      gsap.killTweensOf([col1, col2, col3, roof, base, trend, dot]);
+      gsap.to([col1, col2, col3], { scaleY: 1, transformOrigin: '50% 100%', duration: 0.2, ease: 'power2.out' });
+      gsap.to(roof, { scale: 1, y: 0, opacity: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
+      gsap.to(base, { scaleX: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
       gsap.to(trend, { strokeDashoffset: 0, duration: 0.2, ease: 'power2.out' });
-      gsap.to([badge, dollar], { scale: 1, rotate: 0, transformOrigin: '16px 8px', duration: 0.2, ease: 'power2.out' });
+      gsap.to(dot, { scale: 1, opacity: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'bist') {
-      const w1 = btn.querySelector('.tr-wick-1');
-      const w2 = btn.querySelector('.tr-wick-2');
-      const b1 = btn.querySelector('.tr-body-1');
-      const b2 = btn.querySelector('.tr-body-2');
+      const crescent = btn.querySelector('.tr-crescent');
+      const star = btn.querySelector('.tr-star');
       const trend = btn.querySelector('.tr-trend');
-      const badge = btn.querySelector('.tr-badge');
-      const lira = btn.querySelector('.tr-lira');
-      gsap.killTweensOf([w1, w2, b1, b2, trend, badge, lira]);
-      gsap.to([w1, b1, w2, b2], { scaleY: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
+      const dot = btn.querySelector('.tr-dot');
+      gsap.killTweensOf([crescent, star, trend, dot]);
+      gsap.to(crescent, { scale: 1, rotate: 0, transformOrigin: '10px 12px', duration: 0.2, ease: 'power2.out' });
+      gsap.to(star, { scale: 1, rotate: 0, transformOrigin: '16.5px 10.7px', duration: 0.2, ease: 'power2.out' });
       gsap.to(trend, { strokeDashoffset: 0, duration: 0.2, ease: 'power2.out' });
-      gsap.to([badge, lira], { scale: 1, rotate: 0, transformOrigin: '16px 10.5px', duration: 0.2, ease: 'power2.out' });
+      gsap.to(dot, { scale: 1, opacity: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'crypto') {
       const hex = btn.querySelector('.cr-hex');
       const ring = btn.querySelector('.cr-ring');
@@ -3937,10 +3938,11 @@ function initAnimations() {
       const lines = btn.querySelectorAll('.cr-line-v, .cr-line-l, .cr-line-r');
       const nodes = btn.querySelectorAll('.cr-node');
       gsap.killTweensOf([hex, ring, core, ...lines, ...nodes]);
-      gsap.to([hex, ...lines], { rotate: 0, transformOrigin: '12px 12px', duration: 0.3, ease: 'power2.out' });
-      gsap.to(ring, { scale: 1, transformOrigin: '12px 12px', duration: 0.2, ease: 'power2.out' });
-      gsap.to(core, { scale: 1, transformOrigin: '12px 12px', duration: 0.2, ease: 'power2.out' });
-      gsap.to(nodes, { scale: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
+      gsap.to(hex, { strokeDashoffset: 0, duration: 0.3, ease: 'power2.out' });
+      gsap.to(lines, { strokeDashoffset: 0, duration: 0.3, ease: 'power2.out' });
+      gsap.to(ring, { scale: 1, rotate: 0, transformOrigin: '12px 12px', duration: 0.3, ease: 'power2.out' });
+      gsap.to(core, { scale: 1, transformOrigin: '12px 12px', duration: 0.3, ease: 'power2.out' });
+      gsap.to(nodes, { scale: 1, transformOrigin: '50% 50%', duration: 0.3, ease: 'power2.out' });
     } else if (view === 'portfolio') {
       const body = btn.querySelector('.pf-safe-body');
       const dial = btn.querySelector('.pf-dial');
@@ -3977,11 +3979,11 @@ function initAnimations() {
       const expected = btn.querySelector('.fc-expected');
       const cone = btn.querySelector('.fc-cone');
       gsap.killTweensOf([high, low, node, expected, cone]);
-      gsap.to(high, { rotate: 0, transformOrigin: '12px 14px', duration: 0.2, ease: 'power2.out' });
-      gsap.to(low, { rotate: 0, transformOrigin: '12px 14px', duration: 0.2, ease: 'power2.out' });
-      gsap.to(cone, { scaleY: 1, transformOrigin: '12px 14px', duration: 0.2, ease: 'power2.out' });
-      gsap.to(node, { scale: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
-      gsap.to(expected, { scaleY: 1, transformOrigin: '12px 14px', duration: 0.2, ease: 'power2.out' });
+      gsap.to(high, { rotate: 0, transformOrigin: '12px 14px', duration: 0.3, ease: 'power2.out' });
+      gsap.to(low, { rotate: 0, transformOrigin: '12px 14px', duration: 0.3, ease: 'power2.out' });
+      gsap.to(cone, { scaleY: 1, transformOrigin: '12px 14px', duration: 0.3, ease: 'power2.out' });
+      gsap.to(node, { scale: 1, transformOrigin: '50% 50%', duration: 0.3, ease: 'power2.out' });
+      gsap.to(expected, { rotate: 0, scaleY: 1, transformOrigin: '12px 14px', duration: 0.3, ease: 'power2.out' });
     } else if (view === 'report') {
       const doc = btn.querySelector('.rp-doc');
       const fold = btn.querySelector('.rp-fold');

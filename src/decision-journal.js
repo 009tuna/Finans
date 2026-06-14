@@ -18,6 +18,9 @@ function normalizeJournal(input) {
     theses: input && input.theses && typeof input.theses === 'object' ? input.theses : {},
     catalysts: Array.isArray(input && input.catalysts) ? input.catalysts : [],
     riskRules: Array.isArray(input && input.riskRules) ? input.riskRules : [],
+    decisionAudits: Array.isArray(input && input.decisionAudits) ? input.decisionAudits : [],
+    learningRules: Array.isArray(input && input.learningRules) ? input.learningRules : [],
+    reviewQueue: Array.isArray(input && input.reviewQueue) ? input.reviewQueue : [],
   };
 }
 
@@ -97,6 +100,15 @@ function recordPrediction(journal, prediction, nowIso) {
       outcome: 'open',
       source: prediction.source || 'user',
     });
+  }
+  return j;
+}
+
+function appendDecisionAudit(journal, audit) {
+  const j = cloneJournal(journal);
+  if (!audit || !audit.id) return j;
+  if (!j.decisionAudits.some((x) => x.id === audit.id)) {
+    j.decisionAudits.push(audit);
   }
   return j;
 }
@@ -185,6 +197,7 @@ module.exports = {
   upsertNote,
   upsertAlert,
   recordPrediction,
+  appendDecisionAudit,
   buildPredictionScorecard,
   readJournalFile,
   writeJournalFile,
