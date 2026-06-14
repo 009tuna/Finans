@@ -226,7 +226,7 @@ const VIEW_META = {
   crypto: ['₿ Kripto', '12 coin · teknik momentum analizi', 'view-market'],
   portfolio: ['💼 Portföyüm', 'Maliyet, kâr/zarar ve portföy sağlık analizi', 'view-portfolio'],
   screener: ['🔍 Teknik Tarayıcı', 'Kritik indikatör sinyalleri ve alarmlar', 'view-screener'],
-  backtest: ['📈 Strateji Backtest', 'Geçmiş fiyat verileriyle teknik puan stratejisi testi', 'view-backtest'],
+  backtest: ['📈 Strateji Testi', 'Geçmiş fiyat verileriyle teknik puan stratejisi testi', 'view-backtest'],
   forecast: ['🔮 Finansal Projeksiyon', 'Olasılıksal portföy simülasyonu, stres testleri ve DCF analizleri', 'view-forecast'],
   report: ['📰 Günlük Rapor', 'Her sabah 09:00 otomatik rapor', 'view-report'],
   literacy: ['📚 Finansal Okuryazarlık', 'İndikatör ve risk rehberi', 'view-literacy'],
@@ -333,7 +333,7 @@ async function renderReport() {
   }
   const s = base.sentiment;
   const sc = s.label === 'Pozitif' ? 'sent-pos' : s.label === 'Nötr' ? 'sent-neu' : 'sent-cau';
-  const aiBadge = ai ? '<span class="ai-badge">✦ AI · canlı makro yorum</span>' : '';
+  const aiBadge = ai ? '<span class="ai-badge">✦ Yapay zeka · canlı makro yorum</span>' : '';
 
   let h = '';
   // Başlık
@@ -343,9 +343,9 @@ async function renderReport() {
 
   h += reportSignalOverlayHtml(base);
 
-  // AI makro + haber
+  // Yapay zeka makro + haber
   if (ai && ai.macroSummary) {
-    h += '<div class="card reveal"><div class="card-head"><h2>🌍 Makro & Dünya Durumu</h2><span class="ai-badge">✦ AI</span></div>' +
+    h += '<div class="card reveal"><div class="card-head"><h2>🌍 Makro ve Dünya Durumu</h2><span class="ai-badge">✦ Yapay zeka</span></div>' +
       '<p class="rep-macro">' + esc(ai.macroSummary) + '</p>';
     if (Array.isArray(ai.worldNews) && ai.worldNews.length) {
       h += '<div class="rep-section"><h3>Öne çıkan gelişmeler</h3>' +
@@ -362,11 +362,11 @@ async function renderReport() {
 
   // Haftalık Retro
   if (ai && ai.weeklyRetro) {
-    h += '<div class="card reveal"><div class="card-head"><h2>Geçen Hafta Ne Dedik? (Haftalık Retro)</h2><span class="ai-badge">✦ AI</span></div>' +
+    h += '<div class="card reveal"><div class="card-head"><h2>Geçen Hafta Ne Dedik? (Haftalık Geri Bakış)</h2><span class="ai-badge">✦ Yapay zeka</span></div>' +
       '<p class="rep-macro">' + esc(ai.weeklyRetro) + '</p></div>';
   }
 
-  // Bu hafta: katalizör takvimi + CFO senaryo analizi
+  // Bu hafta: katalizör takvimi + finans direktörü senaryo analizi
   h += weeklyHtml(base, ai);
 
   // Fırsatlar
@@ -392,10 +392,10 @@ async function renderReport() {
       '</div>';
   }
 
-  // AI pazar yorumu
+  // Yapay zeka pazar yorumu
   if (ai && ai.commentary) {
     const c = ai.commentary;
-    h += '<div class="card reveal"><div class="card-head"><h2>🗒️ Pazar Yorumu</h2><span class="ai-badge">✦ AI</span></div><div class="commentary">' +
+    h += '<div class="card reveal"><div class="card-head"><h2>🗒️ Pazar Yorumu</h2><span class="ai-badge">✦ Yapay zeka</span></div><div class="commentary">' +
       (c.us ? '<div class="comm"><h4>🇺🇸 ABD</h4><p>' + esc(c.us) + '</p></div>' : '') +
       (c.bist ? '<div class="comm"><h4>🇹🇷 BIST</h4><p>' + esc(c.bist) + '</p></div>' : '') +
       (c.crypto ? '<div class="comm"><h4>₿ Kripto</h4><p>' + esc(c.crypto) + '</p></div>' : '') +
@@ -408,10 +408,10 @@ async function renderReport() {
       base.risks.map((r) => '<span class="chip"><b>' + r.market + ' ' + r.symbol + '</b> — ' + esc(r.reason) + '</span>').join('') + '</div></div>';
   }
 
-  // AI günün odağı + okuryazarlık ipucu
+  // Yapay zeka günün odağı + okuryazarlık ipucu
   if (ai && (ai.todayFocus || ai.literacyTip)) {
     h += '<div class="card reveal">';
-    if (ai.todayFocus) h += '<div class="card-head"><h2>🎯 Bugün Neye Dikkat?</h2><span class="ai-badge">✦ AI</span></div><p class="rep-macro">' + esc(ai.todayFocus) + '</p>';
+    if (ai.todayFocus) h += '<div class="card-head"><h2>🎯 Bugün Neye Dikkat?</h2><span class="ai-badge">✦ Yapay zeka</span></div><p class="rep-macro">' + esc(ai.todayFocus) + '</p>';
     if (ai.literacyTip) h += '<div class="tip-card" style="margin-top:14px"><h4>📚 ' + esc(ai.literacyTip.title || 'Günün dersi') + '</h4><p>' + esc(ai.literacyTip.body || '') + '</p></div>';
     h += '</div>';
   }
@@ -452,7 +452,7 @@ async function renderReport() {
       h += '<b style="color: ' + (selectedIndex === ai.quiz.correctIndex ? 'var(--green)' : 'var(--red)') + ';">' + (selectedIndex === ai.quiz.correctIndex ? 'Tebrikler! Doğru cevap.' : 'Yanlış cevap.') + '</b>';
       h += '<p style="margin: 6px 0 0 0; font-size: 12.5px; color: var(--muted);">' + esc(ai.quiz.explanation) + '</p>';
       h += '</div>';
-      h += '<div style="margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--accent);">🔥 Mevcut Seri Skoru (Streak): ' + streak + ' gün</div>';
+      h += '<div style="margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--accent);">🔥 Mevcut seri skoru: ' + streak + ' gün</div>';
     } else {
       h += '<div style="display: flex; flex-direction: column; gap: 8px;" id="quiz-options-container">';
       ai.quiz.options.forEach((opt, idx) => {
@@ -464,7 +464,7 @@ async function renderReport() {
     h += '</div>';
   }
 
-  h += '<div class="card reveal"><p class="muted">Üretim: ' + (ai ? 'kural-tabanlı teknik + AI makro/haber katmanı' : 'kural-tabanlı teknik (AI katmanı bekleniyor)') + ' · ' + relTime(base.generatedAt) + '. <b>Yatırım tavsiyesi değildir.</b></p></div>';
+  h += '<div class="card reveal"><p class="muted">Üretim: ' + (ai ? 'kural-tabanlı teknik + yapay zeka makro/haber katmanı' : 'kural-tabanlı teknik (yapay zeka katmanı bekleniyor)') + ' · ' + relTime(base.generatedAt) + '. <b>Yatırım tavsiyesi değildir.</b></p></div>';
 
   el.innerHTML = h;
   triggerRevealAnimations(el);
@@ -472,7 +472,7 @@ async function renderReport() {
 function esc(t) { return String(t == null ? '' : t).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
 function flag(c) { return { US: '🇺🇸', CN: '🇨🇳', JP: '🇯🇵', DE: '🇩🇪', GB: '🇬🇧', EU: '🇪🇺', EA: '🇪🇺', TR: '🇹🇷', FR: '🇫🇷' }[c] || c; }
 
-// Bu haftanın katalizör takvimi + CFO senaryo analizi (base = deterministik, ai = yorum)
+// Bu haftanın katalizör takvimi + finans direktörü senaryo analizi (base = deterministik, ai = yorum)
 function reportSignalOverlayHtml(base) {
   const overlay = base && base.signalOverlay;
   if (!overlay || !overlay.assets) return '';
@@ -484,17 +484,17 @@ function reportSignalOverlayHtml(base) {
     .map((x) => {
       const cls = x.totalAdjustment > 0 ? 'pos' : 'neg';
       return '<div class="overlay-row report-overlay-row">' +
-        '<span><b>' + esc(x.symbol) + '</b><small>Teknik ' + x.technicalScore + ' -> Overlay ' + x.adjustedScore + ' · ' + esc(x.status) + '</small></span>' +
+        '<span><b>' + esc(x.symbol) + '</b><small>Teknik ' + x.technicalScore + ' -> Makro ' + x.adjustedScore + ' · ' + esc(overlayStatusLabel(x.status)) + '</small></span>' +
         '<em class="overlay-adj oa-' + cls + '">' + adjustmentLabel(x.totalAdjustment) + '</em>' +
       '</div>';
     }).join('');
   return '<div class="card reveal signal-overlay-card">' +
-    '<div class="card-head"><h2>Macro Signal Overlay</h2><span class="card-sub">AL/SAT degil; teknik skora sinirli makro/katalizor katmani</span></div>' +
+    '<div class="card-head"><h2>Makro Sinyal Katmani</h2><span class="card-sub">AL/SAT degil; teknik skora sinirli makro/katalizor katmani</span></div>' +
     '<div class="overlay-summary">' +
-      '<div><b>' + (summary.boosted || 0) + '</b><span>Boost</span></div>' +
-      '<div><b>' + (summary.reduced || 0) + '</b><span>Reduce</span></div>' +
+      '<div><b>' + (summary.boosted || 0) + '</b><span>Destek</span></div>' +
+      '<div><b>' + (summary.reduced || 0) + '</b><span>Baski</span></div>' +
       '<div><b>' + (summary.highPressure || 0) + '</b><span>Katalizor</span></div>' +
-      '<div><b>' + (summary.stale || 0) + '</b><span>Expired</span></div>' +
+      '<div><b>' + (summary.stale || 0) + '</b><span>Suresi dolan</span></div>' +
     '</div>' +
     '<div class="overlay-rows">' + (rows || '<p class="muted compact">Aktif overlay etkisi yok.</p>') + '</div>' +
   '</div>';
@@ -508,13 +508,13 @@ function weeklyHtml(base, ai) {
   const news = cal.companyNews || [];
   if (!wo && !econ.length && !earn.length && !news.length) return '';
 
-  let h = '<div class="card reveal"><div class="card-head"><h2>📅 Bu Hafta: Veri &amp; Katalizör Takvimi</h2>' + (wo ? '<span class="ai-badge">✦ AI · CFO senaryo</span>' : '') + '</div>';
+  let h = '<div class="card reveal"><div class="card-head"><h2>📅 Bu Hafta: Veri &amp; Katalizör Takvimi</h2>' + (wo ? '<span class="ai-badge">✦ Yapay zeka · finans direktörü senaryosu</span>' : '') + '</div>';
 
-  if (wo && wo.cfoSummary) h += '<div class="tip-card" style="margin-bottom:16px"><h4>🧠 CFO Bakışı — Haftanın Sentezi</h4><p>' + esc(wo.cfoSummary) + '</p></div>';
+  if (wo && wo.cfoSummary) h += '<div class="tip-card" style="margin-bottom:16px"><h4>🧠 Finans Direktörü Bakışı: Haftanın Sentezi</h4><p>' + esc(wo.cfoSummary) + '</p></div>';
 
   // Senaryo kartları
   if (wo && Array.isArray(wo.events) && wo.events.length) {
-    h += '<div class="rep-section"><h3>Veri beklentileri & senaryo analizi</h3><div class="scenarios">';
+    h += '<div class="rep-section"><h3>Veri beklentileri ve senaryo analizi</h3><div class="scenarios">';
     wo.events.forEach((ev) => {
       h += '<div class="scenario"><div class="sc-head"><span class="sc-event">' + esc(ev.event || '') + (ev.importance === 'high' ? ' <span class="news-impact imp-neg">yüksek etki</span>' : '') + '</span><span class="sc-date">' + esc(ev.date || '') + '</span></div>' +
         (ev.consensus ? '<div class="sc-row"><span class="sc-lbl">Beklenti</span><span>' + esc(ev.consensus) + '</span></div>' : '') +
@@ -554,7 +554,7 @@ function weeklyHtml(base, ai) {
     if (wlEarn.length) h += '<p class="muted" style="margin:0 0 8px">⭐ Takip listenizden: ' + wlEarn.map((e) => '<b>' + esc(e.symbol) + '</b> (' + esc(e.date) + ')').join(', ') + '</p>';
     else h += '<p class="muted" style="margin:0 0 8px">Bu hafta takip listenizden bilanço açıklayan yok.</p>';
     if (wo && wo.earningsFocus) h += '<p class="rep-macro" style="font-size:13px;margin-bottom:10px">' + esc(wo.earningsFocus) + '</p>';
-    h += '<div class="chips">' + earn.slice(0, 14).map((e) => '<span class="chip' + (e.watch ? ' chip-watch' : '') + '">' + esc(e.symbol) + ' · ' + esc(e.date) + (e.epsEstimate != null ? ' · EPS ' + esc(String(e.epsEstimate)) : '') + '</span>').join('') + '</div></div>';
+    h += '<div class="chips">' + earn.slice(0, 14).map((e) => '<span class="chip' + (e.watch ? ' chip-watch' : '') + '">' + esc(e.symbol) + ' · ' + esc(e.date) + (e.epsEstimate != null ? ' · HBK ' + esc(String(e.epsEstimate)) : '') + '</span>').join('') + '</div></div>';
   }
 
   // Şirket haber akışı
@@ -562,7 +562,7 @@ function weeklyHtml(base, ai) {
     h += '<div class="rep-section"><h3>Şirket haber akışı</h3>' + news.map((n) => '<div class="news-item"><span class="news-impact imp-neutral">' + esc(n.symbol) + '</span><span>' + esc(n.headline || '') + (n.source ? ' <span class="muted">— ' + esc(n.source) + '</span>' : '') + '</span></div>').join('') + '</div>';
   }
 
-  if (wo && wo.positioning) h += '<div class="tip-card" style="margin-top:14px"><h4>🎯 Pozisyon Disiplini (CFO)</h4><p>' + esc(wo.positioning) + '</p></div>';
+  if (wo && wo.positioning) h += '<div class="tip-card" style="margin-top:14px"><h4>🎯 Pozisyon Disiplini</h4><p>' + esc(wo.positioning) + '</p></div>';
 
   h += '</div>';
   return h;
@@ -1492,16 +1492,16 @@ function assetResearchCard(x) {
   const comps = window.FinansActionLayer.buildCompsSnapshot(x, DATA);
   const metrics = tear.metrics.map((m) => '<div><span>' + esc(m.label) + '</span><b>' + esc(m.value) + '</b></div>').join('');
   const gaps = tear.gaps.length ? tear.gaps.map((g) => '<li>' + esc(g) + '</li>').join('') : '<li>Temel veri eksigi gorunmuyor.</li>';
-  const peers = comps.peerSet.length ? comps.peerSet.map((p) => '<span>' + esc(p.symbol) + ' · ' + p.score + '</span>').join('') : '<span>Peer yok</span>';
+  const peers = comps.peerSet.length ? comps.peerSet.map((p) => '<span>' + esc(p.symbol) + ' · ' + p.score + '</span>').join('') : '<span>Benzer sirket yok</span>';
   return '<div class="asset-research-card">' +
     '<div class="research-block">' +
-      '<div class="research-head"><h4>Company Tearsheet</h4><span>' + esc(tear.bankerRead) + '</span></div>' +
+      '<div class="research-head"><h4>Sirket Ozeti</h4><span>' + esc(tear.bankerRead) + '</span></div>' +
       '<p>' + esc(tear.thesis) + '</p>' +
       '<div class="research-metrics">' + metrics + '</div>' +
       '<ul class="research-gaps">' + gaps + '</ul>' +
     '</div>' +
     '<div class="research-block">' +
-      '<div class="research-head"><h4>Comps Snapshot</h4><span>screen-grade</span></div>' +
+      '<div class="research-head"><h4>Benzer Sirket Gozlemi</h4><span>Tarama kalitesi</span></div>' +
       '<p>' + esc(comps.readThrough) + '</p>' +
       '<div class="peer-strip">' + peers + '</div>' +
       '<ul class="research-gaps">' + comps.limitations.map((g) => '<li>' + esc(g) + '</li>').join('') + '</ul>' +
@@ -1516,12 +1516,12 @@ function committeeMemoCard(x) {
   const memo = window.FinansActionLayer.buildInvestmentCommitteeMemo(x, DATA, JOURNAL, base);
   const list = (items) => (items && items.length ? items.map((item) => '<li>' + esc(item) + '</li>').join('') : '<li>Kayit yok.</li>');
   return '<div class="committee-memo-card verdict-' + esc(memo.verdict) + '">' +
-    '<div class="research-head"><h4>Investment Committee Memo</h4><span>' + esc(memo.verdict) + '</span></div>' +
+    '<div class="research-head"><h4>Yatirim Komitesi Notu</h4><span>' + esc(verdictLabel(memo.verdict)) + '</span></div>' +
     '<p class="memo-ask">' + esc(memo.decisionAsk) + '</p>' +
     '<div class="memo-snapshot">' +
       '<div><span>Fiyat</span><b>' + esc(memo.snapshot.price) + '</b></div>' +
       '<div><span>Skor</span><b>' + esc(memo.snapshot.score) + '</b></div>' +
-      '<div><span>Adj skor</span><b>' + esc(memo.snapshot.adjustedScore) + '</b></div>' +
+      '<div><span>Ayarlanmis skor</span><b>' + esc(memo.snapshot.adjustedScore) + '</b></div>' +
       '<div><span>Etiket</span><b>' + esc(memo.snapshot.label) + '</b></div>' +
     '</div>' +
     '<div class="memo-grid">' +
@@ -2033,7 +2033,7 @@ function navigateToAsset(market, symbol) {
 }
 window.navigateToAsset = navigateToAsset;
 
-/* ---------- Backtest Görünümü ---------- */
+/* ---------- Strateji testi görünümü ---------- */
 let btInitialized = false;
 
 function renderBacktestView() {
@@ -2079,7 +2079,7 @@ function renderBacktestView() {
         const result = await res.json();
         
         if (result.error) {
-          alert('Backtest Hatası: ' + result.error);
+          alert('Strateji testi hatası: ' + result.error);
           return;
         }
         
@@ -2088,7 +2088,7 @@ function renderBacktestView() {
         alert('Sunucu hatası oluştu');
       } finally {
         runBtn.disabled = false;
-        runBtn.innerHTML = '<span class="btn-ic">▶</span> Backtest Çalıştır';
+        runBtn.innerHTML = '<span class="btn-ic">▶</span> Testi Çalıştır';
         runBtn.classList.remove('loading');
       }
     });
@@ -2119,7 +2119,7 @@ function displayBacktestResults(res) {
       <div class="value ${retCls}">${fmtPct(res.strategyReturn)}<small>Toplam ${res.trades.filter(t => t.type === 'SELL').length} işlem</small></div>
     </div>
     <div class="kpi">
-      <div class="label">Al-Tut Getirisi (Buy & Hold)</div>
+      <div class="label">Al-Tut Getirisi</div>
       <div class="value ${bhCls}">${fmtPct(res.bhReturn)}<small>Pasif yatırım getirisi</small></div>
     </div>
   `;
@@ -3211,14 +3211,14 @@ async function renderCfoDecisionCockpit() {
     }
   }
   const cockpit = window.FinansActionLayer.buildCfoDecisionCockpit(DATA, JOURNAL, base || {});
-  const statusLabel = { ready: 'Hazir', gated: 'Gated', blocked: 'Bloke', watch: 'Izle' };
+  const statusLabel = { ready: 'Hazir', gated: 'Kanita bagli', blocked: 'Bloke', watch: 'Izle' };
   const rows = cockpit.rows.length ? cockpit.rows.map((row) => {
     const missing = row.missingEvidence.length
       ? row.missingEvidence.slice(0, 2).map((x) => '<li>' + esc(x) + '</li>').join('')
       : '<li>Baglayici eksik yok</li>';
     return '<button class="cfo-row cfo-' + esc(row.status) + '" type="button" onclick="navigateToAsset(\'' + esc(row.market) + '\', \'' + esc(row.symbol) + '\')">' +
       '<span class="cfo-symbol"><b>' + esc(row.symbol) + '</b><small>' + esc(row.marketLabel) + ' · ' + esc(row.decisionAsk) + '</small></span>' +
-      '<span class="cfo-score"><b>' + row.score + '</b><small>adj ' + row.adjustedScore + '</small></span>' +
+      '<span class="cfo-score"><b>' + row.score + '</b><small>makro ' + row.adjustedScore + '</small></span>' +
       '<span class="cfo-status">' + esc(statusLabel[row.status] || row.status) + '</span>' +
       '<span class="cfo-binding">' + esc(row.bindingReason) + '</span>' +
       '<ul class="cfo-missing">' + missing + '</ul>' +
@@ -3227,7 +3227,7 @@ async function renderCfoDecisionCockpit() {
   }).join('') : '<p class="muted compact">Karar satiri uretmek icin veri bekleniyor.</p>';
 
   el.innerHTML = '<div class="card reveal cfo-cockpit-card">' +
-    '<div class="card-head"><h2>CFO Decision Cockpit</h2><span class="card-sub">Karar hazirligi, baglayici risk ve eksik kanit</span></div>' +
+    '<div class="card-head"><h2>Finans Direktoru Karar Kokpiti</h2><span class="card-sub">Karar hazirligi, baglayici risk ve eksik kanit</span></div>' +
     '<p class="action-headline">' + esc(cockpit.summary) + '</p>' +
     '<div class="cfo-row cfo-head" aria-hidden="true"><span>Varlik</span><span>Skor</span><span>Durum</span><span>Baglayici neden</span><span>Eksik kanit</span><span>Sonraki is</span></div>' +
     '<div class="cfo-rows">' + rows + '</div>' +
@@ -3268,12 +3268,12 @@ function renderPredictionScorecard() {
       '<div style="font-size:12px; line-height:1.4;">' +
         '<h4 style="margin:0 0 6px 0; font-size:12px; font-weight:700;">🤖 Sistem Kararları</h4>' +
         'Toplam: ' + card.bySource.system.total + ' · Kapanan: ' + card.bySource.system.closed + '<br>' +
-        'İsabet: <span style="font-weight:700; color:var(--accent);">' + card.bySource.system.winRate + '%</span> (Wins: ' + card.bySource.system.wins + ')' +
+        'İsabet: <span style="font-weight:700; color:var(--accent);">' + card.bySource.system.winRate + '%</span> (Kazanan: ' + card.bySource.system.wins + ')' +
       '</div>' +
       '<div style="font-size:12px; line-height:1.4; border-left:1px solid var(--border); padding-left:14px;">' +
         '<h4 style="margin:0 0 6px 0; font-size:12px; font-weight:700;">👤 Kullanıcı Notları</h4>' +
         'Toplam: ' + card.bySource.user.total + ' · Kapanan: ' + card.bySource.user.closed + '<br>' +
-        'İsabet: <span style="font-weight:700; color:var(--accent);">' + card.bySource.user.winRate + '%</span> (Wins: ' + card.bySource.user.wins + ')' +
+        'İsabet: <span style="font-weight:700; color:var(--accent);">' + card.bySource.user.winRate + '%</span> (Kazanan: ' + card.bySource.user.wins + ')' +
       '</div>' +
     '</div>' +
     '<div style="border-top:1px solid var(--border); padding-top:12px;">' +
@@ -3299,13 +3299,94 @@ function adjustmentLabel(n) {
   const value = Number(n) || 0;
   return (value > 0 ? '+' : '') + value;
 }
+function overlayTypeLabel(type) {
+  return {
+    macro: 'Makro',
+    fedDecision: 'Fed karari',
+    usRetailSales: 'ABD perakende',
+    aiCapexReadThrough: 'Yapay zeka yatirimi',
+    enterpriseAiDemand: 'Kurumsal yapay zeka talebi',
+    btcLiquidity: 'BTC likiditesi',
+    tlPressure: 'TL baskisi',
+    tcmbCarry: 'TCMB tasima etkisi',
+    oilSensitivity: 'Petrol hassasiyeti',
+    companyNews: 'Sirket haberi',
+    earnings: 'Bilanco',
+    macroCatalyst: 'Makro katalizor',
+    thesisStatus: 'Tez durumu',
+    tearsheetCompleteness: 'Veri tamligi',
+    compsValuationGap: 'Carpan boslugu',
+    modelAuditGap: 'Model denetimi',
+    scenarioSensitivity: 'Senaryo hassasiyeti',
+    predictionCalibration: 'Tahmin kalibrasyonu',
+  }[type] || type || 'Bilesen';
+}
+function overlayStatusLabel(status) {
+  return {
+    boost: 'Destek',
+    risk: 'Risk',
+    watch: 'Izle',
+    neutral: 'Notr',
+    ready: 'Hazir',
+    gated: 'Kanita bagli',
+    blocked: 'Bloke',
+  }[status] || status || 'Belirsiz';
+}
+function marketShortLabel(market) {
+  return { us: 'ABD', bist: 'BIST', crypto: 'Kripto', macro: 'Makro' }[String(market || '').toLowerCase()] || String(market || '').toUpperCase();
+}
+function catalystPressureLabel(value) {
+  return { high: 'yuksek', medium: 'orta', low: 'dusuk' }[value] || value || 'belirsiz';
+}
+function timingLabel(value) {
+  return { dated: 'tarihli', window: 'pencere' }[value] || value || 'belirsiz';
+}
+function sourceLabel(value) {
+  const text = String(value || '').trim();
+  return {
+    'company/news': 'Sirket haberi',
+    calendar: 'Takvim',
+    Yahoo: 'Yahoo',
+    SeekingAlpha: 'Seeking Alpha',
+  }[text] || text.replace(/\//g, ' / ') || 'Kaynak';
+}
+function actionKindLabel(value) {
+  return {
+    add: 'Ekle',
+    buy: 'Al',
+    hold: 'Tut',
+    watch: 'Izle',
+    trim: 'Azalt',
+    reduce: 'Azalt',
+    rebalance: 'Dengele',
+    exit: 'Cik',
+    avoid: 'Uzak dur',
+  }[value] || value || 'Not';
+}
+function workflowLabel(value) {
+  return {
+    'thesis tracker -> catalyst calendar': 'tez takibi -> katalizor takvimi',
+    'thesis tracker -> company tearsheet': 'tez takibi -> sirket ozeti',
+    'valuation / expectations gate': 'degerleme / beklenti kapisi',
+    'prediction calibration': 'tahmin kalibrasyonu',
+    'watchlist / thesis draft': 'izleme listesi / tez taslagi',
+    'reject / wait for repair': 'reddet / sinyal onarimini bekle',
+  }[value] || value || 'Not';
+}
+function verdictLabel(value) {
+  return {
+    blocked: 'Bloke',
+    'screen-grade': 'Tarama kalitesi',
+    'senior-review-ready': 'Kidemli incelemeye hazir',
+  }[value] || value || 'Belirsiz';
+}
 
 function renderSignalOverlayPanel() {
   const el = $('#signalOverlayPanel');
   if (!el) return;
   const overlay = getReportSignalOverlay();
   if (!overlay || !overlay.assets) {
-    el.innerHTML = '<div class="card reveal signal-overlay-card"><div class="card-head"><h2>Macro Signal Overlay</h2><span class="card-sub">Rapor bekleniyor</span></div><p class="muted compact">Overlay henuz uretilmedi; teknik skorlar aynen kullaniliyor.</p></div>';
+    el.innerHTML = '<div class="card reveal signal-overlay-card"><div class="card-head"><h2>Makro Sinyal Katmani</h2><span class="card-sub">Rapor bekleniyor</span></div><p class="muted compact">Makro katman henuz uretilmedi; teknik skorlar aynen kullaniliyor.</p></div>';
     return;
   }
 
@@ -3317,24 +3398,24 @@ function renderSignalOverlayPanel() {
   const markets = ['us', 'bist', 'crypto'].map((m) => {
     const item = overlay.market && overlay.market[m] ? overlay.market[m] : { adjustment: 0, reason: 'notr' };
     const cls = item.adjustment > 0 ? 'pos' : item.adjustment < 0 ? 'neg' : 'neutral';
-    return '<div class="overlay-market om-' + cls + '"><b>' + esc(m.toUpperCase()) + ' ' + adjustmentLabel(item.adjustment) + '</b><span>' + esc(item.reason || '') + '</span></div>';
+    return '<div class="overlay-market om-' + cls + '"><b>' + esc(marketShortLabel(m)) + ' ' + adjustmentLabel(item.adjustment) + '</b><span>' + esc(item.reason || '') + '</span></div>';
   }).join('');
   const rows = assets.length ? assets.map((x) => {
     const cls = x.totalAdjustment > 0 ? 'pos' : 'neg';
     const top = (x.components || [])[0];
     return '<button class="overlay-row" type="button" onclick="navigateToAsset(\'' + esc(x.market) + '\', \'' + esc(x.symbol) + '\')">' +
-      '<span><b>' + esc(x.symbol) + '</b><small>Teknik ' + x.technicalScore + ' -> Overlay ' + x.adjustedScore + ' · ' + esc(top ? top.type : x.status) + '</small></span>' +
+      '<span><b>' + esc(x.symbol) + '</b><small>Teknik ' + x.technicalScore + ' -> Makro ' + x.adjustedScore + ' · ' + esc(top ? overlayTypeLabel(top.type) : overlayStatusLabel(x.status)) + '</small></span>' +
       '<em class="overlay-adj oa-' + cls + '">' + adjustmentLabel(x.totalAdjustment) + '</em>' +
     '</button>';
   }).join('') : '<p class="muted compact">Aktif makro/katalizor etkisi yok.</p>';
 
   el.innerHTML = '<div class="card reveal signal-overlay-card">' +
-    '<div class="card-head"><h2>Macro Signal Overlay</h2><span class="card-sub">Teknik skoru bozmaz; toplam etki +/-' + overlay.maxAdjustment + '</span></div>' +
+    '<div class="card-head"><h2>Makro Sinyal Katmani</h2><span class="card-sub">Teknik skoru bozmaz; toplam etki +/-' + overlay.maxAdjustment + '</span></div>' +
     '<div class="overlay-summary">' +
-      '<div><b>' + (summary.boosted || 0) + '</b><span>Boost</span></div>' +
-      '<div><b>' + (summary.reduced || 0) + '</b><span>Reduce</span></div>' +
+      '<div><b>' + (summary.boosted || 0) + '</b><span>Destek</span></div>' +
+      '<div><b>' + (summary.reduced || 0) + '</b><span>Baski</span></div>' +
       '<div><b>' + (summary.highPressure || 0) + '</b><span>Katalizor</span></div>' +
-      '<div><b>' + (summary.stale || 0) + '</b><span>Expired</span></div>' +
+      '<div><b>' + (summary.stale || 0) + '</b><span>Suresi dolan</span></div>' +
     '</div>' +
     '<div class="overlay-markets">' + markets + '</div>' +
     '<div class="overlay-rows">' + rows + '</div>' +
@@ -3347,14 +3428,14 @@ function assetSignalOverlayCard(x) {
   const cls = overlay.totalAdjustment > 0 ? 'pos' : overlay.totalAdjustment < 0 ? 'neg' : 'neutral';
   const components = (overlay.components || []).slice(0, 7).map((c) => {
     const tone = c.adjustment > 0 ? 'pos' : c.adjustment < 0 ? 'neg' : 'neutral';
-    return '<li><span class="overlay-chip oc-' + tone + '">' + adjustmentLabel(c.adjustment) + '</span><b>' + esc(c.type) + '</b><em>' + esc(c.reason || '') + '</em></li>';
+    return '<li><span class="overlay-chip oc-' + tone + '">' + adjustmentLabel(c.adjustment) + '</span><b>' + esc(overlayTypeLabel(c.type)) + '</b><em>' + esc(c.reason || '') + '</em></li>';
   }).join('');
   const expired = (overlay.expiredComponents || []).length
-    ? '<p class="overlay-expired">' + overlay.expiredComponents.length + ' eski makro sinyal expiresAt nedeniyle etkisiz.</p>'
+    ? '<p class="overlay-expired">' + overlay.expiredComponents.length + ' eski makro sinyal suresi doldugu icin etkisiz.</p>'
     : '';
   return '<div class="asset-overlay-card aoc-' + cls + '">' +
-    '<div class="research-head"><h4>Macro Overlay</h4><span>' + esc(overlay.status) + ' · confidence ' + Math.round((overlay.confidence || 0) * 100) + '%</span></div>' +
-    '<div class="asset-overlay-score"><div><span>Teknik skor</span><b>' + overlay.technicalScore + '</b></div><div><span>Overlay etki</span><b>' + adjustmentLabel(overlay.totalAdjustment) + '</b></div><div><span>Ayarlanmis skor</span><b>' + overlay.adjustedScore + '</b></div></div>' +
+    '<div class="research-head"><h4>Makro Katman</h4><span>' + esc(overlayStatusLabel(overlay.status)) + ' · guven ' + Math.round((overlay.confidence || 0) * 100) + '%</span></div>' +
+    '<div class="asset-overlay-score"><div><span>Teknik skor</span><b>' + overlay.technicalScore + '</b></div><div><span>Makro etki</span><b>' + adjustmentLabel(overlay.totalAdjustment) + '</b></div><div><span>Ayarlanmis skor</span><b>' + overlay.adjustedScore + '</b></div></div>' +
     '<ul class="asset-overlay-components">' + (components || '<li><em>Aktif bilesen yok.</em></li>') + '</ul>' +
     expired +
   '</div>';
@@ -3363,10 +3444,10 @@ function assetSignalOverlayCard(x) {
 function bucketTitle(key) {
   return {
     advance: 'Derin arastirma',
-    watchlist: 'Watchlist',
-    gated: 'Valuation gate',
+    watchlist: 'Izleme listesi',
+    gated: 'Degerleme kapisi',
     unproven: 'Kanitsiz tema',
-    reject: 'Reject',
+    reject: 'Reddet',
   }[key] || key;
 }
 
@@ -3381,7 +3462,7 @@ function renderIdeaFunnel() {
     const empty = '<p class="muted compact">Bu kovada aday yok.</p>';
     const list = rows.length ? rows.map((x) => {
       return '<button class="idea-row" type="button" onclick="navigateToAsset(\'' + esc(x.market) + '\', \'' + esc(x.symbol) + '\')">' +
-        '<span><b>' + esc(x.symbol) + '</b><small>' + esc(x.marketLabel) + ' · ' + esc(x.nextWorkflow) + '</small></span>' +
+      '<span><b>' + esc(x.symbol) + '</b><small>' + esc(x.marketLabel) + ' · ' + esc(workflowLabel(x.nextWorkflow)) + '</small></span>' +
         '<em class="badge tone-' + esc(x.tone) + '">' + esc(x.label) + ' · ' + x.score + '</em>' +
       '</button>';
     }).join('') : empty;
@@ -3392,7 +3473,7 @@ function renderIdeaFunnel() {
   }).join('');
 
   el.innerHTML = '<div class="card reveal idea-funnel-card">' +
-    '<div class="card-head"><h2>Idea Funnel</h2><span class="card-sub">Aday, watchlist ve red kovaları; nihai tavsiye degildir</span></div>' +
+    '<div class="card-head"><h2>Fikir Hunisi</h2><span class="card-sub">Aday, izleme ve red kovaları; nihai tavsiye degildir</span></div>' +
     '<p class="action-headline">' + esc(funnel.headline) + '</p>' +
     '<div class="idea-grid">' + bucketHtml + '</div>' +
   '</div>';
@@ -3425,8 +3506,8 @@ async function renderCatalystCalendar() {
   const rows = calendar.events.slice(0, 6).map((ev) => {
     const pressureCls = ev.decisionPressure === 'high' ? 'imp-neg' : ev.decisionPressure === 'medium' ? 'imp-neutral' : 'imp-pos';
     return '<div class="catalyst-row">' +
-      '<div><b>' + esc(ev.title) + '</b><span>' + esc(ev.symbol || ev.market || 'macro') + ' · ' + esc(ev.timingConfidence) + ' · ' + esc(ev.source) + '</span></div>' +
-      '<div class="catalyst-meta"><small>' + esc(ev.date || 'window') + '</small><em class="news-impact ' + pressureCls + '">' + esc(ev.decisionPressure) + '</em></div>' +
+      '<div><b>' + esc(ev.title) + '</b><span>' + esc(ev.symbol || marketShortLabel(ev.market) || 'Makro') + ' · ' + esc(timingLabel(ev.timingConfidence)) + ' · ' + esc(sourceLabel(ev.source)) + '</span></div>' +
+      '<div class="catalyst-meta"><small>' + esc(ev.date || 'pencere') + '</small><em class="news-impact ' + pressureCls + '">' + esc(catalystPressureLabel(ev.decisionPressure)) + '</em></div>' +
     '</div>';
   }).join('');
   const prep = calendar.prepQueue.slice(0, 3).map((x) => '<li>' + esc(x.action) + '</li>').join('');
@@ -3452,7 +3533,7 @@ function renderPortfolioRiskPlan() {
     actionsEl.innerHTML = '<div class="card reveal action-card">' +
       '<div class="card-head"><h2>Portfoy Aksiyonlari</h2><span class="card-sub">Pozisyon ve sinyal kaynakli karar notlari</span></div>' +
       '<div class="portfolio-actions">' + (plan.actions.length ? plan.actions.map((a) => {
-        return '<div class="portfolio-action pa-' + esc(a.tone) + '"><span>' + esc(a.kind) + '</span><p>' + esc(a.text) + '</p></div>';
+        return '<div class="portfolio-action pa-' + esc(a.tone) + '"><span>' + esc(actionKindLabel(a.kind)) + '</span><p>' + esc(a.text) + '</p></div>';
       }).join('') : '<p class="muted compact">Portfoy aksiyonu yok.</p>') + '</div>' +
     '</div>';
   }
@@ -3464,7 +3545,7 @@ function renderPortfolioRiskPlan() {
     const budget = plan.riskBudget || { totalNavUsd: plan.totalUsd, maxSingleNamePct: 35, maxCryptoPct: 50, bindingConstraint: '-' };
     const allocRows = (plan.targetAllocations || []).slice(0, 6).map((x) => {
       return '<div class="target-allocation ta-' + esc(x.action) + '">' +
-        '<b>' + esc(x.symbol) + '</b><span>' + esc(x.currentWeightPct) + '% -> max ' + esc(x.maxWeightPct) + '%</span><em>' + esc(x.action) + '</em>' +
+        '<b>' + esc(x.symbol) + '</b><span>' + esc(x.currentWeightPct) + '% -> azami ' + esc(x.maxWeightPct) + '%</span><em>' + esc(actionKindLabel(x.action)) + '</em>' +
       '</div>';
     }).join('');
     riskEl.innerHTML = '<div class="card reveal risk-plan-card rp-' + esc(plan.status) + '">' +

@@ -154,7 +154,7 @@
   }
 
   /**
-   * Backtest sonucunu "ne zaman çalışır / ne zaman bozulur" diliyle açıklar.
+   * Strateji testi sonucunu "ne zaman çalışır / ne zaman bozulur" diliyle açıklar.
    * @param {object} res - runBacktest çıktısı
    * @returns {object} { maxDrawdown, winRate, closedTrades, best, worst, beatBH, headlineTone, worksWhen, breaksWhen, note }
    */

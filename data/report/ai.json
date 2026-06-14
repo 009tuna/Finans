@@ -20,7 +20,7 @@
       "impact": "nötr"
     },
     {
-      "title": "Oracle 10 Haziran 2026 sonuçlarında bulut gelirlerini yıllık %39 büyüttü; AI altyapı talebi hâlâ sert ve bu çip/hiperscaler zincirini canlı tutuyor.",
+      "title": "Oracle 10 Haziran 2026 sonuçlarında bulut gelirlerini yıllık %39 büyüttü; yapay zeka altyapı talebi hâlâ sert ve bu çip/hiperscaler zincirini canlı tutuyor.",
       "impact": "olumlu"
     }
   ],
@@ -55,7 +55,7 @@
         "consensus": "Piyasa faizin 3,50-%3,75 bandında sabit kalmasını ana senaryo görüyor; olasılık haber akışında %96-%98,5 bandında fiyatlandı.",
         "myCall": "Faiz sabit, ton ise şahin-nötr kalır; 10 Haziran 2026 TÜFE ve 12 Haziran 2026 Michigan enflasyon beklentileri Fed'e erken gevşeme alanı bırakmıyor.",
         "reasoning": "Fed takviminde toplantı 16-17 Haziran 2026 ve basın toplantısı 17 Haziran 2026'da. BLS verisinde manşet TÜFE %4,2 ve çekirdek %2,9; Michigan'da 1 yıllık beklenti %4,6. Bu kombinasyon veri bağımlı ama rahat olmayan bir Fed üretir.",
-        "ifLower": "Beklenenden güvercin ton gelirse uzun duration teknoloji ve kripto rahatlar; AMD, NVDA, TSLA ve COIN ilk tepkiyi verir.",
+        "ifLower": "Beklenenden güvercin ton gelirse uzun vadeli iskonto hassas teknoloji ve kripto rahatlar; AMD, NVDA, TSLA ve COIN ilk tepkiyi verir.",
         "ifHigher": "Şahin ton veya daha az indirim patikası gelirse iskonto oranı baskısı artar; TSLA, COIN ve yüksek beta teknoloji yeniden ezilir.",
         "affected": [
           "AMD",
@@ -70,7 +70,7 @@
         "importance": "high",
         "consensus": "Manşet aylık +%0,5; otomotiv hariç +%0,6. Nisan manşet veri +%0,5'ti.",
         "myCall": "Nominal veri beklenti civarı gelse bile enflasyon etkisi yüzünden reel okuma zayıf kalır.",
-        "reasoning": "MarketWatch takviminde 17 Haziran 2026 için beklenti +%0,5 manşet ve +%0,6 ex-autos. Nisan verisinin de enerji kaynaklı şiştiğini biliyoruz; Mayıs'ta da yüksek fiyat seviyesi hacim yanılsaması yaratabilir.",
+        "reasoning": "MarketWatch takviminde 17 Haziran 2026 için beklenti +%0,5 manşet ve otomotiv hariç +%0,6. Nisan verisinin de enerji kaynaklı şiştiğini biliyoruz; Mayıs'ta da yüksek fiyat seviyesi hacim yanılsaması yaratabilir.",
         "ifLower": "+%0,3 ve altı gelirse büyüme yavaşlama anlatısı güçlenir; AMZN ve AAPL gibi tüketim duyarlı mega-cap'lerde kar realizasyonu görülebilir.",
         "ifHigher": "+%0,7 ve üzeri gelirse ekonomi sert fren yapmıyor algısı oluşur; ancak Fed ile birlikte okunacağı için tahvil faizleri yükselirse kazançlar sınırlı kalabilir.",
         "affected": [
@@ -102,10 +102,10 @@
         "date": "2026-06-18",
         "importance": "medium",
         "consensus": "İlk işsizlik başvuruları 225 bin bekleniyor; önceki 229 bin. Accenture için dış piyasa beklentisi gelir 18,742 milyar $, EPS 3,69.",
-        "myCall": "İşsizlik başvurularında hafif normalleşme, Accenture tarafında ise AI talebinin canlı kaldığını gösteren ama marj disiplini sorgulanan bir bilanço bekliyorum.",
-        "reasoning": "Investing.com takviminde 18 Haziran 2026 için 225 bin işsizlik başvurusu beklentisi var. Accenture, 2 Haziran 2026'da 18 Haziran sonuç tarihini duyurdu; piyasa önizlemeleri AI talebini güçlü, fakat fiyatlama için rehberlik kalitesini kritik görüyor.",
+        "myCall": "İşsizlik başvurularında hafif normalleşme, Accenture tarafında ise yapay zeka talebinin canlı kaldığını gösteren ama marj disiplini sorgulanan bir bilanço bekliyorum.",
+        "reasoning": "Investing.com takviminde 18 Haziran 2026 için 225 bin işsizlik başvurusu beklentisi var. Accenture, 2 Haziran 2026'da 18 Haziran sonuç tarihini duyurdu; piyasa önizlemeleri yapay zeka talebini güçlü, fakat fiyatlama için rehberlik kalitesini kritik görüyor.",
         "ifLower": "Başvurular 220 bin altına iner ve ACN güçlü rehberlik verirse kurumsal teknoloji harcaması anlatısı güçlenir; MSFT, NVDA ve PLTR pozitif okur.",
-        "ifHigher": "Başvurular 235 bin üstü ve ACN rehberliği yumuşak gelirse büyüme endişesi geri gelir; PLTR, MSFT ve yüksek beklenti taşıyan AI zinciri baskı görür.",
+        "ifHigher": "Başvurular 235 bin üstü ve ACN rehberliği yumuşak gelirse büyüme endişesi geri gelir; PLTR, MSFT ve yüksek beklenti taşıyan yapay zeka zinciri baskı görür.",
         "affected": [
           "MSFT",
           "NVDA",
@@ -114,13 +114,13 @@
         ]
       }
     ],
-    "earningsFocus": "Takip listesinin doğrudan içinden büyük bilanço yok; bu yüzden bilanço etkisini sektör aktarımı üzerinden okumak gerekiyor. 18 Haziran 2026 Accenture sonucu kurumsal AI talebi için, 10 Haziran 2026 Oracle sonucu ise bulut/altyapı harcamasının hâlâ güçlü kaldığına dair okuma veriyor; bu, doğrudan AMD, NVDA, MSFT ve AMZN için ikinci dereceden katalizör.",
+    "earningsFocus": "Takip listesinin doğrudan içinden büyük bilanço yok; bu yüzden bilanço etkisini sektör aktarımı üzerinden okumak gerekiyor. 18 Haziran 2026 Accenture sonucu kurumsal yapay zeka talebi için, 10 Haziran 2026 Oracle sonucu ise bulut/altyapı harcamasının hâlâ güçlü kaldığına dair okuma veriyor; bu, doğrudan AMD, NVDA, MSFT ve AMZN için ikinci dereceden katalizör.",
     "positioning": "Kısa vade disiplininde üç kural var. Bir: BIST'te bankalar güçlü diye kur riskini yok sayma; TL kırılganlığı sürdükçe kademesiz büyütme saçma olur. İki: ABD'de Fed günü öncesi özellikle TSLA, COIN ve NFLX gibi zayıf veya yüksek beta isimlerde stop gevşetme. Üç: Kriptoda veri beslemesi ve ETF akışı düzelmeden 'ucuzladı' diye ortalama düşürmek, veri yokluğunu görüş sanmak olur."
   },
   "todayFocus": "Bugün asıl izlenecek şey fiyat değil hazırlık. 17 Haziran 2026 Fed + perakende satışlar kombinasyonuna girerken ABD tarafında hangi pozisyonun sadece beta taşıdığını, BIST tarafında ise banka rallisinin ne kadarının TL baskısını absorbe edebildiğini ayır.",
   "literacyTip": {
     "title": "Nominal güç ile reel güç aynı şey değildir",
-    "body": "Perakende satışlar veya ciro verileri güçlü göründüğünde çoğu kişi otomatik olarak talebin güçlü olduğunu sanıyor. Bu tembel bir okuma. 10 Haziran 2026 TÜFE verisinde enerji yıllık %23,5 arttı; böyle bir ortamda satışların artması, satılan miktarın değil fiyat etiketinin şişmesi de olabilir. CFO disiplini şunu sorar: hacim mi büyüdü, fiyat mı yükseldi, marj bunu taşıyor mu?"
+    "body": "Perakende satışlar veya ciro verileri güçlü göründüğünde çoğu kişi otomatik olarak talebin güçlü olduğunu sanıyor. Bu tembel bir okuma. 10 Haziran 2026 TÜFE verisinde enerji yıllık %23,5 arttı; böyle bir ortamda satışların artması, satılan miktarın değil fiyat etiketinin şişmesi de olabilir. Finans direktörü disiplini şunu sorar: hacim mi büyüdü, fiyat mı yükseldi, marj bunu taşıyor mu?"
   },
   "weeklyRetro": "Skor kartı tarafında hâlâ kapanmış tahmin yok: base verisinde 10 tahminin 10'u da açık, dolayısıyla sistem isabeti üzerinden böbürlenecek veri yok. Geçen haftanın gerçek dersi makrodaydı: 10 Haziran 2026 ABD TÜFE'si yeniden ısındı, 12 Haziran 2026 Michigan güveni 49,8 ile zayıf kaldı ve aynı gün BIST 100 haftayı %1,42 artıyla 13.938,48'de kapattı. Yani hisse ekranı ile makro ekranı aynı şeyi söylemiyor; BIST momentumu iyi, ama TL ve küresel iskonto oranı baskısı hâlâ canlı. Kripto tarafında ise bugünkü repo akışında veri eksikliği yaşandığı için sistemin 'bilmiyorum' deme disiplini doğruydu; uydurma teknik rahatlama üretmekten iyidir.",
   "quiz": {
@@ -132,17 +132,17 @@
       "ABD verileri sadece ABD hisselerini etkiler; BIST bankaları ve COIN için çıkarım yapmak hatalıdır."
     ],
     "correctIndex": 1,
-    "explanation": "Doğru okuma, verileri tek başına değil birlikte okumaktır. Perakende satışların fena gelmemesi büyümenin çökmemesi demektir, ama Fed şahin kaldığında iskonto oranı baskısı yüksek beta çarpanlarını yine ezer. CFO mantığıyla önce fonlama maliyetini, sonra büyüme hikayesini tartarsın."
+    "explanation": "Doğru okuma, verileri tek başına değil birlikte okumaktır. Perakende satışların fena gelmemesi büyümenin çökmemesi demektir, ama Fed şahin kaldığında iskonto oranı baskısı yüksek beta çarpanlarını yine ezer. Finans direktörü mantığıyla önce fonlama maliyetini, sonra büyüme hikayesini tartarsın."
   },
   "macroSignalOverlay": {
-    "summary": "Makro overlay teknik skorların yerine geçmiyor; yalnızca 17-18 Haziran veri/Fed/TCMB penceresinin kısa vadeli baskısını ve AI-talep devamlılığını puanlıyor.",
+    "summary": "Makro katman teknik skorların yerine geçmiyor; yalnızca 17-18 Haziran veri/Fed/TCMB penceresinin kısa vadeli baskısını ve yapay zeka talep devamlılığını puanlıyor.",
     "signals": [
       {
         "type": "fedDecision",
         "market": "us",
         "adjustment": -2,
         "confidence": 0.78,
-        "source": "Federal Reserve June 2026 calendar; BLS CPI May 2026; Michigan Surveys of Consumers June 2026",
+        "source": "Fed Haziran 2026 takvimi; BLS Mayıs 2026 TÜFE; Michigan Tüketici Anketi Haziran 2026",
         "asOf": "2026-06-14T10:12:27.681Z",
         "expiresAt": "2026-06-18T21:00:00.000Z",
         "reason": "17 Haziran Fed toplantısı öncesi ABD manşet TÜFE %4,2 ve 1 yıllık enflasyon beklentisi %4,6; erken güvercinleşme zemini zayıf."
@@ -152,7 +152,7 @@
         "market": "us",
         "adjustment": -1,
         "confidence": 0.61,
-        "source": "MarketWatch U.S. Economic Calendar June 17 2026",
+        "source": "MarketWatch ABD Ekonomi Takvimi 17 Haziran 2026",
         "asOf": "2026-06-14T10:12:27.681Z",
         "expiresAt": "2026-06-17T18:00:00.000Z",
         "reason": "17 Haziran perakende satış beklentisi manşette +%0,5; veri Fed günüyle çakıştığı için beklenti hatası ABD büyüme hisselerinde oynaklığı artırır."
@@ -163,10 +163,10 @@
         "symbol": "NVDA",
         "adjustment": 2,
         "confidence": 0.74,
-        "source": "Oracle FY2026 Q4 results announcement June 10 2026",
+        "source": "Oracle 2026 mali yılı 4. çeyrek sonuç duyurusu, 10 Haziran 2026",
         "asOf": "2026-06-14T10:12:27.681Z",
         "expiresAt": "2026-06-19T21:00:00.000Z",
-        "reason": "Oracle'ın bulut gelirleri yıllık %39 büyüdü; AI altyapı talebi canlı kaldığı için NVDA için sektör aktarımı pozitif."
+        "reason": "Oracle'ın bulut gelirleri yıllık %39 büyüdü; yapay zeka altyapı talebi canlı kaldığı için NVDA için sektör aktarımı pozitif."
       },
       {
         "type": "aiCapexReadThrough",
@@ -174,10 +174,10 @@
         "symbol": "AMD",
         "adjustment": 1,
         "confidence": 0.68,
-        "source": "Oracle FY2026 Q4 results announcement June 10 2026",
+        "source": "Oracle 2026 mali yılı 4. çeyrek sonuç duyurusu, 10 Haziran 2026",
         "asOf": "2026-06-14T10:12:27.681Z",
         "expiresAt": "2026-06-19T21:00:00.000Z",
-        "reason": "Bulut altyapı talebi güçlü kaldığı için AMD tarafında da ikinci sıra AI harcama desteği var; fakat Fed riski NVDA kadar net pozitif yazdırmıyor."
+        "reason": "Bulut altyapı talebi güçlü kaldığı için AMD tarafında da ikinci sıra yapay zeka harcama desteği var; fakat Fed riski NVDA kadar net pozitif yazdırmıyor."
       },
       {
         "type": "enterpriseAiDemand",
@@ -185,17 +185,17 @@
         "symbol": "MSFT",
         "adjustment": 1,
         "confidence": 0.64,
-        "source": "Oracle FY2026 Q4 results announcement June 10 2026; Accenture Q3 FY2026 earnings date announcement June 2 2026",
+        "source": "Oracle 2026 mali yılı 4. çeyrek sonuç duyurusu, 10 Haziran 2026; Accenture 2026 mali yılı 3. çeyrek bilanço tarihi duyurusu, 2 Haziran 2026",
         "asOf": "2026-06-14T10:12:27.681Z",
         "expiresAt": "2026-06-19T21:00:00.000Z",
-        "reason": "Kurumsal AI talebinin zayıflamadığına dair iki ayrı okuma var; Oracle sonucu bunu gösterdi, Accenture bilançosu bunu sınayacak."
+        "reason": "Kurumsal yapay zeka talebinin zayıflamadığına dair iki ayrı okuma var; Oracle sonucu bunu gösterdi, Accenture bilançosu bunu sınayacak."
       },
       {
         "type": "btcLiquidity",
         "market": "crypto",
         "adjustment": -3,
         "confidence": 0.83,
-        "source": "CoinDesk June 11 2026 ETF outflows report; CoinDesk June 10 2026 BTC ETF assets report",
+        "source": "CoinDesk 11 Haziran 2026 ETF çıkış raporu; CoinDesk 10 Haziran 2026 BTC ETF varlık raporu",
         "asOf": "2026-06-14T10:12:27.681Z",
         "expiresAt": "2026-06-18T21:00:00.000Z",
         "reason": "Spot BTC ETF'lerinden Mayıs ortasından beri yaklaşık 5,75 milyar dolar çıkış oldu ve toplam varlıklar 9 Haziran 2026 itibarıyla 77,58 milyar dolara geriledi; fonlama akışı hâlâ baskılayıcı."
@@ -206,7 +206,7 @@
         "symbol": "COIN",
         "adjustment": -2,
         "confidence": 0.76,
-        "source": "CoinDesk June 11 2026 ETF outflows report; CoinDesk June 10 2026 BTC ETF assets report",
+        "source": "CoinDesk 11 Haziran 2026 ETF çıkış raporu; CoinDesk 10 Haziran 2026 BTC ETF varlık raporu",
         "asOf": "2026-06-14T10:12:27.681Z",
         "expiresAt": "2026-06-18T21:00:00.000Z",
         "reason": "COIN, ETF akışı ve kripto işlem iştahına doğrudan bağlı; mevcut çıkış rejimi sürerken çarpan genişlemesi savunmasız."
@@ -216,7 +216,7 @@
         "market": "bist",
         "adjustment": -1,
         "confidence": 0.72,
-        "source": "TCMB Survey of Market Participants June 2026; TradingEconomics USDTRY update June 14 2026",
+        "source": "TCMB Piyasa Katılımcıları Anketi Haziran 2026; TradingEconomics USDTRY güncellemesi 14 Haziran 2026",
         "asOf": "2026-06-14T10:12:27.681Z",
         "expiresAt": "2026-06-18T21:00:00.000Z",
         "reason": "USD/TRY 12 Haziran 2026'da 46,2606'yı gördü ve TCMB anketinde yıl sonu beklenti 51,4692; BIST momentumu iyi olsa da kur zemini hâlâ kırılgan."
@@ -227,7 +227,7 @@
         "symbol": "GARAN",
         "adjustment": 2,
         "confidence": 0.71,
-        "source": "TCMB Press Release on Interest Rates June 11 2026; Anadolu Agency BIST close June 12 2026",
+        "source": "TCMB faiz oranı basın duyurusu 11 Haziran 2026; Anadolu Ajansı BIST kapanışı 12 Haziran 2026",
         "asOf": "2026-06-14T10:12:27.681Z",
         "expiresAt": "2026-06-18T21:00:00.000Z",
         "reason": "TCMB'nin %37'yi koruyup sıkılığı sürdürmesi ve BIST'te güçlü kapanış, GARAN üzerindeki kısa vadeli momentum baskısını destekliyor."
@@ -238,7 +238,7 @@
         "symbol": "AKBNK",
         "adjustment": 2,
         "confidence": 0.71,
-        "source": "TCMB Press Release on Interest Rates June 11 2026; Anadolu Agency BIST close June 12 2026",
+        "source": "TCMB faiz oranı basın duyurusu 11 Haziran 2026; Anadolu Ajansı BIST kapanışı 12 Haziran 2026",
         "asOf": "2026-06-14T10:12:27.681Z",
         "expiresAt": "2026-06-18T21:00:00.000Z",
         "reason": "Sıkı politika tonu korunurken banka momentumunun teknikle aynı yöne bakması AKBNK için kısa vadeli destek."
@@ -249,7 +249,7 @@
         "symbol": "ISCTR",
         "adjustment": 2,
         "confidence": 0.7,
-        "source": "TCMB Press Release on Interest Rates June 11 2026; Anadolu Agency BIST close June 12 2026",
+        "source": "TCMB faiz oranı basın duyurusu 11 Haziran 2026; Anadolu Ajansı BIST kapanışı 12 Haziran 2026",
         "asOf": "2026-06-14T10:12:27.681Z",
         "expiresAt": "2026-06-18T21:00:00.000Z",
         "reason": "Politika faizinin korunması ve yukarı risk vurgusu, ISCTR için kısa vadede net negatif değil; teknik momentumla birlikte çalışıyor."
@@ -260,7 +260,7 @@
         "symbol": "YKBNK",
         "adjustment": 2,
         "confidence": 0.7,
-        "source": "TCMB Press Release on Interest Rates June 11 2026; Anadolu Agency BIST close June 12 2026",
+        "source": "TCMB faiz oranı basın duyurusu 11 Haziran 2026; Anadolu Ajansı BIST kapanışı 12 Haziran 2026",
         "asOf": "2026-06-14T10:12:27.681Z",
         "expiresAt": "2026-06-18T21:00:00.000Z",
         "reason": "YKBNK zaten teknik liderlerden biri; TCMB sonrası sıkı duruşun korunması bu momentumu kısa vadede teyit ediyor."
@@ -271,7 +271,7 @@
         "symbol": "THYAO",
         "adjustment": -1,
         "confidence": 0.57,
-        "source": "BLS CPI May 2026 energy table",
+        "source": "BLS Mayıs 2026 TÜFE enerji tablosu",
         "asOf": "2026-06-14T10:12:27.681Z",
         "expiresAt": "2026-06-18T21:00:00.000Z",
         "reason": "ABD enerji enflasyonu yıllık %23,5 ve jet-fuel benzeri maliyet baskısı hâlâ önemli; THYAO'nun çok güçlü teknik skoruna rağmen makro maliyet marjı tamamen rahat değil."

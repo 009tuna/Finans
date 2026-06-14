@@ -193,7 +193,7 @@
       { label: 'Teknik veri', status: 'deterministic', text: 'Kural tabanli skorlar ve indikatörler; rapor tarihi ' + (base.date || '-') + '.' },
       { label: 'Piyasa kapanislari', status: 'timestamp', text: ['ABD ' + (dataAsOf.usAsOf || '-'), 'BIST ' + (dataAsOf.bistAsOf || '-'), 'Kripto ' + (dataAsOf.cryptoAsOf || '-')].join(' · ') },
       { label: 'Takvim verisi', status: hasForecast ? 'forecast' : (hasActual ? 'actual' : 'empty'), text: hasForecast ? 'Beklenti verileri var; aciklanmayan degerler tahmindir.' : 'Takvimde gerceklesen veri agirlikli.' },
-      { label: 'AI katmanı', status: ai ? 'ai' : 'missing', text: ai ? 'Makro/haber yorumu AI tarafindan yazildi; teknik skor deterministik kalir.' : 'AI yorumu yok; rapor sadece kural tabanli.' },
+      { label: 'Yapay zeka katmani', status: ai ? 'ai' : 'missing', text: ai ? 'Makro/haber yorumu yapay zeka tarafindan yazildi; teknik skor deterministik kalir.' : 'Yapay zeka yorumu yok; rapor sadece kural tabanli.' },
     ];
     return { hasAi: !!ai, items: items };
   }
@@ -353,34 +353,34 @@
     if (score < 35 || tone === 'sell') {
       return {
         bucket: 'reject',
-        reason: 'Score is weak or sell-toned; this is not a research candidate until the signal repairs.',
+        reason: 'Skor zayif veya satis tonunda; sinyal toparlanmadan arastirma adayi degil.',
         nextWorkflow: 'reject / wait for repair',
       };
     }
     if (score >= 62 && !topRisk && status !== 'blocked') {
       return {
         bucket: 'advance',
-        reason: 'Score and decision quality are strong enough for deeper work; still not a final recommendation.',
+        reason: 'Skor ve karar kalitesi daha derin calisma icin yeterli; yine de nihai tavsiye degil.',
         nextWorkflow: hasThesis ? 'thesis tracker -> catalyst calendar' : 'thesis tracker -> company tearsheet',
       };
     }
     if (score >= 60 && topRisk) {
       return {
         bucket: 'gated',
-        reason: 'Signal is strong but setup is late-cycle or confirmation is incomplete.',
+        reason: 'Sinyal guclu ama kurulum gec safhada veya teyit eksik.',
         nextWorkflow: 'valuation / expectations gate',
       };
     }
     if (openPrediction) {
       return {
         bucket: 'watchlist',
-        reason: 'Open prediction exists; wait for target, stop, or expiry evidence.',
+        reason: 'Acik tahmin var; hedef, stop veya vade kanitini bekle.',
         nextWorkflow: 'prediction calibration',
       };
     }
     return {
       bucket: 'watchlist',
-      reason: hasThesis ? 'Thesis exists but score is not strong enough to advance.' : 'Screen flag only; build a thesis before acting.',
+      reason: hasThesis ? 'Tez var ama skor derin arastirmaya gecmek icin yeterince guclu degil.' : 'Sadece tarama sinyali var; islemden once tez kur.',
       nextWorkflow: 'watchlist / thesis draft',
     };
   }
@@ -409,8 +409,8 @@
     });
     return {
       headline: buckets.advance.length
-        ? buckets.advance.length + ' idea candidate needs deeper work before any trade decision.'
-        : 'No immediate research candidate; use watchlist and rejection buckets.',
+        ? buckets.advance.length + ' fikir adayi islem kararindan once daha derin calisma istiyor.'
+        : 'Hemen arastirilacak aday yok; izleme ve red kovalarini kullan.',
       buckets: buckets,
       counts: Object.keys(buckets).reduce(function (acc, key) {
         acc[key] = buckets[key].length;
@@ -447,12 +447,12 @@
         type: 'company',
         market: asset ? asset.market : null,
         symbol: symbol || null,
-        title: n.headline || n.event || 'Company catalyst',
+        title: n.headline || n.event || 'Sirket katalizoru',
         date: n.date || n.datetime || null,
-        source: n.source || 'company/news',
+        source: n.source || 'Sirket haberi',
         timingConfidence: n.date ? 'dated' : 'window',
         decisionPressure: pressureForEvent(n, asset),
-        thesisLink: asset && asset.analysis ? 'Current score ' + asset.analysis.score + ' links this event to thesis validation.' : 'No active scored asset link.',
+        thesisLink: asset && asset.analysis ? 'Guncel skor ' + asset.analysis.score + ' bu olayi tez dogrulamasina bagliyor.' : 'Aktif skorlanmis varlik baglantisi yok.',
       });
     });
 
@@ -461,12 +461,12 @@
         type: 'macro',
         market: 'macro',
         symbol: null,
-        title: e.event || e.name || 'Macro event',
+        title: e.event || e.name || 'Makro olay',
         date: e.date || null,
-        source: e.source || 'calendar',
+        source: e.source || 'Takvim',
         timingConfidence: e.date ? 'dated' : 'window',
         decisionPressure: pressureForEvent(e, null),
-        thesisLink: e.importance === 'high' ? 'High-impact macro print can change broad risk appetite.' : 'Macro context item.',
+        thesisLink: e.importance === 'high' ? 'Yuksek etkili makro veri genel risk istahini degistirebilir.' : 'Makro baglam maddesi.',
       });
     });
 
@@ -482,7 +482,7 @@
       prepQueue: events.slice(0, 5).map(function (e) {
         return {
           symbol: e.symbol,
-          action: 'Set threshold and post-event review note for ' + e.title + '.',
+          action: e.title + ' icin esik belirle ve olay sonrasi degerlendirme notu yaz.',
           pressure: e.decisionPressure,
         };
       }),
@@ -538,12 +538,12 @@
         ? (score < 35 ? 'teknik skor karar icin zayif' : 'satis tonu sermaye tahsisini bloke ediyor')
         : missing[0] || 'sinyal izlenebilir, baglayici eksik yok';
       const decisionAsk = status === 'ready'
-        ? 'add / hold decision'
+        ? 'ekle / tut karari'
         : status === 'gated'
-          ? 'wait for proof / underwrite'
+          ? 'kanit bekle / degerle'
           : status === 'blocked'
-            ? 'avoid / exit review'
-            : 'watchlist';
+            ? 'uzak dur / cikis incele'
+            : 'izleme listesi';
 
       rows.push({
         market: asset.market,
@@ -556,15 +556,15 @@
         status: status,
         decisionAsk: decisionAsk,
         bindingReason: bindingReason,
-        retainedExposure: status === 'ready' ? 'technical and thesis exposure can be retained within risk limits' : 'retain only monitoring exposure until evidence closes',
+        retainedExposure: status === 'ready' ? 'teknik ve tez bazli pozisyon risk limitleri icinde korunabilir' : 'kanit tamamlanana kadar sadece izleme pozisyonu korunur',
         missingEvidence: missing.slice(0, 4),
         nextWorkflow: status === 'ready'
-          ? 'risk budget -> committee memo'
+          ? 'risk butcesi -> komite notu'
           : status === 'gated'
-            ? 'tearsheet / comps / sizing'
+            ? 'sirket ozeti / benzerler / pozisyon boyutu'
             : status === 'blocked'
-              ? 'repair signal before capital'
-              : 'thesis tracker',
+              ? 'sermaye ayirmadan once sinyali onar'
+              : 'tez takipcisi',
         adjustedScore: overlay && overlay.adjustedScore != null ? overlay.adjustedScore : score,
       });
     });
@@ -581,7 +581,7 @@
       return acc;
     }, {});
     return {
-      summary: 'CFO cockpit: ' + (counts.ready || 0) + ' ready, ' + (counts.gated || 0) + ' gated, ' + (counts.blocked || 0) + ' blocked.',
+      summary: 'Finans direktoru kokpiti: ' + (counts.ready || 0) + ' hazir, ' + (counts.gated || 0) + ' kanita bagli, ' + (counts.blocked || 0) + ' bloke.',
       counts: counts,
       rows: rows.slice(0, 8),
     };
@@ -601,22 +601,22 @@
         constraints.push({
           kind: 'single-name',
           label: row.symbol,
-          detail: row.symbol + ' is ' + Math.round(row.weightPct) + '% of portfolio.',
+          detail: row.symbol + ' portfoyun %' + Math.round(row.weightPct) + ' agirliginda.',
         });
       }
       if (row.score != null && row.score < 40) {
         constraints.push({
           kind: 'weak-holding',
           label: row.symbol,
-          detail: row.symbol + ' has weak technical score ' + row.score + '.',
+          detail: row.symbol + ' zayif teknik skora sahip: ' + row.score + '.',
         });
       }
     });
     if (base.cryptoWeightPct > 50) {
       constraints.unshift({
         kind: 'single-market',
-        label: 'Crypto concentration',
-        detail: 'Crypto is ' + Math.round(base.cryptoWeightPct) + '% of portfolio value.',
+        label: 'Kripto yogunlasmasi',
+        detail: 'Kripto portfoy degerinin %' + Math.round(base.cryptoWeightPct) + ' seviyesinde.',
       });
     }
     const status = constraints.some(function (x) { return x.kind === 'single-market' || x.kind === 'single-name'; })
@@ -625,19 +625,19 @@
     const targetAllocations = base.rows.map(function (row) {
       let maxWeightPct = limits.maxSingleNamePct;
       let action = 'hold';
-      let reason = 'position can stay inside normal single-name limit';
+      let reason = 'pozisyon normal tek-varlik limiti icinde kalabilir';
       if (row.score != null && row.score < limits.weakScoreThreshold) {
         maxWeightPct = 0;
         action = 'exit';
-        reason = 'weak technical score blocks fresh capital';
+        reason = 'zayif teknik skor yeni sermayeyi bloke ediyor';
       } else if (row.score != null && row.score < limits.reviewScoreThreshold) {
         maxWeightPct = Math.min(row.weightPct, 10);
         action = row.weightPct > maxWeightPct ? 'trim' : 'watch';
-        reason = 'score is below review threshold; keep exposure small';
+        reason = 'skor inceleme esiginin altinda; agirligi kucuk tut';
       } else if (row.weightPct > limits.maxSingleNamePct) {
         maxWeightPct = limits.maxSingleNamePct;
         action = 'trim';
-        reason = 'single-name exposure is above CFO risk budget';
+        reason = 'tek-varlik agirligi risk butcesinin ustunde';
       }
       return {
         market: row.market,
@@ -656,7 +656,7 @@
         totalNavUsd: base.totalUsd,
         maxSingleNamePct: limits.maxSingleNamePct,
         maxCryptoPct: limits.maxCryptoPct,
-        bindingConstraint: binding ? binding.label + ': ' + binding.detail : 'No binding constraint.',
+        bindingConstraint: binding ? binding.label + ': ' + binding.detail : 'Baglayici kisit yok.',
       },
       constraints: constraints,
       targetAllocations: targetAllocations,
@@ -665,10 +665,10 @@
         return {
           symbol: a.symbol,
           trigger: a.text,
-          action: a.kind === 'reduce' || a.kind === 'trim' || a.kind === 'rebalance' ? 'reduce exposure or rebalance' : 'hold with existing thresholds',
+          action: a.kind === 'reduce' || a.kind === 'trim' || a.kind === 'rebalance' ? 'agirligi azalt veya dengele' : 'mevcut esiklerle tut',
         };
       }),
-      retainedExposure: status === 'balanced' ? 'Current exposure can be monitored with normal thesis thresholds.' : 'Keep only exposure backed by current thesis and reduce concentration risk first.',
+      retainedExposure: status === 'balanced' ? 'Mevcut pozisyon normal tez esikleriyle izlenebilir.' : 'Sadece guncel tezle desteklenen pozisyonu koru ve once yogunlasma riskini azalt.',
     };
   }
 
@@ -676,26 +676,26 @@
     const note = journal && journal.notes ? journal.notes[journalKey(asset)] : null;
     const decision = asset.decision || {};
     const metrics = [
-      { label: 'Price', value: money(asset.price, asset.currency) },
-      { label: 'Technical score', value: asset.analysis ? asset.analysis.score + ' / 100' : '-' },
-      { label: 'Decision quality', value: decision.score != null ? decision.score + ' / 100' : '-' },
+      { label: 'Fiyat', value: money(asset.price, asset.currency) },
+      { label: 'Teknik skor', value: asset.analysis ? asset.analysis.score + ' / 100' : '-' },
+      { label: 'Karar kalitesi', value: decision.score != null ? decision.score + ' / 100' : '-' },
       { label: 'RSI', value: asset.ind && asset.ind.rsi != null ? asset.ind.rsi : '-' },
       { label: 'ATR %', value: asset.ind && asset.ind.atrPct != null ? asset.ind.atrPct + '%' : '-' },
     ];
-    const thesis = note && note.thesis ? note.thesis : (asset.analysis && asset.analysis.summary) || 'No thesis note yet.';
+    const thesis = note && note.thesis ? note.thesis : (asset.analysis && asset.analysis.summary) || 'Henuz tez notu yok.';
     const gaps = [];
-    if (!asset.fundamentals && !asset.fund) gaps.push('fundamental financials / estimates not sourced');
-    if (!note || !note.invalidation) gaps.push('approved thesis invalidation threshold missing');
-    if (!snapshot || !snapshot.generatedAt) gaps.push('snapshot timestamp missing');
+    if (!asset.fundamentals && !asset.fund) gaps.push('temel finansallar / tahmin verisi kaynaklanmamis');
+    if (!note || !note.invalidation) gaps.push('onayli tez bozulma esigi eksik');
+    if (!snapshot || !snapshot.generatedAt) gaps.push('snapshot zamani eksik');
     return {
       symbol: asset.symbol,
       market: asset.market,
       name: asset.name || asset.symbol,
-      bankerRead: asset.analysis && asset.analysis.score >= 60 ? 'screen-grade positive setup' : 'monitoring-grade setup',
+      bankerRead: asset.analysis && asset.analysis.score >= 60 ? 'tarama kalitesinde pozitif kurulum' : 'izleme kalitesinde kurulum',
       thesis: thesis,
       metrics: metrics,
       gaps: gaps,
-      nextRoute: 'company tearsheet -> comps snapshot -> thesis tracker',
+      nextRoute: 'sirket ozeti -> benzerler gorunumu -> tez takipcisi',
     };
   }
 
@@ -718,9 +718,9 @@
       }),
       peerAverageScore: avgScore,
       readThrough: avgScore == null
-        ? 'No peer set available; valuation context is not ready.'
-        : 'Target score is ' + (diff >= 0 ? '+' : '') + diff + ' points versus peer average; treat as peer context, not valuation advice.',
-      limitations: ['uses technical score as interim peer context', 'requires EV, EBITDA, revenue, FCF and estimate data for real comps valuation'],
+        ? 'Benzer sirket seti yok; degerleme baglami hazir degil.'
+        : 'Hedef skor benzer ortalamasina gore ' + (diff >= 0 ? '+' : '') + diff + ' puan; bunu degerleme tavsiyesi degil, benzer baglami olarak oku.',
+      limitations: ['gecici benzer baglami icin teknik skor kullanir', 'gercek carpan degerlemesi icin FD, FAVOK, gelir, SNA ve tahmin verisi gerekir'],
     };
   }
 
@@ -733,10 +733,10 @@
     const gaps = []
       .concat(tear.gaps || [])
       .concat(overlayGaps(overlay));
-    if (!note || !note.thesis) gaps.unshift('approved thesis note missing');
-    if (!note || !note.invalidation) gaps.unshift('thesis break condition missing');
-    if (!trade || trade.available !== true) gaps.unshift('entry / stop / target plan missing');
-    if (!snapshot || !snapshot.generatedAt) gaps.unshift('fresh snapshot timestamp missing');
+    if (!note || !note.thesis) gaps.unshift('onayli tez notu eksik');
+    if (!note || !note.invalidation) gaps.unshift('tez bozulma kosulu eksik');
+    if (!trade || trade.available !== true) gaps.unshift('giris / stop / hedef plani eksik');
+    if (!snapshot || !snapshot.generatedAt) gaps.unshift('guncel snapshot zamani eksik');
 
     const score = asset && asset.analysis ? asset.analysis.score : null;
     let verdict = 'screen-grade';
@@ -745,22 +745,22 @@
     else if (note && note.thesis && note.invalidation && score >= 60 && !overlayGaps(overlay).length) verdict = 'senior-review-ready';
 
     const decisionAsk = verdict === 'blocked'
-      ? 'Do not allocate fresh capital until the blocking item is repaired.'
+      ? 'Bloke eden madde onarilana kadar yeni sermaye ayirma.'
       : verdict === 'senior-review-ready'
-        ? 'Review risk budget and decide whether to add, hold, or trim.'
-        : 'Use as a screen-grade memo; close evidence gaps before capital allocation.';
+        ? 'Risk butcesini incele ve ekle, tut veya azalt kararini ver.'
+        : 'Bunu tarama kalitesinde not olarak kullan; sermaye ayirmadan once kanit bosluklarini kapat.';
 
     const whatWeBelieve = [
-      (asset.symbol || 'Asset') + ' has technical score ' + (score == null ? '-' : score) + ' and label ' + ((asset.analysis && asset.analysis.label) || '-'),
-      'Current thesis: ' + (note && note.thesis ? note.thesis : tear.thesis),
+      (asset.symbol || 'Varlik') + ' teknik skoru ' + (score == null ? '-' : score) + ' ve etiketi ' + ((asset.analysis && asset.analysis.label) || '-'),
+      'Guncel tez: ' + (note && note.thesis ? note.thesis : tear.thesis),
       comps.readThrough,
     ];
     const riskTransmission = [
-      note && note.invalidation ? 'Thesis breaks if: ' + note.invalidation : 'Missing invalidation means downside cannot be governed.',
-      trade && trade.available ? 'Stop/target plan defines first loss and reward boundary.' : 'No trade plan means sizing cannot be tied to loss budget.',
+      note && note.invalidation ? 'Tez su kosulda bozulur: ' + note.invalidation : 'Bozulma kosulu yoksa asagi yonlu risk yonetilemez.',
+      trade && trade.available ? 'Stop/hedef plani ilk zarar ve odul sinirini tanimliyor.' : 'Islem plani yoksa pozisyon boyutu zarar butcesine baglanamaz.',
     ];
     if (overlay && overlay.totalAdjustment < 0) {
-      riskTransmission.push('Macro/signal overlay reduces adjusted score by ' + Math.abs(overlay.totalAdjustment) + ' points.');
+      riskTransmission.push('Makro/sinyal katmani ayarlanmis skoru ' + Math.abs(overlay.totalAdjustment) + ' puan azaltiyor.');
     }
 
     return {
@@ -779,9 +779,9 @@
         evidenceGaps: gaps.slice(0, 6),
         riskTransmission: riskTransmission,
         nextActions: [
-          'run risk budget sizing before any add decision',
-          'write or update thesis and invalidation in journal',
-          'refresh committee memo after catalyst or score change',
+          'ekleme kararindan once risk butcesi boyutlamasini calistir',
+          'gunlukte tez ve bozulma kosulunu yaz veya guncelle',
+          'katalizor veya skor degisiminden sonra komite notunu yenile',
         ],
       },
     };

@@ -118,7 +118,7 @@ const trust = buildReportTrust({
 }, { macroSummary: 'AI text' });
 assert.equal(trust.hasAi, true);
 assert.ok(trust.items.some((x) => x.label === 'Takvim verisi' && x.status === 'forecast'));
-assert.ok(trust.items.some((x) => x.label === 'AI katmanı' && x.status === 'ai'));
+assert.ok(trust.items.some((x) => x.label === 'Yapay zeka katmani' && x.status === 'ai'));
 console.log('   ok');
 
 console.log('5. buildAlertRules suggests actionable rules...');
@@ -187,8 +187,8 @@ const calendar = buildCatalystCalendar(snapshot, {
   },
 });
 assert.equal(calendar.events[0].decisionPressure, 'high');
-assert.ok(calendar.events.some((x) => x.symbol === 'AMD' && x.thesisLink.includes('score')));
-assert.ok(calendar.prepQueue[0].action.includes('threshold'));
+assert.ok(calendar.events.some((x) => x.symbol === 'AMD' && x.thesisLink.includes('skor')));
+assert.ok(calendar.prepQueue[0].action.includes('esik'));
 console.log('   ok');
 
 console.log('10. buildPortfolioRiskPlan names binding risk constraints...');
@@ -197,9 +197,9 @@ assert.equal(riskPlan.status, 'concentrated');
 assert.equal(riskPlan.riskBudget.totalNavUsd, riskPlan.totalUsd);
 assert.equal(riskPlan.riskBudget.maxSingleNamePct, 35);
 assert.equal(riskPlan.riskBudget.maxCryptoPct, 50);
-assert.ok(riskPlan.riskBudget.bindingConstraint.includes('Crypto'));
+assert.ok(riskPlan.riskBudget.bindingConstraint.includes('Kripto'));
 assert.ok(riskPlan.constraints.some((x) => x.kind === 'single-market'));
-assert.ok(riskPlan.monitoringRules.some((x) => x.action.includes('reduce')));
+assert.ok(riskPlan.monitoringRules.some((x) => x.action.includes('azalt')));
 assert.ok(riskPlan.targetAllocations.some((x) => x.symbol === 'XRP' && x.action === 'exit'));
 console.log('   ok');
 
@@ -226,7 +226,7 @@ const cockpit = buildCfoDecisionCockpit(snapshot, mockJournal, {
     },
   },
 });
-assert.ok(cockpit.summary.includes('CFO'));
+assert.ok(cockpit.summary.includes('Finans direktoru'));
 assert.ok(cockpit.rows.length >= 2);
 assert.ok(cockpit.rows.some((x) => x.symbol === 'AMD' && x.status === 'gated'));
 assert.ok(cockpit.rows.some((x) => x.symbol === 'XRP' && x.status === 'blocked'));
@@ -237,12 +237,12 @@ console.log('   ok');
 console.log('12. buildCompanyTearsheet and buildCompsSnapshot produce evidence-aware snapshots...');
 const tearsheet = buildCompanyTearsheet(snapshot.us[0], snapshot, mockJournal);
 assert.equal(tearsheet.symbol, 'AAPL');
-assert.ok(tearsheet.metrics.some((x) => x.label === 'Technical score'));
-assert.ok(tearsheet.gaps.some((x) => x.includes('fundamental')));
+assert.ok(tearsheet.metrics.some((x) => x.label === 'Teknik skor'));
+assert.ok(tearsheet.gaps.some((x) => x.includes('temel')));
 const comps = buildCompsSnapshot(snapshot.us[0], snapshot);
 assert.equal(comps.target.symbol, 'AAPL');
 assert.ok(comps.peerSet.length >= 1);
-assert.ok(comps.readThrough.includes('peer'));
+assert.ok(comps.readThrough.includes('benzer'));
 console.log('   ok');
 
 console.log('13. buildInvestmentCommitteeMemo creates readiness verdicts...');
@@ -257,7 +257,7 @@ const memoReady = buildInvestmentCommitteeMemo(snapshot.us[1], snapshot, {
 }, {});
 assert.equal(memoReady.verdict, 'senior-review-ready');
 assert.ok(memoReady.sections.whatWeBelieve.length >= 1);
-assert.ok(memoReady.sections.nextActions.some((x) => x.includes('risk budget')));
+assert.ok(memoReady.sections.nextActions.some((x) => x.includes('risk butcesi')));
 
 const memoBlocked = buildInvestmentCommitteeMemo(snapshot.crypto[0], snapshot, mockJournal, {});
 assert.equal(memoBlocked.verdict, 'blocked');

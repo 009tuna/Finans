@@ -31,7 +31,7 @@
         <div class="nav-sep">PORTFÖY & ANALİZ</div>
         <button class="navitem" data-view="portfolio"><span class="ni">💼</span> Portföyüm</button>
         <button class="navitem" data-view="screener"><span class="ni">🔍</span> Teknik Tarayıcı</button>
-        <button class="navitem" data-view="backtest"><span class="ni">📈</span> Strateji Backtest</button>
+        <button class="navitem" data-view="backtest"><span class="ni">📈</span> Strateji Testi</button>
         <button class="navitem" data-view="forecast"><span class="ni">🔮</span> Finansal Projeksiyon</button>
         <div class="nav-sep">RAPORLAMA</div>
         <button class="navitem" data-view="report"><span class="ni">📰</span> Günlük Rapor</button>
@@ -55,10 +55,10 @@
           
           <!-- Tema Seçici -->
           <div class="theme-selector" style="display: flex; gap: 6px; align-items: center; background: var(--bg-2); border: 1px solid var(--border); padding: 5px 8px; border-radius: 20px;">
-            <button class="theme-btn active" data-theme="carbon" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--text); background: #1a1e26; cursor: pointer; padding: 0;" title="Carbon Black"></button>
-            <button class="theme-btn" data-theme="silver" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid transparent; background: #e2e8f0; cursor: pointer; padding: 0;" title="Titanium Silver"></button>
-            <button class="theme-btn" data-theme="amber" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid transparent; background: #d97706; cursor: pointer; padding: 0;" title="Retro Amber"></button>
-            <button class="theme-btn" data-theme="green" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid transparent; background: #059669; cursor: pointer; padding: 0;" title="Matrix Green"></button>
+            <button class="theme-btn active" data-theme="carbon" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--text); background: #1a1e26; cursor: pointer; padding: 0;" title="Karbon Siyah"></button>
+            <button class="theme-btn" data-theme="silver" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid transparent; background: #e2e8f0; cursor: pointer; padding: 0;" title="Titanyum Gümüş"></button>
+            <button class="theme-btn" data-theme="amber" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid transparent; background: #d97706; cursor: pointer; padding: 0;" title="Retro Kehribar"></button>
+            <button class="theme-btn" data-theme="green" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid transparent; background: #059669; cursor: pointer; padding: 0;" title="Matrix Yeşil"></button>
           </div>
 
           <button id="refreshBtn" class="btn"><span class="btn-ic">↻</span> Yenile</button>
@@ -108,7 +108,7 @@
             <div class="desk-head">
               <div>
                 <h2 id="deskTitle">Varlık Grafiği</h2>
-                <span id="deskMeta" class="card-sub">Sembol seçildiğinde OHLCV chart yüklenir</span>
+                <span id="deskMeta" class="card-sub">Sembol seçildiğinde OHLCV grafiği yüklenir</span>
               </div>
               <div class="desk-controls" style="display: flex; gap: 8px; align-items: center;">
                 <div class="segmented" aria-label="Grafik tipi">
@@ -293,7 +293,7 @@
         <section class="view" id="view-backtest" hidden>
           <div class="card reveal">
             <div class="card-head">
-              <h2>⚙️ Backtest Parametreleri</h2>
+              <h2>⚙️ Strateji Testi Parametreleri</h2>
               <span class="card-sub">Geçmiş 1 yıllık (250 Gün) verilere göre strateji simülasyonu</span>
             </div>
             <form id="backtest-form" class="bt-form">
@@ -316,7 +316,7 @@
                   <input type="number" id="bt-tp-input" value="0" min="0" max="100" placeholder="0 = Devre dışı" />
                 </label>
                 <div class="btn-wrap">
-                  <button type="submit" id="bt-run-btn" class="btn"><span class="btn-ic">▶</span> Backtest Çalıştır</button>
+                  <button type="submit" id="bt-run-btn" class="btn"><span class="btn-ic">▶</span> Testi Çalıştır</button>
                 </div>
               </div>
             </form>
@@ -614,7 +614,7 @@
           <div class="card reveal">
             <div class="card-head">
               <h2>🧮 Etkileşimli Şirket Değerleme Suite'i</h2>
-              <span class="card-sub">DCF (İndirgenmiş Nakit Akışı), Benjamin Graham Formülü veya Dividend Discount Model (DDM) ile hisselerin adil değerini hesaplayın.</span>
+              <span class="card-sub">DCF (indirgenmiş nakit akışı), Benjamin Graham Formülü veya Temettü İskonto Modeli (DDM) ile hisselerin adil değerini hesaplayın.</span>
             </div>
             <div class="form-row-3" style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; align-items: end;">
               <label>Hisse Seçimi:
