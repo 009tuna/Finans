@@ -64,6 +64,7 @@ h1, h2, h3 { margin: 0; }
 /* ---------- Düzen ---------- */
 .app { display: grid; grid-template-columns: 244px 1fr; min-height: 100vh; position: relative; z-index: 1; }
 
+
 /* ---------- Sidebar ---------- */
 .sidebar {
   background: var(--sidebar);
@@ -80,8 +81,12 @@ h1, h2, h3 { margin: 0; }
   height: 38px;
   border-radius: 14px;
   background: var(--accent);
-  font-size: 23px;
   filter: drop-shadow(0 8px 16px oklch(0% 0 0 / 0.3));
+}
+.brand-logo .logo-svg {
+  width: 22px;
+  height: 22px;
+  color: var(--sidebar);
 }
 .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
 .brand-text strong { font-size: 16px; letter-spacing: .2px; }
@@ -100,15 +105,21 @@ h1, h2, h3 { margin: 0; }
   place-items: center;
   width: 22px;
   height: 22px;
-  text-align: center;
-  font-size: 14px;
   border-radius: 8px;
-  transform-origin: 50% 55%;
+  transform-origin: 50% 50%;
   will-change: transform, filter, background;
+}
+.navitem .ni svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  stroke-width: 2px;
+  transition: stroke 150ms var(--ease-out);
 }
 .navitem:hover .ni,
 .navitem.active .ni {
   background: var(--accent-soft);
+  color: var(--accent);
 }
 .navitem:hover { color: var(--text); background: oklch(100% 0 0 / 0.045); transform: translateX(1px); }
 .navitem.active {

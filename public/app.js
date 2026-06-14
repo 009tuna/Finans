@@ -3720,50 +3720,196 @@ function initAnimations() {
 
   if (reduceMotion) return;
 
-  const navIconMotion = {
-    overview: { rotate: 24, scale: 1.12, y: -1, duration: 0.18, ease: 'power3.out' },
-    us: { x: 2, y: -3, rotate: -7, scale: 1.1, duration: 0.17, ease: 'power3.out' },
-    bist: { x: -2, y: -3, rotate: 7, scale: 1.1, duration: 0.17, ease: 'power3.out' },
-    crypto: { rotateY: 112, scale: 1.12, duration: 0.2, ease: 'power3.out' },
-    portfolio: { y: -4, rotate: -5, scale: 1.1, duration: 0.18, ease: 'power3.out' },
-    screener: { x: 4, y: -2, rotate: -10, scale: 1.1, duration: 0.17, ease: 'power3.out' },
-    backtest: { x: 3, y: -4, rotate: 8, scale: 1.1, duration: 0.18, ease: 'power3.out' },
-    forecast: { rotate: 12, scale: 1.11, duration: 0.2, ease: 'sine.out' },
-    report: { rotateX: 16, y: -2, scale: 1.09, duration: 0.18, ease: 'power3.out' },
-    literacy: { rotateY: -18, x: 2, scale: 1.1, duration: 0.19, ease: 'power3.out' },
-  };
+  // Logo drawing and idle animations
+  if (document.querySelector('.logo-svg') && !reduceMotion) {
+    // Initial draw animation
+    gsap.fromTo('.logo-svg path', 
+      { strokeDasharray: 50, strokeDashoffset: 50, opacity: 0 }, 
+      { strokeDashoffset: 0, opacity: 1, duration: 1.2, stagger: 0.15, ease: 'power2.out' }
+    );
+    // Continuous idle breathing animation
+    gsap.to('.logo-svg', {
+      y: -2,
+      duration: 2.2,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    });
+    // Brand header hover expansion
+    const brand = document.querySelector('.brand');
+    if (brand) {
+      brand.addEventListener('mouseenter', () => {
+        gsap.to('.logo-p1', { y: -2.5, duration: 0.35, ease: 'power2.out' });
+        gsap.to('.logo-p2', { y: 2.5, duration: 0.35, ease: 'power2.out' });
+        gsap.to('.logo-p3', { scale: 1.05, transformOrigin: '50% 50%', duration: 0.35, ease: 'power2.out' });
+      });
+      brand.addEventListener('mouseleave', () => {
+        gsap.to('.logo-p1', { y: 0, duration: 0.35, ease: 'power2.out' });
+        gsap.to('.logo-p2', { y: 0, duration: 0.35, ease: 'power2.out' });
+        gsap.to('.logo-p3', { scale: 1, transformOrigin: '50% 50%', duration: 0.35, ease: 'power2.out' });
+      });
+    }
+  }
+
+  if (reduceMotion) return;
 
   function playNavIconMotion(btn) {
-    const icon = btn.querySelector('.ni');
-    if (!icon) return;
-    const view = btn.dataset.view || 'overview';
-    const motion = navIconMotion[view] || navIconMotion.overview;
-    gsap.killTweensOf(icon);
-    gsap.set(icon, {
-      transformPerspective: 520,
-      transformOrigin: '50% 55%',
-      filter: 'drop-shadow(0 8px 16px oklch(76% 0.15 195 / 0.34))',
-    });
-    gsap.to(icon, motion);
+    const view = btn.dataset.view;
+    if (!view) return;
+
+    if (view === 'overview') {
+      const boxes = btn.querySelectorAll('.ni svg rect');
+      if (boxes.length) {
+        gsap.killTweensOf(boxes);
+        gsap.to(boxes, {
+          scale: 1.22,
+          transformOrigin: '50% 50%',
+          stagger: 0.04,
+          duration: 0.22,
+          ease: 'back.out(2)'
+        });
+      }
+    } else if (view === 'us') {
+      const bars = btn.querySelectorAll('.ni svg line[class^="us-b"]');
+      const dollar = btn.querySelectorAll('.ni svg .us-d, .ni svg .us-dl');
+      gsap.killTweensOf([...bars, ...dollar]);
+      gsap.to(bars, { scaleY: 1.4, transformOrigin: '50% 100%', stagger: 0.04, duration: 0.22, ease: 'back.out(1.8)' });
+      gsap.to(dollar, { scale: 1.15, rotate: 12, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
+    } else if (view === 'bist') {
+      const bars = btn.querySelectorAll('.ni svg line[class^="tr-b"]');
+      const lira = btn.querySelectorAll('.ni svg .tr-t');
+      const liraBars = btn.querySelectorAll('.ni svg .tr-tl1, .ni svg .tr-tl2');
+      gsap.killTweensOf([...bars, ...lira, ...liraBars]);
+      gsap.to(bars, { scaleY: 1.4, transformOrigin: '50% 100%', stagger: 0.04, duration: 0.22, ease: 'back.out(1.8)' });
+      gsap.to(lira, { scale: 1.1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
+      gsap.to(liraBars, { scaleX: 1.35, x: 1, transformOrigin: '0% 50%', duration: 0.2, ease: 'power2.out' });
+    } else if (view === 'crypto') {
+      const svg = btn.querySelector('.ni svg');
+      const center = btn.querySelector('.ni svg .cr-c');
+      const nodes = btn.querySelectorAll('.ni svg circle[class^="cr-n"]');
+      gsap.killTweensOf([svg, center, ...nodes]);
+      gsap.to(svg, { rotate: 60, transformOrigin: '12px 12px', duration: 0.45, ease: 'power2.out' });
+      gsap.to(nodes, { scale: 1.3, transformOrigin: '50% 50%', stagger: 0.03, duration: 0.22, ease: 'back.out(1.5)' });
+      gsap.to(center, { scale: 1.2, transformOrigin: '50% 50%', duration: 0.22, ease: 'power2.out' });
+    } else if (view === 'portfolio') {
+      const body = btn.querySelector('.ni svg .pf-body');
+      const handle = btn.querySelector('.ni svg .pf-handle');
+      const lock = btn.querySelector('.ni svg .pf-lock');
+      gsap.killTweensOf([body, handle, lock]);
+      gsap.to(body, { scale: 1.06, y: -0.5, transformOrigin: '50% 100%', duration: 0.22, ease: 'back.out(1.5)' });
+      gsap.to(handle, { y: -1.5, transformOrigin: '50% 100%', duration: 0.22, ease: 'power2.out' });
+      gsap.to(lock, { rotate: 15, transformOrigin: '50% 0%', duration: 0.22, ease: 'power2.out' });
+    } else if (view === 'screener') {
+      const glass = btn.querySelectorAll('.ni svg .sc-glass, .ni svg .sc-handle, .ni svg .sc-l1, .ni svg .sc-l2');
+      gsap.killTweensOf(glass);
+      gsap.to(glass, {
+        x: 1.5,
+        y: -1.5,
+        duration: 0.15,
+        yoyo: true,
+        repeat: 3,
+        ease: 'sine.inOut'
+      });
+    } else if (view === 'backtest') {
+      const line = btn.querySelector('.ni svg .bt-line');
+      const arc = btn.querySelectorAll('.ni svg .bt-arc, .ni svg .bt-head');
+      gsap.killTweensOf([line, ...arc]);
+      gsap.fromTo(line, { scaleX: 0, transformOrigin: '0% 100%' }, { scaleX: 1, transformOrigin: '0% 100%', duration: 0.35, ease: 'power2.out' });
+      gsap.to(arc, { rotate: -360, transformOrigin: '12px 12px', duration: 0.45, ease: 'power2.inOut' });
+    } else if (view === 'forecast') {
+      const line = btn.querySelector('.ni svg .fc-line');
+      const low = btn.querySelector('.ni svg .fc-low');
+      const high = btn.querySelector('.ni svg .fc-high');
+      gsap.killTweensOf([line, low, high]);
+      gsap.to(low, { rotate: 7, transformOrigin: '14px 13px', duration: 0.25, ease: 'power2.out' });
+      gsap.to(high, { rotate: -7, transformOrigin: '14px 13px', duration: 0.25, ease: 'power2.out' });
+      gsap.to(line, { y: -1, duration: 0.18, ease: 'sine.out' });
+    } else if (view === 'report') {
+      const fold = btn.querySelector('.ni svg .rp-fold');
+      const lines = btn.querySelectorAll('.ni svg line[class^="rp-l"]');
+      gsap.killTweensOf([fold, ...lines]);
+      gsap.to(fold, { scale: 1.15, x: -0.5, y: 0.5, transformOrigin: '100% 0%', duration: 0.22, ease: 'power2.out' });
+      gsap.fromTo(lines, { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, transformOrigin: '0% 50%', stagger: 0.06, duration: 0.28, ease: 'power2.out' });
+    } else if (view === 'literacy') {
+      const l = btn.querySelector('.ni svg .lt-l');
+      const r = btn.querySelector('.ni svg .lt-r');
+      gsap.killTweensOf([l, r]);
+      const tl = gsap.timeline();
+      tl.to(l, { scaleX: 0.4, transformOrigin: '100% 50%', duration: 0.12, ease: 'power2.in' })
+        .to(l, { scaleX: 1, transformOrigin: '100% 50%', duration: 0.12, ease: 'power2.out' })
+        .to(r, { scaleX: 0.4, transformOrigin: '0% 50%', duration: 0.12, ease: 'power2.in' }, '-=0.12')
+        .to(r, { scaleX: 1, transformOrigin: '0% 50%', duration: 0.12, ease: 'power2.out' });
+    }
   }
 
   function resetNavIconMotion(btn) {
-    const icon = btn.querySelector('.ni');
-    if (!icon) return;
-    gsap.killTweensOf(icon);
-    gsap.to(icon, {
-      x: 0,
-      y: 0,
-      rotate: 0,
-      rotateX: 0,
-      rotateY: 0,
-      scale: 1,
-      filter: btn.classList.contains('active')
-        ? 'drop-shadow(0 6px 12px oklch(76% 0.15 195 / 0.22))'
-        : 'drop-shadow(0 0 0 oklch(0% 0 0 / 0))',
-      duration: 0.16,
-      ease: 'power3.out',
-    });
+    const view = btn.dataset.view;
+    if (!view) return;
+
+    if (view === 'overview') {
+      const boxes = btn.querySelectorAll('.ni svg rect');
+      gsap.killTweensOf(boxes);
+      gsap.to(boxes, { scale: 1, transformOrigin: '50% 50%', duration: 0.18, ease: 'power2.out' });
+    } else if (view === 'us') {
+      const bars = btn.querySelectorAll('.ni svg line[class^="us-b"]');
+      const dollar = btn.querySelectorAll('.ni svg .us-d, .ni svg .us-dl');
+      gsap.killTweensOf([...bars, ...dollar]);
+      gsap.to(bars, { scaleY: 1, transformOrigin: '50% 100%', duration: 0.18, ease: 'power2.out' });
+      gsap.to(dollar, { scale: 1, rotate: 0, transformOrigin: '50% 50%', duration: 0.18, ease: 'power2.out' });
+    } else if (view === 'bist') {
+      const bars = btn.querySelectorAll('.ni svg line[class^="tr-b"]');
+      const lira = btn.querySelectorAll('.ni svg .tr-t');
+      const liraBars = btn.querySelectorAll('.ni svg .tr-tl1, .ni svg .tr-tl2');
+      gsap.killTweensOf([...bars, ...lira, ...liraBars]);
+      gsap.to(bars, { scaleY: 1, transformOrigin: '50% 100%', duration: 0.18, ease: 'power2.out' });
+      gsap.to(lira, { scale: 1, transformOrigin: '50% 50%', duration: 0.18, ease: 'power2.out' });
+      gsap.to(liraBars, { scaleX: 1, x: 0, transformOrigin: '0% 50%', duration: 0.18, ease: 'power2.out' });
+    } else if (view === 'crypto') {
+      const svg = btn.querySelector('.ni svg');
+      const center = btn.querySelector('.ni svg .cr-c');
+      const nodes = btn.querySelectorAll('.ni svg circle[class^="cr-n"]');
+      gsap.killTweensOf([svg, center, ...nodes]);
+      gsap.to(svg, { rotate: 0, transformOrigin: '12px 12px', duration: 0.25, ease: 'power2.out' });
+      gsap.to(nodes, { scale: 1, transformOrigin: '50% 50%', duration: 0.18, ease: 'power2.out' });
+      gsap.to(center, { scale: 1, transformOrigin: '50% 50%', duration: 0.18, ease: 'power2.out' });
+    } else if (view === 'portfolio') {
+      const body = btn.querySelector('.ni svg .pf-body');
+      const handle = btn.querySelector('.ni svg .pf-handle');
+      const lock = btn.querySelector('.ni svg .pf-lock');
+      gsap.killTweensOf([body, handle, lock]);
+      gsap.to(body, { scale: 1, y: 0, transformOrigin: '50% 100%', duration: 0.18, ease: 'power2.out' });
+      gsap.to(handle, { y: 0, transformOrigin: '50% 100%', duration: 0.18, ease: 'power2.out' });
+      gsap.to(lock, { rotate: 0, transformOrigin: '50% 0%', duration: 0.18, ease: 'power2.out' });
+    } else if (view === 'screener') {
+      const glass = btn.querySelectorAll('.ni svg .sc-glass, .ni svg .sc-handle, .ni svg .sc-l1, .ni svg .sc-l2');
+      gsap.killTweensOf(glass);
+      gsap.to(glass, { x: 0, y: 0, duration: 0.18, ease: 'power2.out' });
+    } else if (view === 'backtest') {
+      const line = btn.querySelector('.ni svg .bt-line');
+      const arc = btn.querySelectorAll('.ni svg .bt-arc, .ni svg .bt-head');
+      gsap.killTweensOf([line, ...arc]);
+      gsap.to(line, { scaleX: 1, transformOrigin: '0% 100%', duration: 0.18, ease: 'power2.out' });
+      gsap.to(arc, { rotate: 0, transformOrigin: '12px 12px', duration: 0.25, ease: 'power2.out' });
+    } else if (view === 'forecast') {
+      const line = btn.querySelector('.ni svg .fc-line');
+      const low = btn.querySelector('.ni svg .fc-low');
+      const high = btn.querySelector('.ni svg .fc-high');
+      gsap.killTweensOf([line, low, high]);
+      gsap.to(low, { rotate: 0, transformOrigin: '14px 13px', duration: 0.18, ease: 'power2.out' });
+      gsap.to(high, { rotate: 0, transformOrigin: '14px 13px', duration: 0.18, ease: 'power2.out' });
+      gsap.to(line, { y: 0, duration: 0.18, ease: 'power2.out' });
+    } else if (view === 'report') {
+      const fold = btn.querySelector('.ni svg .rp-fold');
+      const lines = btn.querySelectorAll('.ni svg line[class^="rp-l"]');
+      gsap.killTweensOf([fold, ...lines]);
+      gsap.to(fold, { scale: 1, x: 0, y: 0, transformOrigin: '100% 0%', duration: 0.18, ease: 'power2.out' });
+      gsap.to(lines, { scaleX: 1, transformOrigin: '0% 50%', duration: 0.18, ease: 'power2.out' });
+    } else if (view === 'literacy') {
+      const l = btn.querySelector('.ni svg .lt-l');
+      const r = btn.querySelector('.ni svg .lt-r');
+      gsap.killTweensOf([l, r]);
+      gsap.to([l, r], { scaleX: 1, transformOrigin: '50% 50%', duration: 0.18, ease: 'power2.out' });
+    }
   }
 
   // 1. Sidebar navitem interactions
