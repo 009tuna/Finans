@@ -3718,7 +3718,53 @@ function initAnimations() {
     gsap.registerPlugin(ScrollTrigger);
   }
 
-  // 1. Sidebar Navitem interactions
+  const navIconMotion = {
+    overview: { rotate: 45, scale: 1.18, y: -1, duration: 0.28, ease: 'back.out(1.8)' },
+    us: { y: -4, rotate: -8, scale: 1.18, duration: 0.22, yoyo: true, repeat: 1, ease: 'power1.inOut' },
+    bist: { y: -5, rotate: 8, scale: 1.16, duration: 0.24, yoyo: true, repeat: 1, ease: 'power1.inOut' },
+    crypto: { rotateY: 180, scale: 1.22, duration: 0.38, ease: 'back.out(1.5)' },
+    portfolio: { y: -5, rotate: -6, scale: 1.14, duration: 0.26, ease: 'back.out(2)' },
+    screener: { x: 4, y: -3, rotate: -14, scale: 1.18, duration: 0.22, yoyo: true, repeat: 1, ease: 'sine.inOut' },
+    backtest: { x: 3, y: -6, rotate: 10, scale: 1.18, duration: 0.28, ease: 'back.out(1.7)' },
+    forecast: { rotate: 14, scale: 1.2, duration: 0.32, yoyo: true, repeat: 1, ease: 'sine.inOut' },
+    report: { rotateX: 22, y: -3, scale: 1.16, duration: 0.28, ease: 'back.out(1.7)' },
+    literacy: { rotateY: -24, x: 2, scale: 1.18, duration: 0.3, yoyo: true, repeat: 1, ease: 'sine.inOut' },
+  };
+
+  function playNavIconMotion(btn) {
+    const icon = btn.querySelector('.ni');
+    if (!icon) return;
+    const view = btn.dataset.view || 'overview';
+    const motion = navIconMotion[view] || navIconMotion.overview;
+    gsap.killTweensOf(icon);
+    gsap.set(icon, {
+      transformPerspective: 520,
+      transformOrigin: '50% 55%',
+      filter: 'drop-shadow(0 8px 16px oklch(76% 0.15 195 / 0.34))',
+    });
+    gsap.to(icon, motion);
+  }
+
+  function resetNavIconMotion(btn) {
+    const icon = btn.querySelector('.ni');
+    if (!icon) return;
+    gsap.killTweensOf(icon);
+    gsap.to(icon, {
+      x: 0,
+      y: 0,
+      rotate: 0,
+      rotateX: 0,
+      rotateY: 0,
+      scale: 1,
+      filter: btn.classList.contains('active')
+        ? 'drop-shadow(0 6px 12px oklch(76% 0.15 195 / 0.22))'
+        : 'drop-shadow(0 0 0 oklch(0% 0 0 / 0))',
+      duration: 0.22,
+      ease: 'power2.out',
+    });
+  }
+
+  // 1. Sidebar navitem interactions
   document.querySelectorAll('.navitem').forEach(btn => {
     btn.addEventListener('mouseenter', () => {
       gsap.to(btn, {
@@ -3727,10 +3773,7 @@ function initAnimations() {
         duration: 0.2,
         ease: 'power2.out'
       });
-      const icon = btn.querySelector('.ni');
-      if (icon) {
-        gsap.to(icon, { scale: 1.25, duration: 0.2, ease: 'back.out(1.7)' });
-      }
+      playNavIconMotion(btn);
     });
 
     btn.addEventListener('mouseleave', () => {
@@ -3740,10 +3783,7 @@ function initAnimations() {
         duration: 0.2,
         ease: 'power2.out'
       });
-      const icon = btn.querySelector('.ni');
-      if (icon) {
-        gsap.to(icon, { scale: 1, duration: 0.2, ease: 'power2.out' });
-      }
+      resetNavIconMotion(btn);
     });
 
     btn.addEventListener('mousedown', () => {

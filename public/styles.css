@@ -102,7 +102,22 @@ h1, h2, h3 { margin: 0; }
   padding: 10px 12px; border-radius: 10px; cursor: pointer;
   position: relative; transition: color 150ms var(--ease-out), background 150ms var(--ease-out);
 }
-.navitem .ni { width: 18px; text-align: center; font-size: 14px; }
+.navitem .ni {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  text-align: center;
+  font-size: 14px;
+  border-radius: 8px;
+  transform-origin: 50% 55%;
+  will-change: transform, filter, background;
+}
+.navitem:hover .ni,
+.navitem.active .ni {
+  background: linear-gradient(135deg, oklch(76% 0.15 195 / 0.14), oklch(82% 0.15 78 / 0.10));
+  filter: drop-shadow(0 6px 12px oklch(76% 0.15 195 / 0.22));
+}
 .navitem:hover { color: var(--text); background: oklch(100% 0 0 / 0.045); transform: translateX(1px); }
 .navitem.active {
   color: var(--text);
