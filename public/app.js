@@ -2497,7 +2497,7 @@ async function loadCorrelationMatrix() {
     if (window.gsap && !reduceMotion) {
       gsap.fromTo(cells, 
         { scale: 0, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.45, stagger: { grid: [matrix.length, symbols.length], from: "center", amount: 0.4 }, ease: "back.out(1.5)" }
+        { scale: 1, opacity: 1, duration: 0.34, stagger: { grid: [matrix.length, symbols.length], from: "center", amount: 0.28 }, ease: "power3.out" }
       );
     }
     cells.forEach(cell => {
@@ -2719,7 +2719,7 @@ function displayMCResults(res) {
     gsap.killTweensOf(container);
     gsap.fromTo(container, 
       { opacity: 0, scale: 0.94, y: 15 },
-      { opacity: 1, scale: 1, y: 0, duration: 0.6, ease: 'back.out(1.6)', clearProps: 'transform' }
+      { opacity: 1, scale: 1, y: 0, duration: 0.32, ease: 'power3.out', clearProps: 'transform' }
     );
     const kpis = container.querySelectorAll('.kpi');
     if (kpis.length > 0) {
@@ -3038,7 +3038,7 @@ async function runDCFCalculation() {
         const cells = sensContainer.querySelectorAll('.sens-cell');
         gsap.fromTo(cells, 
           { scale: 0.8, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.4, stagger: { grid: [5, 5], from: "center", amount: 0.3 }, ease: "back.out(1.2)" }
+          { scale: 1, opacity: 1, duration: 0.28, stagger: { grid: [5, 5], from: "center", amount: 0.22 }, ease: "power3.out" }
         );
       }
     }
@@ -3718,17 +3718,19 @@ function initAnimations() {
     gsap.registerPlugin(ScrollTrigger);
   }
 
+  if (reduceMotion) return;
+
   const navIconMotion = {
-    overview: { rotate: 45, scale: 1.18, y: -1, duration: 0.28, ease: 'back.out(1.8)' },
-    us: { y: -4, rotate: -8, scale: 1.18, duration: 0.22, yoyo: true, repeat: 1, ease: 'power1.inOut' },
-    bist: { y: -5, rotate: 8, scale: 1.16, duration: 0.24, yoyo: true, repeat: 1, ease: 'power1.inOut' },
-    crypto: { rotateY: 180, scale: 1.22, duration: 0.38, ease: 'back.out(1.5)' },
-    portfolio: { y: -5, rotate: -6, scale: 1.14, duration: 0.26, ease: 'back.out(2)' },
-    screener: { x: 4, y: -3, rotate: -14, scale: 1.18, duration: 0.22, yoyo: true, repeat: 1, ease: 'sine.inOut' },
-    backtest: { x: 3, y: -6, rotate: 10, scale: 1.18, duration: 0.28, ease: 'back.out(1.7)' },
-    forecast: { rotate: 14, scale: 1.2, duration: 0.32, yoyo: true, repeat: 1, ease: 'sine.inOut' },
-    report: { rotateX: 22, y: -3, scale: 1.16, duration: 0.28, ease: 'back.out(1.7)' },
-    literacy: { rotateY: -24, x: 2, scale: 1.18, duration: 0.3, yoyo: true, repeat: 1, ease: 'sine.inOut' },
+    overview: { rotate: 24, scale: 1.12, y: -1, duration: 0.18, ease: 'power3.out' },
+    us: { x: 2, y: -3, rotate: -7, scale: 1.1, duration: 0.17, ease: 'power3.out' },
+    bist: { x: -2, y: -3, rotate: 7, scale: 1.1, duration: 0.17, ease: 'power3.out' },
+    crypto: { rotateY: 112, scale: 1.12, duration: 0.2, ease: 'power3.out' },
+    portfolio: { y: -4, rotate: -5, scale: 1.1, duration: 0.18, ease: 'power3.out' },
+    screener: { x: 4, y: -2, rotate: -10, scale: 1.1, duration: 0.17, ease: 'power3.out' },
+    backtest: { x: 3, y: -4, rotate: 8, scale: 1.1, duration: 0.18, ease: 'power3.out' },
+    forecast: { rotate: 12, scale: 1.11, duration: 0.2, ease: 'sine.out' },
+    report: { rotateX: 16, y: -2, scale: 1.09, duration: 0.18, ease: 'power3.out' },
+    literacy: { rotateY: -18, x: 2, scale: 1.1, duration: 0.19, ease: 'power3.out' },
   };
 
   function playNavIconMotion(btn) {
@@ -3759,8 +3761,8 @@ function initAnimations() {
       filter: btn.classList.contains('active')
         ? 'drop-shadow(0 6px 12px oklch(76% 0.15 195 / 0.22))'
         : 'drop-shadow(0 0 0 oklch(0% 0 0 / 0))',
-      duration: 0.22,
-      ease: 'power2.out',
+      duration: 0.16,
+      ease: 'power3.out',
     });
   }
 
@@ -3770,8 +3772,8 @@ function initAnimations() {
       gsap.to(btn, {
         scale: 1.03,
         x: 4,
-        duration: 0.2,
-        ease: 'power2.out'
+        duration: 0.16,
+        ease: 'power3.out'
       });
       playNavIconMotion(btn);
     });
@@ -3780,8 +3782,8 @@ function initAnimations() {
       gsap.to(btn, {
         scale: 1,
         x: 0,
-        duration: 0.2,
-        ease: 'power2.out'
+        duration: 0.16,
+        ease: 'power3.out'
       });
       resetNavIconMotion(btn);
     });
@@ -3795,36 +3797,7 @@ function initAnimations() {
     });
   });
 
-  // 2. Card Hover Float and Glow Effects (Delegated)
-  document.addEventListener('mouseover', e => {
-    const card = e.target.closest('.card, .lit, .scenario');
-    if (card && !card.dataset.animatingHover) {
-      card.dataset.animatingHover = 'true';
-      gsap.to(card, {
-        y: -4,
-        boxShadow: '0 10px 24px oklch(0% 0 0 / 0.45)',
-        borderColor: 'var(--border-2)',
-        duration: 0.28,
-        ease: 'power2.out'
-      });
-    }
-  });
-
-  document.addEventListener('mouseout', e => {
-    const card = e.target.closest('.card, .lit, .scenario');
-    if (card && (!e.relatedTarget || !card.contains(e.relatedTarget))) {
-      delete card.dataset.animatingHover;
-      gsap.to(card, {
-        y: 0,
-        boxShadow: 'none',
-        borderColor: 'var(--border)',
-        duration: 0.28,
-        ease: 'power2.out'
-      });
-    }
-  });
-
-  // 3. Buttons and segmented controls press feedback (Delegated)
+  // 2. Buttons and segmented controls press feedback (Delegated)
   document.addEventListener('mousedown', e => {
     const btn = e.target.closest('.btn, .seg, .theme-btn');
     if (btn) {

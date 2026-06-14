@@ -33,9 +33,9 @@
   --glow: 0 18px 48px oklch(76% 0.15 195 / 0.16);
   --radius: 12px;
 
-  /* Emil: ease-out-expo transition & spring back curves */
+  /* Emil: crisp product motion without elastic bounce. */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-snappy: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
@@ -179,7 +179,7 @@ h1, h2, h3 { margin: 0; }
   font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 150ms var(--ease-spring), filter 150ms ease, box-shadow 150ms ease;
+  transition: transform 150ms var(--ease-snappy), filter 150ms ease, box-shadow 150ms ease;
   box-shadow: 0 8px 24px oklch(76% 0.15 195 / 0.18);
 }
 .btn:hover { filter: brightness(1.06); }
@@ -396,7 +396,7 @@ h1, h2, h3 { margin: 0; }
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  transition: color 150ms var(--ease-out), background 150ms var(--ease-out), transform 150ms var(--ease-spring);
+  transition: color 150ms var(--ease-out), background 150ms var(--ease-out), transform 150ms var(--ease-snappy);
 }
 .seg:hover {
   color: var(--text);
@@ -523,10 +523,10 @@ tr.row:hover { background: rgba(255,255,255,.025); }
 .kpis .infl-note b { color: var(--text); }
 
 /* Yönetici Özeti / Risk Panosu (Genel Bakış üstü) */
-.exec-card { border-left: 3px solid var(--muted); margin-bottom: 16px; }
-.exec-card.exec-pos { border-left-color: #28d793; }
-.exec-card.exec-warn { border-left-color: #eab308; }
-.exec-card.exec-neg { border-left-color: #ef4444; }
+.exec-card { margin-bottom: 16px; box-shadow: inset 0 0 0 1px var(--border); }
+.exec-card.exec-pos { box-shadow: inset 0 0 0 1px rgba(40,215,147,.28), 0 12px 36px rgba(40,215,147,.05); }
+.exec-card.exec-warn { box-shadow: inset 0 0 0 1px rgba(234,179,8,.3), 0 12px 36px rgba(234,179,8,.045); }
+.exec-card.exec-neg { box-shadow: inset 0 0 0 1px rgba(239,68,68,.3), 0 12px 36px rgba(239,68,68,.045); }
 .exec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
 .exec-head h2 { margin: 0; }
 .exec-risk { font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: 999px; border: 1px solid var(--border); white-space: nowrap; }
@@ -704,9 +704,12 @@ tr.row:hover { background: rgba(255,255,255,.025); }
   gap: 14px;
   padding: 10px 0;
   border-bottom: 1px solid var(--border);
-  transition: background 160ms ease, padding-inline 160ms var(--ease-out);
+  transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out);
 }
-.catalyst-row:hover { background: oklch(76% 0.15 195 / 0.04); padding-inline: 8px; border-radius: 10px; }
+.catalyst-row > * { transition: transform 160ms var(--ease-out); }
+.catalyst-row:hover { background: oklch(76% 0.15 195 / 0.04); border-radius: 10px; }
+.catalyst-row:hover > div:first-child { transform: translateX(5px); }
+.catalyst-row:hover .catalyst-meta { transform: translateX(-3px); }
 .catalyst-row b { display: block; color: var(--text); font-size: 12.5px; line-height: 1.4; }
 .catalyst-row span { display: block; color: var(--muted); font-size: 11.5px; margin-top: 3px; }
 .catalyst-meta { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
@@ -878,10 +881,10 @@ tr.row:hover { background: rgba(255,255,255,.025); }
 
 /* Piyasa Rejimi kartı (Genel Bakış) */
 .regime-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
-.regime-tile { padding: 13px 15px; border: 1px solid var(--border); border-left: 3px solid var(--muted); border-radius: 12px; background: rgba(255,255,255,.02); }
-.regime-tile.rt-pos { border-left-color: #28d793; }
-.regime-tile.rt-warn { border-left-color: #eab308; }
-.regime-tile.rt-neg { border-left-color: #ef4444; }
+.regime-tile { padding: 13px 15px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,.02); }
+.regime-tile.rt-pos { border-color: rgba(40,215,147,.3); background: rgba(40,215,147,.035); }
+.regime-tile.rt-warn { border-color: rgba(234,179,8,.3); background: rgba(234,179,8,.035); }
+.regime-tile.rt-neg { border-color: rgba(239,68,68,.3); background: rgba(239,68,68,.035); }
 .rt-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
 .rt-mkt { font-weight: 700; font-size: 13px; color: var(--text); }
 .rt-badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
@@ -898,14 +901,13 @@ tr.row:hover { background: rgba(255,255,255,.025); }
   padding: 14px 16px;
   background: rgba(255,255,255,.025);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--muted);
   border-radius: 12px;
 }
-.insight-card.itone-strong-buy { border-left-color: #28d793; }
-.insight-card.itone-buy        { border-left-color: #5fe0a0; }
-.insight-card.itone-hold       { border-left-color: #eab308; }
-.insight-card.itone-reduce     { border-left-color: #ff9f43; }
-.insight-card.itone-sell       { border-left-color: #ef4444; }
+.insight-card.itone-strong-buy { border-color: rgba(40,215,147,.34); background: rgba(40,215,147,.035); }
+.insight-card.itone-buy        { border-color: rgba(95,224,160,.3); background: rgba(95,224,160,.03); }
+.insight-card.itone-hold       { border-color: rgba(234,179,8,.3); background: rgba(234,179,8,.03); }
+.insight-card.itone-reduce     { border-color: rgba(255,159,67,.3); background: rgba(255,159,67,.03); }
+.insight-card.itone-sell       { border-color: rgba(239,68,68,.3); background: rgba(239,68,68,.03); }
 .insight-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
 .insight-quality { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 .insight-quality.q-pos { color: #5fe0a0; }
@@ -1369,7 +1371,7 @@ tr.row:hover { background: rgba(255,255,255,.025); }
 }
 .detailwrap {
   padding: 20px 24px;
-  animation: revealDetail 300ms var(--ease-spring) both;
+  animation: revealDetail 240ms var(--ease-snappy) both;
 }
 
 /* ---------- Editorial Literacy Styles ---------- */
@@ -1541,7 +1543,7 @@ tr.row:hover { background: rgba(255,255,255,.025); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .slide-down-spring {
-  animation: slideDownSpring 600ms var(--ease-spring) forwards;
+  animation: slideDownSpring 260ms var(--ease-snappy) forwards;
 }
 
 @keyframes valuePop {
@@ -1550,7 +1552,7 @@ tr.row:hover { background: rgba(255,255,255,.025); }
   100% { transform: scale(1); }
 }
 .val-pop {
-  animation: valuePop 250ms var(--ease-spring) both;
+  animation: valuePop 180ms var(--ease-snappy) both;
 }
 
 /* Hover highlights for stress test rows */
