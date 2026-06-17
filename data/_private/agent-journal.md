@@ -158,3 +158,25 @@ Amaç: günlük akışı zamanla iyileştirmek — kalibrasyon, veri kalitesi, t
 - 17 Haz 2026: Fed + perakende satislar ayni gun. ABD riskini burada ayikla.
 - 18 Haz 2026: issizlik basvurulari, Philly/kurumsal harcama okumasi ve TCMB karar ozetinin tonu.
 - CoinGecko erisimi kendiliginden duzeliyor mu? Duzelmiyorsa bu artik gecici glitch degil, veri kaynagi sorunu.
+
+## 2026-06-17 (7. calistirma - gunluk zamanlanmis gorev)
+
+**Veri/skor anomalileri**
+- Kripto veri akisi bugun geri geldi: fetch-all ABD 12 / BIST 20 / Kripto 12 dondu. Onceki kosudaki CoinGecko boslugu su an tekrarlanmadi, ama kripto ortalama skor 44 ve risk listesi ADA/DOGE/TRX oldugu icin "veri geldi = risk-on" gibi okunmamali.
+- `report.js` yine ekonomik takvimi 0 olay yazdi; haftanin asil katalizorleri web fallback ile tamamlandi. Bu artik gecici aksaklik degil, ekonomik takvim provider/filtre kalitesi sorunu.
+- Panel duyarliligi 59 notr; BIST ortalama 73 ile asiri baskin, ABD 52 ve kripto 44. Kullaniciya ana mesaj: BIST gucu gercek ama Fed/TCMB penceresinde pozisyon buyutme disiplinsiz olur.
+
+**Takip listesi fikirleri**
+- BIST liderleri: THYAO 93, AKBNK 90, YKBNK 89, KCHOL 88, ISCTR 85. Banka momentumu iyi ama 18 Haziran TCMB ozeti ve TL baskisi bu sinyalleri test edecek.
+- ABD: GOOGL top pick 64 ama makro risk yuksek. META 500M Threads haberi mikro pozitif; NVDA/AMD icin JBL bugun ve ACN yarin dolayli talep okuma noktasi.
+- Kripto: BTC/ETH/SOL momentum sinyali var fakat ETF cikis rejimi taze. COIN icin teknik momentumdan once ETF hacmi ve Fed tonu izlenmeli.
+
+**Kalibrasyon onerileri**
+1. Economic calendar bos dondugunde `calendarFallbackUsed` veya benzeri acik bir bayrak base rapora yazilsin; bugun yine AI raporu manuel web fallback'e dayandi.
+2. Macro overlay tipleri UI'da "Fed / CPI / TCMB / BTC likidite / bilanço" gibi okunur gruplara ayrilmali; su an komponent seviyesinde var ama karar yuzeyinde daha sert gosterilmeli.
+3. DecisionLearning orneklemi 1; YKBNK basarili kapanis iyi ama skor ayari icin en az 5 kapanis beklenmeli.
+
+**Yarin izle**
+- 18 Haz: TCMB PPK ozeti, ABD issizlik basvurulari, ACN bilançosu.
+- Fed sonucu sonrasi ABD teknik skorlarinda GOOGL/META ile COIN/NFLX ayrismasi var mi?
+- Kripto ETF akisinda cikis serisi kalici olarak kiriliyor mu, yoksa tek gunluk nefes mi?
