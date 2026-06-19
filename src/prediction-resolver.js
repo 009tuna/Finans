@@ -3,7 +3,8 @@
 const path = require('path');
 const { fetchSeries: fetchYahooSeries } = require('./yahoo');
 const { fetchSeries: fetchBinanceSeries } = require('./coingecko');
-const { readJournal, writeJournal } = require('./decision-journal');
+const { readJournal, writeJournal, appendDecisionAudit } = require('./decision-journal');
+const { auditPrediction, buildLearningSummary } = require('./decision-auditor');
 
 const ROOT = path.join(__dirname, '..');
 const JOURNAL_PATH = path.join(ROOT, 'data', 'journal.json');
@@ -121,6 +122,24 @@ function resolveOne(prediction, series, now) {
   return prediction;
 }
 
+function applyResolvedPrediction(journal, prediction) {
+  if (!journal || !Array.isArray(journal.predictions)) return journal;
+  if (!prediction || !prediction.id || prediction.outcome === 'open') return journal;
+
+  const idx = journal.predictions.findIndex((x) => x.id === prediction.id);
+  if (idx >= 0) {
+    journal.predictions[idx] = prediction;
+  }
+
+  const audit = auditPrediction(prediction);
+  if (!audit) return journal;
+  const nextJournal = appendDecisionAudit(journal, audit);
+  journal.decisionAudits = nextJournal.decisionAudits;
+  journal.learningRules = nextJournal.learningRules;
+  journal.reviewQueue = nextJournal.reviewQueue;
+  return journal;
+}
+
 // CLI wrapper
 async function main() {
   const journal = await readJournal(JOURNAL_PATH);
@@ -173,15 +192,14 @@ async function main() {
       } else {
         stopHitCount++;
       }
-      // Update in journal
-      const idx = journal.predictions.findIndex((x) => x.id === pred.id);
-      if (idx >= 0) {
-        journal.predictions[idx] = nextPred;
-      }
+      applyResolvedPrediction(journal, nextPred);
     }
   }
 
   if (resolvedCount > 0) {
+    const learningSummary = buildLearningSummary(journal, new Date().toISOString());
+    journal.learningRules = learningSummary.learningRules;
+    journal.reviewQueue = learningSummary.reviewQueue;
     await writeJournal(JOURNAL_PATH, journal);
   }
 
@@ -198,4 +216,5 @@ if (require.main === module) {
 
 module.exports = {
   resolveOne,
+  applyResolvedPrediction,
 };

@@ -7,14 +7,22 @@
       "AMD", "AVGO", "NFLX", "PLTR", "COIN"
     ],
     "bist": [
-      "THYAO", "ASELS", "KCHOL", "GARAN", "AKBNK", "ISCTR", "BIMAS",
-      "FROTO", "TUPRS", "SAHOL", "TCELL", "EREGL", "SISE", "YKBNK",
-      "ENKAI", "TTKOM", "PGSUS", "ASTOR", "TOASO", "SASA"
+      "AEFES", "AGHOL", "AKSA", "AKSEN", "ALARK", "ALTNY", "ANSGR", "ARCLK", "ASELS", "ASTOR",
+      "BALSU", "BERA", "BIMAS", "BRSAN", "BRYAT", "BSOKE", "BTCIM", "CANTE", "CCOLA", "CIMSA",
+      "CVKMD", "CWENE", "DAPGM", "DOAS", "DOHOL", "DSTKF", "ECILC", "EFOR", "EKGYO", "ENERY",
+      "ENJSA", "ENKAI", "EREGL", "EUPWR", "EUREN", "FENER", "FROTO", "GARAN", "GENIL", "GESAN",
+      "GLRMK", "GRSEL", "GRTHO", "GSRAY", "GUBRF", "HALKB", "HEKTS", "ISCTR", "ISMEN", "IZENR",
+      "KCHOL", "KLRHO", "KRDMD", "KTLEV", "KUYAS", "MAGEN", "MAVI", "MGROS", "MIATK", "MPARK",
+      "OBAMS", "ODAS", "OTKAR", "OYAKC", "PAHOL", "PASEU", "PATEK", "PETKM", "PGSUS", "PSGYO",
+      "QUAGR", "RALYH", "REEDR", "SAHOL", "SARKY", "SASA", "SISE", "SKBNK", "SOKM", "TABGD",
+      "TAVHL", "TCELL", "THYAO", "TKFEN", "TOASO", "TRALT", "TRENJ", "TRMET", "TSKB", "TTKOM",
+      "TUKAS", "TUPRS", "TUREX", "TURSG", "ULKER", "VAKBN", "VESTL", "YKBNK", "ZOREN", "TERA"
     ],
     "crypto": [
       "bitcoin", "ethereum", "solana", "binancecoin", "ripple",
       "cardano", "avalanche-2", "dogecoin", "chainlink", "polkadot",
-      "tron", "sui"
+      "tron", "sui", "near", "render", "fetch-ai", "arbitrum",
+      "optimism", "pepe", "aptos", "uniswap", "dogwifhat"
     ]
   }
 }

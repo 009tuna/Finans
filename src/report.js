@@ -8,6 +8,7 @@ const path = require('path');
 const { fetchEconomic, fetchEarnings, fetchCompanyNews } = require('./calendar');
 const { getLatestSnapshot, saveReport } = require('./db');
 const { buildMacroSignalOverlay } = require('./signal-overlay');
+const { buildLearningSummary } = require('./decision-auditor');
 
 const ROOT = path.join(__dirname, '..');
 const DATA = path.join(ROOT, 'data');
@@ -107,14 +108,18 @@ async function buildBaseReport() {
     calendar.error = String((e && e.message) || e);
   }
 
+  const generatedAt = new Date().toISOString();
+
   // Scorecard and resolved predictions integration
   let scorecard = null;
   let resolvedLastWeek = [];
+  let decisionLearning = null;
   let journal = null;
   try {
     const { readJournal, buildPredictionScorecard } = require('./decision-journal');
     journal = await readJournal(path.join(DATA, 'journal.json'));
     scorecard = buildPredictionScorecard(journal);
+    decisionLearning = buildLearningSummary(journal, generatedAt);
     
     const today = new Date();
     const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -137,7 +142,6 @@ async function buildBaseReport() {
     console.error('⚠️ [report] Scorecard verisi yüklenemedi:', err.message);
   }
 
-  const generatedAt = new Date().toISOString();
   const base = {
     generatedAt,
     date: (snap.generatedAt || new Date().toISOString()).slice(0, 10),
@@ -154,6 +158,7 @@ async function buildBaseReport() {
     calendar,
     scorecard,
     resolvedLastWeek,
+    decisionLearning,
   };
 
   try {

@@ -222,8 +222,8 @@ function updateFreshness() {
 const VIEW_META = {
   overview: ['Genel Bakış', 'Tüm pazarların özeti ve öne çıkan fırsatlar', 'view-overview'],
   us: ['🇺🇸 ABD Hisseleri', '12 hisse · teknik analiz + analist konsensüsü', 'view-market'],
-  bist: ['🇹🇷 BIST 20', 'En büyük 20 şirket · teknik analiz', 'view-market'],
-  crypto: ['₿ Kripto', '12 coin · teknik momentum analizi', 'view-market'],
+  bist: ['🇹🇷 BIST 100', 'En büyük 100 şirket · teknik analiz', 'view-market'],
+  crypto: ['₿ Kripto', '21 coin · teknik momentum analizi', 'view-market'],
   portfolio: ['💼 Portföyüm', 'Maliyet, kâr/zarar ve portföy sağlık analizi', 'view-portfolio'],
   screener: ['🔍 Teknik Tarayıcı', 'Kritik indikatör sinyalleri ve alarmlar', 'view-screener'],
   backtest: ['📈 Strateji Testi', 'Geçmiş fiyat verileriyle teknik puan stratejisi testi', 'view-backtest'],
@@ -296,7 +296,10 @@ function setView(view) {
 function renderView() {
   if (!DATA || DATA.empty) return;
   if (activeView === 'overview') {
-    renderExecSummary(); renderCfoDecisionCockpit(); renderDailyDigest(); renderPredictionScorecard(); renderSignalOverlayPanel(); renderIdeaFunnel(); renderCatalystCalendar(); renderKpis(); renderPicks(); renderAlloc(); renderMovers(); renderFxWidget(); renderMarketRegime();
+    renderOverviewBriefing(); renderExecSummary(); renderDailyDigest(); renderOverviewRoutes(); renderKpis(); renderCfoDecisionCockpit(); renderPredictionScorecard(); renderDecisionLearningPanel(); renderSignalOverlayPanel(); renderIdeaFunnel(); renderCatalystCalendar(); renderMarketRegime(); renderFxWidget();
+    if (document.querySelector('.overview-advanced') && document.querySelector('.overview-advanced').open) {
+      renderPicks(); renderAlloc(); renderMovers();
+    }
     triggerRevealAnimations($('#view-overview'));
   }
   else if (activeView === 'us' || activeView === 'bist' || activeView === 'crypto') {
@@ -321,6 +324,44 @@ function renderView() {
 }
 
 /* ---------- Günlük Rapor ---------- */
+function reportExecutiveReadingHtml(base, ai) {
+  const s = base && base.sentiment ? base.sentiment : {};
+  const overlaySummary = base && base.signalOverlay && base.signalOverlay.summary ? base.signalOverlay.summary : {};
+  const macro = ai && ai.macroSummary ? ai.macroSummary : 'Makro yorum henuz uretilmedi; deterministik teknik rapor okunuyor.';
+  const today = ai && ai.todayFocus ? ai.todayFocus : 'Bugun icin oncelik: genel duyarlilik, skor degisimi ve yaklasan katalizorleri birlikte oku.';
+  const positioning = ai && ai.weeklyOutlook && ai.weeklyOutlook.positioning ? ai.weeklyOutlook.positioning : 'Pozisyon kararini tek sinyale baglama; rapor, teknik skor ve portfoy agirligini birlikte oku.';
+  const worldNews = ai && Array.isArray(ai.worldNews) ? ai.worldNews.slice(0, 4) : [];
+  const companyNews = base && base.calendar && Array.isArray(base.calendar.companyNews) ? base.calendar.companyNews.slice(0, 5) : [];
+  const commentary = ai && ai.commentary ? ai.commentary : {};
+  const marketLines = [
+    commentary.us ? '<li><b>ABD</b><span>' + esc(commentary.us) + '</span></li>' : '',
+    commentary.bist ? '<li><b>BIST</b><span>' + esc(commentary.bist) + '</span></li>' : '',
+    commentary.crypto ? '<li><b>Kripto</b><span>' + esc(commentary.crypto) + '</span></li>' : '',
+  ].filter(Boolean).join('');
+  const worldHtml = worldNews.length
+    ? worldNews.map((n) => '<li><b>' + esc(n.impact || 'notr') + '</b><span>' + esc(n.title || '') + '</span></li>').join('')
+    : '<li><span>Kuresel haber ozeti icin AI raporu bekleniyor.</span></li>';
+  const companyHtml = companyNews.length
+    ? companyNews.map((n) => '<li><b>' + esc(n.symbol || '-') + '</b><span>' + esc(n.headline || '') + '</span></li>').join('')
+    : '<li><span>Takip listesi icin sirket haber akisi yok.</span></li>';
+
+  return '<div class="card reveal report-reader-card">' +
+    '<div class="report-reader-head">' +
+      '<div><span class="brief-kicker">Yonetici okuma akisi</span><h2>Once resmi anla, sonra detaya in.</h2></div>' +
+      '<div class="reader-sentiment"><b>' + esc(s.label || '-') + '</b><span>' + esc(String(s.avg == null ? '-' : s.avg)) + '/100</span></div>' +
+    '</div>' +
+    '<div class="reader-grid">' +
+      '<section class="reader-block reader-main"><h3>Makro degisim</h3><p>' + esc(macro) + '</p><ul>' + (marketLines || '<li><span>Pazar yorumu bekleniyor.</span></li>') + '</ul></section>' +
+      '<section class="reader-block"><h3>Mikro ve haber akisi</h3><ul>' + worldHtml + companyHtml + '</ul></section>' +
+      '<section class="reader-block"><h3>Bana etkisi</h3><p>' + esc(today) + '</p><div class="reader-impact">' +
+        '<span>AL sinyali <b>' + esc(String(s.buys == null ? '-' : s.buys)) + '</b></span>' +
+        '<span>Yukselen <b>' + esc(String(s.gainers == null ? '-' : s.gainers)) + '</b></span>' +
+        '<span>Makro baski <b>' + esc(String(overlaySummary.reduced || 0)) + '</b></span>' +
+      '</div><p>' + esc(positioning) + '</p></section>' +
+    '</div>' +
+  '</div>';
+}
+
 async function renderReport() {
   const el = $('#reportContent');
   let data = null;
@@ -341,6 +382,7 @@ async function renderReport() {
     '<h2>📰 Günlük Piyasa Raporu</h2><div class="report-date">' + base.date + ' · ' + s.total + ' varlık · ' + s.buys + ' AL sinyali · ' + s.gainers + ' yükselen</div></div>' +
     '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">' + aiBadge + '<span class="sent-pill ' + sc + '">' + s.label + ' · ' + s.avg + '/100</span></div></div></div>';
 
+  h += reportExecutiveReadingHtml(base, ai);
   h += reportSignalOverlayHtml(base);
 
   // Yapay zeka makro + haber
@@ -585,6 +627,74 @@ function currentList() {
 }
 
 /* ---------- Genel bakış ---------- */
+async function renderOverviewBriefing() {
+  const el = $('#overviewBriefing');
+  if (!el) return;
+  let base = null;
+  let ai = null;
+  try {
+    const report = await loadReportCache();
+    base = report && report.base;
+    ai = report && report.ai;
+  } catch (_) {
+    base = null;
+    ai = null;
+  }
+
+  const s = base && base.sentiment ? base.sentiment : null;
+  const overlaySummary = base && base.signalOverlay && base.signalOverlay.summary ? base.signalOverlay.summary : {};
+  const macro = ai && ai.macroSummary
+    ? ai.macroSummary
+    : 'Rapor katmani henuz hazir degil; ilk okuma icin teknik ozet ve piyasa skorlarini kullan.';
+  const focus = ai && ai.todayFocus
+    ? ai.todayFocus
+    : 'Bugun once raporu oku, sonra sadece skor degisimi olan varliklara in.';
+  const news = ai && Array.isArray(ai.worldNews) ? ai.worldNews.slice(0, 3) : [];
+  const newsHtml = news.length
+    ? news.map((n) => '<li>' + esc(n.title || '') + '</li>').join('')
+    : '<li>Canli haber ozeti icin gunluk AI raporu bekleniyor.</li>';
+  const sentiment = s ? s.label + ' / ' + s.avg + '/100' : 'Rapor bekleniyor';
+  const breadth = s ? s.gainers + ' yukselen / ' + s.total + ' varlik' : 'Veri yukleniyor';
+  const pressure = (overlaySummary.reduced || 0) + ' baski, ' + (overlaySummary.boosted || 0) + ' destek';
+
+  el.innerHTML = '<div class="overview-briefing card reveal">' +
+    '<div class="brief-main">' +
+      '<span class="brief-kicker">Bugun once bunu oku</span>' +
+      '<h2>Gunluk rapor ana ekranin merkezinde.</h2>' +
+      '<p>' + esc(macro) + '</p>' +
+      '<div class="brief-actions">' +
+        '<button class="btn" type="button" onclick="setView(\'report\')">Gunluk raporu oku</button>' +
+        '<button class="btn btn-secondary" type="button" onclick="setView(\'portfolio\')">Portfoyu kontrol et</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="brief-side">' +
+      '<div class="brief-focus"><b>Bugunun odagi</b><span>' + esc(focus) + '</span></div>' +
+      '<div class="brief-metrics">' +
+        '<div><span>Duyarlilik</span><b>' + esc(sentiment) + '</b></div>' +
+        '<div><span>Genislik</span><b>' + esc(breadth) + '</b></div>' +
+        '<div><span>Makro basinc</span><b>' + esc(pressure) + '</b></div>' +
+      '</div>' +
+      '<ul class="brief-news">' + newsHtml + '</ul>' +
+    '</div>' +
+  '</div>';
+}
+
+function renderOverviewRoutes() {
+  const el = $('#overviewRoutes');
+  if (!el) return;
+  const route = (view, title, body, meta) => {
+    return '<button class="route-card" type="button" onclick="setView(\'' + view + '\')">' +
+      '<span>' + esc(meta) + '</span><b>' + esc(title) + '</b><em>' + esc(body) + '</em>' +
+    '</button>';
+  };
+  el.innerHTML = '<div class="overview-routes reveal">' +
+    route('report', 'Raporu oku', 'Makro, mikro haber akisi ve bugunun etkisi tek yerde.', '1') +
+    route('us', 'Piyasaya in', 'ABD, BIST veya kripto tablolarinda teknik detaylara bak.', '2') +
+    route('portfolio', 'Portfoyu kontrol et', 'Agirlik, risk ve pozisyon sagligini ayri oku.', '3') +
+    route('screener', 'Sinyal ara', 'Sadece yeni firsat veya alarm ariyorsan teknik tarayiciya gec.', '4') +
+  '</div>';
+}
+
 function renderKpis() {
   const all = allScored();
   const avg = all.length ? Math.round(all.reduce((a, x) => a + x.analysis.score, 0) / all.length) : 0;
@@ -1652,6 +1762,7 @@ function renderTable() {
       assetThesisCard(x) +
       alertRulesCard(x) +
       assetSignalOverlayCard(x) +
+      assetLearningCard(x) +
       assetResearchCard(x) +
       '<div class="dtop"><div class="dsummary">' + a.summary + '</div><div class="detail-chart-box"><canvas id="detail-chart-' + idx + '"></canvas></div></div>' +
       subBars(a.sub) + decisionPanel(x) + indGrid(x) + reasonList(a.reasons) +
@@ -3069,6 +3180,16 @@ async function runDCFCalculation() {
 document.querySelectorAll('.navitem').forEach((n) => n.addEventListener('click', () => setView(n.dataset.view)));
 $('#sortSel').addEventListener('change', (e) => { sortBy = e.target.value; if (['us', 'bist', 'crypto'].includes(activeView)) { renderScoreChart(); renderTable(); } });
 $('#refreshBtn').addEventListener('click', refresh);
+document.addEventListener('toggle', (e) => {
+  const target = e.target;
+  if (target && target.classList && target.classList.contains('overview-advanced') && target.open) {
+    renderPicks();
+    renderAlloc();
+    renderMovers();
+    renderMarketRegime();
+    renderFxWidget();
+  }
+}, true);
 document.querySelectorAll('[data-desk-mode]').forEach((btn) => {
   btn.addEventListener('click', () => {
     assetDeskState.mode = btn.dataset.deskMode;
@@ -3283,6 +3404,100 @@ function renderPredictionScorecard() {
   '</div>';
 }
 
+async function renderDecisionLearningPanel() {
+  const el = $('#decisionLearningPanel');
+  if (!el) return;
+  if (!window.FinansActionLayer || !window.FinansActionLayer.buildDecisionLearningPanel) return;
+
+  let base = REPORT_CACHE && REPORT_CACHE.base;
+  if (!base) {
+    el.innerHTML = '<div class="card reveal decision-learning-card"><div class="card-head"><h2>🧠 Karar Öğrenme Döngüsü</h2><span class="card-sub">Rapor kaynağı okunuyor</span></div><p class="muted compact">Karar öğrenme verisi yükleniyor.</p></div>';
+    try {
+      const report = await loadReportCache();
+      base = report && report.base;
+    } catch (e) {
+      base = null;
+    }
+  }
+
+  const learning = window.FinansActionLayer.buildDecisionLearningPanel(base);
+
+  if (learning.empty) {
+    el.innerHTML = '<div class="card reveal decision-learning-card">' +
+      '<div class="card-head"><h2>🧠 Karar Öğrenme Döngüsü</h2><span class="card-sub">' + esc(learning.summary) + '</span></div>' +
+      '<p class="muted compact">Öğrenme verisi bulunamadı veya henüz işlenmedi.</p>' +
+      '</div>';
+    return;
+  }
+
+  const metrics = learning.metrics.map(function(m) {
+    return '<div><b>' + esc(m.value) + '</b><span>' + esc(m.label) + '</span></div>';
+  }).join('');
+
+  const rules = learning.rules.length ? learning.rules.map(function(r) {
+    const adj = r.adjustment > 0 ? '+' + r.adjustment : r.adjustment;
+    return '<li>' +
+      '<b>' + esc(r.scopeLabel) + '</b>' +
+      '<span>' + adj + ' (güven %' + Math.round(r.confidence * 100) + ')</span>' +
+      '<em>' + esc(r.reason) + ' (örnek: ' + r.sampleSize + ')</em>' +
+      '</li>';
+  }).join('') : '<li><em>Aktif kural bulunamadı.</em></li>';
+
+  const lessons = learning.lessons.length ? learning.lessons.map(function(l) {
+    return '<li>' +
+      '<b>' + esc(l.symbol) + ' (' + esc(marketShortLabel(l.market)) + ')</b>' +
+      '<span>%' + Math.round((l.confidence || 0) * 100) + ' güven</span>' +
+      '<em>' + esc(l.lesson) + '</em>' +
+      '</li>';
+  }).join('') : '<li><em>Son ders bulunamadı.</em></li>';
+
+  const review = learning.reviewQueue.length ? learning.reviewQueue.map(function(q) {
+    const prioCls = q.priority === 'high' ? 'imp-neg' : 'imp-neutral';
+    return '<li>' +
+      '<b>' + esc(marketShortLabel(q.market)) + '</b>' +
+      '<span><span class="news-impact ' + prioCls + '" style="font-size:10px; padding:2px 4px; border-radius:4px; font-weight:700;">' + esc(q.priority.toUpperCase()) + '</span></span>' +
+      '<em>' + esc(q.reason) + ' <br><strong style="color:var(--text); font-size:11px;">Eylem:</strong> ' + esc(q.nextAction) + '</em>' +
+      '</li>';
+  }).join('') : '<li><em>İnceleme sırası boş.</em></li>';
+
+  el.innerHTML = '<div class="card reveal decision-learning-card">' +
+    '<div class="card-head"><h2>🧠 Karar Öğrenme Döngüsü</h2><span class="card-sub">' + esc(learning.summary) + '</span></div>' +
+    '<div class="learning-metrics">' + metrics + '</div>' +
+    '<div class="learning-grid">' +
+      '<div>' +
+        '<h4>Aktif Kurallar</h4>' +
+        '<ul>' + rules + '</ul>' +
+      '</div>' +
+      '<div>' +
+        '<h4>Son Çıkarılan Dersler</h4>' +
+        '<ul>' + lessons + '</ul>' +
+      '</div>' +
+      '<div>' +
+        '<h4>İnceleme Sırası</h4>' +
+        '<ul>' + review + '</ul>' +
+      '</div>' +
+    '</div>' +
+    '</div>';
+}
+
+function assetLearningCard(x) {
+  if (!x) return '';
+  if (!window.FinansActionLayer || !window.FinansActionLayer.buildAssetLearningSnippet) return '';
+  const base = REPORT_CACHE && REPORT_CACHE.base ? REPORT_CACHE.base : null;
+  const snippet = window.FinansActionLayer.buildAssetLearningSnippet(x, base);
+  if (!snippet) return '';
+
+  const cls = snippet.adjustment > 0 ? 'alc-pos' : snippet.adjustment < 0 ? 'alc-neg' : 'alc-neutral';
+  const adjLabel = snippet.adjustment !== 0 ? (snippet.adjustment > 0 ? '+' : '') + snippet.adjustment : '';
+
+  return '<div class="asset-learning-card ' + cls + '">' +
+    '<div class="research-head"><h4>Karar Öğrenimi</h4><span>' + esc(snippet.kind) + '</span></div>' +
+    '<div class="asset-learning-title"><b>' + esc(snippet.title) + (adjLabel ? ' (' + adjLabel + ')' : '') + '</b></div>' +
+    '<p>' + esc(snippet.detail) + '</p>' +
+    '<em>Güven derecesi: %' + Math.round((snippet.confidence || 0) * 100) + ' (Örneklem: ' + (snippet.sampleSize || 1) + ')</em>' +
+    '</div>';
+}
+
 function getReportSignalOverlay() {
   return REPORT_CACHE && REPORT_CACHE.base && REPORT_CACHE.base.signalOverlay ? REPORT_CACHE.base.signalOverlay : null;
 }
@@ -3319,6 +3534,7 @@ function overlayTypeLabel(type) {
     modelAuditGap: 'Model denetimi',
     scenarioSensitivity: 'Senaryo hassasiyeti',
     predictionCalibration: 'Tahmin kalibrasyonu',
+    learningCalibration: 'Ogrenme kalibrasyonu',
   }[type] || type || 'Bilesen';
 }
 function overlayStatusLabel(status) {
@@ -3780,19 +3996,15 @@ function initAnimations() {
       gsap.fromTo(chart, { strokeDasharray: 20, strokeDashoffset: 20 }, { strokeDashoffset: 0, duration: 0.4, ease: 'power2.out' });
       gsap.to(dot, { scale: 1.4, transformOrigin: '50% 50%', duration: 0.25, ease: 'power2.out' });
     } else if (view === 'us') {
-      const col1 = btn.querySelector('.us-col-1');
-      const col2 = btn.querySelector('.us-col-2');
-      const col3 = btn.querySelector('.us-col-3');
-      const roof = btn.querySelector('.us-roof');
-      const base = btn.querySelector('.us-base');
+      const bolt = btn.querySelector('.us-bolt');
       const trend = btn.querySelector('.us-trend');
       const dot = btn.querySelector('.us-dot');
-      gsap.killTweensOf([col1, col2, col3, roof, base, trend, dot]);
-      gsap.fromTo(base, { scaleX: 0 }, { scaleX: 1, transformOrigin: '50% 50%', duration: 0.25, ease: 'power2.out' });
-      gsap.fromTo([col1, col2, col3], { scaleY: 0 }, { scaleY: 1, transformOrigin: '50% 100%', duration: 0.3, ease: 'back.out(1.5)', stagger: 0.06, delay: 0.05 });
-      gsap.fromTo(roof, { scale: 0.8, y: -2, opacity: 0 }, { scale: 1, y: 0, opacity: 1, transformOrigin: '50% 50%', duration: 0.3, ease: 'back.out(1.5)', delay: 0.15 });
-      gsap.fromTo(trend, { strokeDasharray: 25, strokeDashoffset: 25 }, { strokeDashoffset: 0, duration: 0.45, ease: 'power2.out', delay: 0.1 });
-      gsap.fromTo(dot, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, transformOrigin: '50% 50%', duration: 0.3, ease: 'back.out(2)', delay: 0.35 });
+      gsap.killTweensOf([bolt, trend, dot]);
+      // Animate tech bolt lighting up & scaling with a back effect
+      gsap.fromTo(bolt, { scale: 0.8, rotate: -10, opacity: 0.5 }, { scale: 1.05, rotate: 0, opacity: 1, transformOrigin: '12px 12px', duration: 0.35, ease: 'back.out(2)' });
+      // Draw trend path
+      gsap.fromTo(trend, { strokeDasharray: 25, strokeDashoffset: 25 }, { strokeDashoffset: 0, duration: 0.45, ease: 'power2.out', delay: 0.05 });
+      gsap.fromTo(dot, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, transformOrigin: '50% 50%', duration: 0.3, ease: 'back.out(2)', delay: 0.3 });
     } else if (view === 'bist') {
       const tl = btn.querySelector('.tr-tulip-l');
       const tr = btn.querySelector('.tr-tulip-r');
@@ -3914,17 +4126,11 @@ function initAnimations() {
       gsap.to(chart, { strokeDashoffset: 0, duration: 0.2, ease: 'power2.out' });
       gsap.to(dot, { scale: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'us') {
-      const col1 = btn.querySelector('.us-col-1');
-      const col2 = btn.querySelector('.us-col-2');
-      const col3 = btn.querySelector('.us-col-3');
-      const roof = btn.querySelector('.us-roof');
-      const base = btn.querySelector('.us-base');
+      const bolt = btn.querySelector('.us-bolt');
       const trend = btn.querySelector('.us-trend');
       const dot = btn.querySelector('.us-dot');
-      gsap.killTweensOf([col1, col2, col3, roof, base, trend, dot]);
-      gsap.to([col1, col2, col3], { scaleY: 1, transformOrigin: '50% 100%', duration: 0.2, ease: 'power2.out' });
-      gsap.to(roof, { scale: 1, y: 0, opacity: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
-      gsap.to(base, { scaleX: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
+      gsap.killTweensOf([bolt, trend, dot]);
+      gsap.to(bolt, { scale: 1, rotate: 0, opacity: 1, transformOrigin: '12px 12px', duration: 0.2, ease: 'power2.out' });
       gsap.to(trend, { strokeDashoffset: 0, duration: 0.2, ease: 'power2.out' });
       gsap.to(dot, { scale: 1, opacity: 1, transformOrigin: '50% 50%', duration: 0.2, ease: 'power2.out' });
     } else if (view === 'bist') {

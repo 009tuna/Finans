@@ -14,6 +14,8 @@ const {
   buildCatalystCalendar,
   buildCfoDecisionCockpit,
   buildPortfolioRiskPlan,
+  buildDecisionLearningPanel,
+  buildAssetLearningSnippet,
   buildCompanyTearsheet,
   buildCompsSnapshot,
   buildInvestmentCommitteeMemo,
@@ -236,7 +238,41 @@ assert.ok(cockpit.rows[0].decisionAsk);
 assert.ok(cockpit.rows[0].missingEvidence.length >= 1);
 console.log('   ok');
 
-console.log('12. buildCompanyTearsheet and buildCompsSnapshot produce evidence-aware snapshots...');
+console.log('12. buildDecisionLearningPanel and buildAssetLearningSnippet expose audit lessons...');
+const learningBase = {
+  generatedAt: '2026-06-14T12:00:00.000Z',
+  scorecard: card,
+  decisionLearning: {
+    totalAudits: 5,
+    systemAudits: 5,
+    learningRules: [
+      {
+        id: 'learning:us:AL:60-69',
+        scope: { market: 'us', label: 'AL', scoreBucket: '60-69' },
+        adjustment: 1,
+        confidence: 0.7,
+        sampleSize: 5,
+        winRate: 80,
+        reason: 'ABD AL 60-69 kovasi gecmiste iyi calisti.',
+        expiresAt: '2026-06-20T12:00:00.000Z',
+      },
+    ],
+    recentLessons: [
+      { id: 'amd:audit', market: 'us', symbol: 'AMD', lesson: 'AMD hedefe ulasti.', confidence: 0.7 },
+    ],
+    reviewQueue: [],
+  },
+};
+const learningPanel = buildDecisionLearningPanel(learningBase);
+assert.equal(learningPanel.empty, false);
+assert.ok(learningPanel.metrics.some((x) => x.label === 'Kural' && x.value === 1));
+assert.ok(learningPanel.rules[0].reason.includes('ABD'));
+const assetLearning = buildAssetLearningSnippet(snapshot.us[1], learningBase);
+assert.equal(assetLearning.kind, 'rule');
+assert.equal(assetLearning.adjustment, 1);
+console.log('   ok');
+
+console.log('13. buildCompanyTearsheet and buildCompsSnapshot produce evidence-aware snapshots...');
 const tearsheet = buildCompanyTearsheet(snapshot.us[0], snapshot, mockJournal);
 assert.equal(tearsheet.symbol, 'AAPL');
 assert.ok(tearsheet.metrics.some((x) => x.label === 'Teknik skor'));
@@ -247,7 +283,7 @@ assert.ok(comps.peerSet.length >= 1);
 assert.ok(comps.readThrough.includes('benzer'));
 console.log('   ok');
 
-console.log('13. buildInvestmentCommitteeMemo creates readiness verdicts...');
+console.log('14. buildInvestmentCommitteeMemo creates readiness verdicts...');
 const memoReady = buildInvestmentCommitteeMemo(snapshot.us[1], snapshot, {
   notes: {
     'us:AMD': {

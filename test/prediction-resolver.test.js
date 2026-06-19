@@ -2,7 +2,7 @@
 'use strict';
 
 const assert = require('assert');
-const { resolveOne } = require('../src/prediction-resolver');
+const { resolveOne, applyResolvedPrediction } = require('../src/prediction-resolver');
 const { recordPrediction, buildPredictionScorecard } = require('../src/decision-journal');
 
 console.log('🧪 prediction resolver tests starting...\n');
@@ -168,6 +168,19 @@ journal.predictions[0].outcome = 'target-hit';
 journal = recordPrediction(journal, predB, '2026-06-03T09:00:00.000Z');
 // Should record now since the previous one is closed
 assert.equal(journal.predictions.length, 2);
+
+// 9. Resolver audit hook
+console.log('9. Testing resolved prediction audit persistence...');
+const auditJournal = { predictions: [Object.assign({}, basePred)] };
+const resolvedForAudit = resolveOne(basePred, seriesTargetHit, now);
+applyResolvedPrediction(auditJournal, resolvedForAudit);
+assert.equal(auditJournal.predictions[0].outcome, 'target-hit');
+assert.equal(auditJournal.decisionAudits.length, 1);
+assert.equal(auditJournal.decisionAudits[0].predictionId, basePred.id);
+assert.equal(auditJournal.decisionAudits[0].scoreBucket, '70-79');
+applyResolvedPrediction(auditJournal, resolvedForAudit);
+assert.equal(auditJournal.decisionAudits.length, 1);
+console.log('   ok');
 console.log('   ✓ Duplication check blocks duplicate open predictions correctly');
 
 console.log('\n🎉 All prediction resolver tests passed!');

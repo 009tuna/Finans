@@ -165,4 +165,35 @@ assert.ok(overlay.generatedAt);
 assert.ok(overlay.expiresAt);
 console.log('   ok');
 
+console.log('7. decision learning rules apply as bounded overlay components...');
+const learningJournal = {
+  predictions: [1, 2, 3, 4, 5].map((day) => ({
+    id: 'us:AAPL:2026-05-0' + day,
+    market: 'us',
+    symbol: 'AAPL',
+    label: 'AL',
+    score: 74,
+    source: 'system',
+    outcome: day === 5 ? 'stop-hit' : 'target-hit',
+    resultPct: day === 5 ? -4 : 6,
+    entry: 100,
+    target: 106,
+    stop: 96,
+    createdAt: '2026-05-0' + day + 'T10:00:00.000Z',
+    resolvedAt: '2026-05-1' + day + 'T20:59:59.000Z',
+  })),
+};
+const learningOverlay = buildMacroSignalOverlay({
+  snapshot: baseSnapshot(),
+  aiReport: { commentary: {} },
+  baseReport: {},
+  journal: learningJournal,
+  now: NOW,
+});
+const learningComponent = learningOverlay.assets['us:AAPL'].components.find((x) => x.type === 'learningCalibration');
+assert.ok(learningComponent);
+assert.ok(learningComponent.adjustment > 0);
+assert.ok(Math.abs(learningOverlay.assets['us:AAPL'].totalAdjustment) <= 8);
+console.log('   ok');
+
 console.log('\nSignal overlay tests passed.');

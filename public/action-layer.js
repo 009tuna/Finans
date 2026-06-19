@@ -340,6 +340,127 @@
     return String(asset && asset.market || '').toLowerCase() + ':' + String(asset && asset.symbol || '').toUpperCase();
   }
 
+  function learningLabel(label) {
+    return String(label || '').trim().toUpperCase().replace(/\s+/g, '_');
+  }
+
+  function scoreBucket(score) {
+    const s = Number(score);
+    if (!isFinite(s)) return 'unknown';
+    if (s <= 29) return '0-29';
+    if (s <= 44) return '30-44';
+    if (s <= 59) return '45-59';
+    if (s <= 69) return '60-69';
+    if (s <= 79) return '70-79';
+    return '80-100';
+  }
+
+  function learningRuleSpecificity(rule) {
+    const scope = rule && rule.scope ? rule.scope : {};
+    return (scope.market ? 1 : 0) + (scope.label ? 1 : 0) + (scope.scoreBucket ? 1 : 0);
+  }
+
+  function isLearningRuleExpired(rule, nowIso) {
+    if (!rule || !rule.expiresAt) return false;
+    return new Date(rule.expiresAt).getTime() <= new Date(nowIso || Date.now()).getTime();
+  }
+
+  function learningRuleMatchesAsset(rule, asset) {
+    if (!rule || !asset || !asset.analysis) return false;
+    const scope = rule.scope || {};
+    const market = String(asset.market || '').toLowerCase();
+    const label = learningLabel(asset.analysis.label);
+    const bucket = scoreBucket(asset.analysis.score);
+    if (scope.market && String(scope.market).toLowerCase() !== market) return false;
+    if (scope.label && learningLabel(scope.label) !== label) return false;
+    if (scope.scoreBucket && scope.scoreBucket !== bucket) return false;
+    return true;
+  }
+
+  function activeLearningRules(reportBase) {
+    const learning = reportBase && reportBase.decisionLearning;
+    const nowIso = (reportBase && reportBase.generatedAt) || new Date().toISOString();
+    return ((learning && learning.learningRules) || [])
+      .filter(function (rule) { return !isLearningRuleExpired(rule, nowIso); })
+      .sort(function (a, b) {
+        return learningRuleSpecificity(b) - learningRuleSpecificity(a) || (b.sampleSize || 0) - (a.sampleSize || 0);
+      });
+  }
+
+  function buildDecisionLearningPanel(reportBase) {
+    const learning = reportBase && reportBase.decisionLearning;
+    const scorecard = reportBase && reportBase.scorecard;
+    if (!learning) {
+      return {
+        empty: true,
+        summary: 'Karar ogrenme verisi henuz uretilmedi.',
+        metrics: [],
+        lessons: [],
+        rules: [],
+        reviewQueue: [],
+      };
+    }
+    const rules = activeLearningRules(reportBase).slice(0, 4).map(function (rule) {
+      const scope = rule.scope || {};
+      return {
+        id: rule.id,
+        scopeLabel: [marketName(scope.market), scope.label, scope.scoreBucket].filter(Boolean).join(' / '),
+        adjustment: rule.adjustment,
+        confidence: rule.confidence,
+        sampleSize: rule.sampleSize,
+        winRate: rule.winRate,
+        reason: rule.reason,
+      };
+    });
+    const system = scorecard && scorecard.bySource ? scorecard.bySource.system : null;
+    return {
+      empty: false,
+      summary: learning.systemAudits
+        ? 'Sistem ' + learning.systemAudits + ' kapanan karardan kalibrasyon dersi cikariyor.'
+        : 'Sistem tarafinda kapanan karar yok; ogrenme etkisi beklemede.',
+      metrics: [
+        { label: 'Audit', value: learning.totalAudits || 0 },
+        { label: 'Sistem', value: learning.systemAudits || 0 },
+        { label: 'Kural', value: (learning.learningRules || []).length },
+        { label: 'Sistem isabet', value: system && system.closed ? system.winRate + '%' : '-' },
+      ],
+      lessons: (learning.recentLessons || []).slice(0, 4),
+      rules: rules,
+      reviewQueue: (learning.reviewQueue || []).slice(0, 4),
+    };
+  }
+
+  function buildAssetLearningSnippet(asset, reportBase) {
+    const learning = reportBase && reportBase.decisionLearning;
+    if (!learning || !asset) return null;
+    const rules = activeLearningRules(reportBase)
+      .filter(function (rule) { return learningRuleMatchesAsset(rule, asset); });
+    const rule = rules[0] || null;
+    if (rule) {
+      return {
+        kind: 'rule',
+        adjustment: rule.adjustment,
+        confidence: rule.confidence,
+        sampleSize: rule.sampleSize,
+        title: rule.adjustment > 0 ? 'Gecmis benzer kararlar destekliyor' : 'Gecmis benzer kararlar temkin istiyor',
+        detail: rule.reason,
+      };
+    }
+    const key = journalKey(asset);
+    const lesson = (learning.recentLessons || []).find(function (x) {
+      return String(x.market || '').toLowerCase() + ':' + String(x.symbol || '').toUpperCase() === key;
+    });
+    if (!lesson) return null;
+    return {
+      kind: 'lesson',
+      adjustment: 0,
+      confidence: lesson.confidence,
+      sampleSize: 1,
+      title: 'Bu varliktan kayitli ders var',
+      detail: lesson.lesson,
+    };
+  }
+
   function decisionStatus(asset) {
     return asset && asset.decision && asset.decision.status ? asset.decision.status : 'unknown';
   }
@@ -811,6 +932,8 @@
     buildCatalystCalendar: buildCatalystCalendar,
     buildCfoDecisionCockpit: buildCfoDecisionCockpit,
     buildPortfolioRiskPlan: buildPortfolioRiskPlan,
+    buildDecisionLearningPanel: buildDecisionLearningPanel,
+    buildAssetLearningSnippet: buildAssetLearningSnippet,
     buildCompanyTearsheet: buildCompanyTearsheet,
     buildCompsSnapshot: buildCompsSnapshot,
     buildInvestmentCommitteeMemo: buildInvestmentCommitteeMemo,

@@ -1,6 +1,7 @@
 'use strict';
 
 const { buildPredictionScorecard, normalizeJournal } = require('./decision-journal');
+const { buildLearningSummary, scoreBucket } = require('./decision-auditor');
 
 const MAX_ADJUSTMENT = 8;
 const DEFAULT_TTL_HOURS = 36;
@@ -209,6 +210,51 @@ function calibrationComponent(journal, nowIso) {
   return null;
 }
 
+function normalizeLearningLabel(label) {
+  return String(label || '').trim().toUpperCase().replace(/\s+/g, '_');
+}
+
+function learningSpecificity(rule) {
+  const scope = rule && rule.scope ? rule.scope : {};
+  return (scope.market ? 1 : 0) + (scope.label ? 1 : 0) + (scope.scoreBucket ? 1 : 0);
+}
+
+function learningComponents(asset, learningRules, nowIso) {
+  const rules = Array.isArray(learningRules) ? learningRules : [];
+  if (!rules.length || !asset || !asset.analysis) return [];
+  const market = normalizeMarket(asset.market);
+  const symbol = String(asset.symbol || '').toUpperCase();
+  const label = normalizeLearningLabel(asset.analysis.label);
+  const bucket = scoreBucket(asset.analysis.score);
+  const matches = rules.filter((rule) => {
+    if (!rule || isExpired(rule, nowIso)) return false;
+    const scope = rule.scope || {};
+    if (scope.market && normalizeMarket(scope.market) !== market) return false;
+    if (scope.label && normalizeLearningLabel(scope.label) !== label) return false;
+    if (scope.scoreBucket && scope.scoreBucket !== bucket) return false;
+    return Number(rule.adjustment) !== 0;
+  }).sort((a, b) => learningSpecificity(b) - learningSpecificity(a) || b.sampleSize - a.sampleSize);
+
+  const rule = matches[0];
+  if (!rule) return [];
+  return [Object.assign(component(
+    'learningCalibration',
+    rule.adjustment,
+    rule.reason || 'Gecmis karar kapanislari bu skor araligini kalibre ediyor',
+    'journal:decisionLearning',
+    rule.asOf || nowIso,
+    rule.confidence
+  ), {
+    market,
+    symbol,
+    ruleId: rule.id,
+    sampleSize: rule.sampleSize,
+    winRate: rule.winRate,
+    asOf: rule.asOf || nowIso,
+    expiresAt: rule.expiresAt || addHours(nowIso, DEFAULT_TTL_HOURS),
+  })];
+}
+
 function bankingComponents(asset, snapshot, nowIso) {
   const market = normalizeMarket(asset.market);
   if (market === 'crypto') return [];
@@ -272,6 +318,8 @@ function buildMacroSignalOverlay({ snapshot, aiReport, baseReport, journal, now 
   const market = buildMarketOverlay(aiReport, nowIso);
   const aiSignals = extractAiSignals(aiReport, nowIso);
   const calibration = calibrationComponent(normalizedJournal, nowIso);
+  const learningSummary = buildLearningSummary(normalizedJournal, nowIso);
+  const learningRules = learningSummary.learningRules || [];
   const assets = {};
 
   allAssets(snapshot).forEach((asset) => {
@@ -289,6 +337,10 @@ function buildMacroSignalOverlay({ snapshot, aiReport, baseReport, journal, now 
       else active.push(sig);
     });
     [thesisComponent(asset, normalizedJournal, nowIso), calibration].filter(Boolean).forEach((sig) => {
+      if (isExpired(sig, nowIso)) expired.push(sig);
+      else active.push(sig);
+    });
+    learningComponents(asset, learningRules, nowIso).forEach((sig) => {
       if (isExpired(sig, nowIso)) expired.push(sig);
       else active.push(sig);
     });

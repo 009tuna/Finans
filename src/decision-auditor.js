@@ -175,8 +175,9 @@ function ruleReason(scope, stat, adj) {
 function ruleFromStat(scope, stat, nowIso) {
   const adjustment = ruleAdjustment(stat);
   if (!adjustment) return null;
+  const labelKey = scope.label ? normalizedLabel(scope.label) : 'all';
   return {
-    id: ['learning', scope.market || 'all', normalizedLabel(scope.label || ''), scope.scoreBucket || 'all'].join(':'),
+    id: ['learning', scope.market || 'all', labelKey, scope.scoreBucket || 'all'].join(':'),
     scope,
     sampleSize: stat.sampleSize,
     winRate: stat.winRate,
@@ -187,6 +188,11 @@ function ruleFromStat(scope, stat, nowIso) {
     asOf: nowIso,
     expiresAt: addDays(nowIso, 7),
   };
+}
+
+function scopeSpecificity(rule) {
+  const scope = rule && rule.scope ? rule.scope : {};
+  return (scope.market ? 1 : 0) + (scope.label ? 1 : 0) + (scope.scoreBucket ? 1 : 0);
 }
 
 function buildReviewQueue(audits, nowIso) {
@@ -225,12 +231,20 @@ function buildLearningSummary(journal, nowIso = new Date().toISOString()) {
   const calibrationByScoreBucket = groupStats(systemAudits, (x) => x.scoreBucket, nowIso);
 
   const exactStats = groupStats(systemAudits, (x) => [x.market, normalizedLabel(x.label), x.scoreBucket].join('|'), nowIso);
+  const marketBucketStats = groupStats(systemAudits, (x) => [x.market, x.scoreBucket].join('|'), nowIso);
+  const marketStats = groupStats(systemAudits, (x) => x.market, nowIso);
   const learningRules = exactStats
     .map((stat) => {
       const parts = stat.key.split('|');
       return ruleFromStat({ market: parts[0], label: parts[1], scoreBucket: parts[2] }, stat, nowIso);
     })
-    .filter(Boolean);
+    .concat(marketBucketStats.map((stat) => {
+      const parts = stat.key.split('|');
+      return ruleFromStat({ market: parts[0], scoreBucket: parts[1] }, stat, nowIso);
+    }))
+    .concat(marketStats.map((stat) => ruleFromStat({ market: stat.key }, stat, nowIso)))
+    .filter(Boolean)
+    .sort((a, b) => scopeSpecificity(b) - scopeSpecificity(a) || b.sampleSize - a.sampleSize);
 
   return {
     generatedAt: nowIso,

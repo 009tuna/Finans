@@ -1,46 +1,50 @@
 {
-  "date": "2026-06-17",
-  "generatedAt": "2026-06-17T09:04:00.5207137+03:00",
-  "macroSummary": "Küresel risk iştahı panik modunda değil, ama Fed günü olduğu için bu rahatlama kırılgan. ABD'de Mayıs TÜFE yıllık %4,2 ve enerji yıllık %23,5; çekirdek %2,9 ile daha sakin kalsa bile Fed'in erken gevşeme alanı zayıf. Türkiye tarafında BIST 100 16 Haziran'da 14.493 puana yükseldi ve panelde BIST ortalaması 73'e çıktı; buna rağmen TCMB'nin 18 Haziran özeti ve TL baskısı banka momentumunu test edecek. Kriptoda teknik veri bugün geri geldi ama ortalama 44; ETF çıkış rejimi yeni bitmiş gibi görünse de fon akışı hâlâ güvenilir bir pozitif sinyal değil.",
+  "date": "2026-06-18",
+  "generatedAt": "2026-06-18T20:17:52.757Z",
+  "macroSummary": "Küresel risk iştahı bugün yüzeyde tamamen dağılmış değil, ama Fed sonrası fiyatlama daha sert: faiz sabit kaldı, buna rağmen Warsh döneminin ilk mesajı piyasaya daha az yönlendirme ve daha şahin enflasyon hassasiyeti verdi. ABD tarafında Mayıs TÜFE yıllık %4,2 ve enerji baskısı hâlâ ana sorun; bu yüzden yüksek beta teknoloji ve kripto için iskonto oranı riski canlı. Türkiye tarafında BIST 100 gün içinde güçlü kaldı, fakat USD/TRY 46,4 civarında ve TCMB’nin %37 sabit faiz duruşu gevşeme alanının sınırlı olduğunu söylüyor. Panelin teknik verisi eski tarihli olduğu için bugün raporu “teknik skor + güncel makro baskı” diye okumak gerekir; kör AL/SAT çıkarımı yapılmaz.",
   "worldNews": [
     {
-      "title": "Fed'in 16-17 Haziran toplantısı bugün 2:00 ET kararı ve 2:30 ET Kevin Warsh basın toplantısıyla sonuçlanacak; piyasa ana senaryosu faizin %3,50-%3,75 bandında sabit kalması.",
-      "impact": "nötr"
-    },
-    {
-      "title": "BLS Mayıs TÜFE verisi yıllık %4,2 ve enerji yıllık %23,5 gösterdi; bu, Fed günü yüksek beta teknoloji ve kripto için iskonto oranı riskini canlı tutuyor.",
+      "title": "Fed politika faizini %3,50-%3,75 bandında sabit tuttu, fakat Warsh’ın ilk toplantısı sonrası piyasa daha şahin bir reaksiyon verdi; kısa vadeli tahvil faizi ve hisse oynaklığı arttı.",
       "impact": "olumsuz"
     },
     {
-      "title": "MarketWatch takviminde Mayıs perakende satış beklentisi manşette +%0,5, otomotiv hariç +%0,6; veri Fed kararıyla aynı gün geldiği için oynaklık katsayısı yüksek.",
+      "title": "BLS Mayıs TÜFE verisi yıllık %4,2, çekirdek TÜFE %2,9 ve enerji yıllık %23,5 gösterdi; bu tablo Fed’in hızlı gevşeme alanını zayıflatıyor.",
+      "impact": "olumsuz"
+    },
+    {
+      "title": "Türkiye Cumhuriyet Merkez Bankası Haziran toplantısında politika faizini %37’de sabit tuttu; enerji ve kur geçişkenliği BIST/TL tarafında ana takip başlığı.",
       "impact": "nötr"
     },
     {
-      "title": "TCMB Haziran toplantısında politika faizini %37'de sabit tuttu; 18 Haziran toplantı özeti bankalar ve TL için ton testi olacak.",
-      "impact": "nötr"
-    },
-    {
-      "title": "Meta, Threads'in 500 milyon aylık kullanıcıya ulaştığını ve yeni topluluk özellikleri çıkardığını duyurdu; bu META için mikro büyüme katalizörü ama makro Fed riskini tek başına bertaraf etmez.",
+      "title": "BIST 100, 18 Haziran’da güçlü yükselişle 14.8 bin civarına taşındı; buna rağmen USD/TRY haftalık zirve bölgesinde olduğu için ralli kurdan bağımsız okunmamalı.",
       "impact": "olumlu"
+    },
+    {
+      "title": "ABD spot BTC ETF’leri 13 günlük ve 4,4 milyar doları aşan çıkış serisini çok küçük bir girişle kırdı; bu likidite için iyileşme sinyali ama güçlü risk-on teyidi değil.",
+      "impact": "nötr"
+    },
+    {
+      "title": "Accenture sonuçlarında kâr beklentiyi aşsa da gelir, yeni sipariş ve 2027 görünümü zayıf algılandı; kurumsal AI harcaması anlatısı için negatif bir okuma oluştu.",
+      "impact": "olumsuz"
     }
   ],
   "commentary": {
-    "us": "ABD tarafında panel ortalaması 52 ve en iyi teknik aday GOOGL 64 puanla sınırlı; bu güçlü bir risk-on zemini değil. Fed, perakende satış ve Mayıs TÜFE kombinasyonu nedeniyle yeni beta kovalamak yerine GOOGL/META gibi göreli dayanıklı isimleri izlemek, COIN/NFLX gibi oynak isimlerde stop disiplinini sıkı tutmak gerekir.",
-    "bist": "BIST panelin tek net güçlü ayağı: THYAO 93, AKBNK 90, YKBNK 89, KCHOL 88 ve ISCTR 85 ile teknik momentum geniş. Ama burada rehavet pahalı olur; TCMB özeti ve TL baskısı bankalara gelen teknik sinyali zayıflatabilir, bu yüzden pozisyon büyütme kademeli ve stoplu olmalı.",
-    "crypto": "Kripto verisi bugün 12 varlıkla geri geldi ama ortalama skor 44 ve riskler ADA/DOGE/TRX üzerinde yoğun. BTC/ETH/SOL momentum sinyali var diye körlemesine iyimser olunmaz; ETF fon akışı ve Fed tonu düzelmeden kriptoda ana pozisyon değil, sadece kontrollü taktik izleme mantıklı."
+    "us": "ABD tarafında teknik panelin en iyi adayları AAPL ve GOOGL olsa da güncel makro zemin yeni beta büyütmeye uygun değil. Fed sonrası daha az yönlendirme ve daha yüksek enflasyon hassasiyeti, özellikle NVDA, COIN, TSLA ve uzun vadeli büyüme hisselerinde stop disiplinini zorunlu kılıyor.",
+    "bist": "BIST tarafında teknik liderlik TTKOM, TCELL ve bankalarda kalıyor; ayrıca piyasa endeksi bugün güçlü. Ama patron sensin diye düz söyleyeyim: kur 46,4 bandında sürünürken ve TCMB sıkı dili korurken sadece endeks yeşil diye pozisyon şişirmek iyi risk yönetimi değil.",
+    "crypto": "Kriptoda BTC teknik olarak aşırı satım bölgesinden tepki arayabilir, fakat ETF tarafındaki son giriş önceki 4,4 milyar dolarlık çıkışı telafi etmiyor. Fed tonu gevşemeden BTC/ETH/SOL için ana senaryo kontrollü izleme, agresif risk alma değil."
   },
   "weeklyOutlook": {
-    "cfoSummary": "Haftanın ana riski Fed'in faizi sabit bırakıp bırakmaması değil, Warsh'ın ilk basın toplantısında enflasyon ve bilanço küçültme dilini nasıl kuracağı. Bugün perakende satışlar ile Fed aynı güne sıkıştığı için ABD tarafında yanlış fiyatlanan beta hızlı cezalandırılır. 18 Haziran'da TCMB özeti, işsizlik başvuruları ve ACN bilançosu aynı pencerede BIST banka momentumu ile ABD yapay zeka talebini test edecek. Pozisyon duruşu sert: teknik skor yüksek diye makro katalizör gününde kaldıraç büyütme; BIST'te güçlü kal, ABD ve kriptoda teyit bekle.",
+    "cfoSummary": "Haftanın ana riski faiz seviyesinin kendisi değil, merkez bankalarının enflasyon karşısında yeniden şahinleşen reaksiyon fonksiyonu. Fed sabit kaldı ama piyasa Warsh’ın daha az yönlendirme ve gerektiğinde sıkılaşma mesajını cezalandırdı; bu ABD teknoloji ve kripto için iskonto baskısı demek. Yerel tarafta BIST güçlü görünse de USD/TRY ve TCMB dili pozisyon büyütürken frene basmayı gerektiriyor. Bu hafta doğru duruş: BIST liderlerini izlemek, ABD/kripto tarafında teyitsiz beta kovalamamak, teknik skorları güncel makro baskıyla birlikte okumak.",
     "events": [
       {
-        "event": "FOMC faiz kararı ve Kevin Warsh basın toplantısı",
-        "date": "2026-06-17",
+        "event": "Fed kararı sonrası Warsh fiyatlaması",
+        "date": "2026-06-18",
         "importance": "high",
-        "consensus": "Fed fon aralığının %3,50-%3,75'te sabit kalması bekleniyor; resmi takvimde karar 2:00 ET, basın toplantısı 2:30 ET.",
-        "myCall": "Faiz sabit kalır; ton güvercin değil, enflasyon ve enerji riski nedeniyle şahin-nötr olur.",
-        "reasoning": "Mayıs TÜFE yıllık %4,2 ve enerji yıllık %23,5. Bu tablo Warsh'a ilk toplantısında erken gevşeme anlatısı kurmak için konforlu alan bırakmıyor.",
-        "ifLower": "Beklenenden güvercin ton gelirse uzun vadeli iskonto hassas teknoloji ve kripto rahatlar; GOOGL, META, NVDA, COIN ve BTC ilk tepkiyi verir.",
-        "ifHigher": "Şahin ton, daha yüksek dot plot veya bilanço küçültme vurgusu gelirse yüksek beta teknoloji ve kripto baskı yer; COIN, TSLA, NFLX, BTC ve ETH en kırılgan küme olur.",
+        "consensus": "Fed’in %3,50-%3,75 bandını koruması bekleniyordu ve karar sabit geldi; piyasa sürprizi karar değil, şahin algılanan iletişim ve olası ileri sıkılaşma fiyatlaması oldu.",
+        "myCall": "Beklentim, birkaç gün daha ABD teknoloji ve kripto tarafında faiz duyarlılığının ana baskı kalemi kalması.",
+        "reasoning": "Axios, Kiplinger ve Nuveen akışı Fed’in sabit karara rağmen piyasada negatif reaksiyon yarattığını; bazı FOMC üyelerinin 2026 içinde artırım ihtimalini masada tuttuğunu gösteriyor.",
+        "ifLower": "Ton sonraki konuşmalarda yumuşarsa GOOGL, META, NVDA, COIN, BTC ve ETH kısa vadeli rahatlama alır; yine de bu tek başına trend dönüşü sayılmaz.",
+        "ifHigher": "Daha şahin konuşmalar veya yüksek faiz patikasının teyidi gelirse uzun vadeli büyüme hisseleri ve kripto yeniden baskı yer; COIN, TSLA, NVDA, BTC ve ETH en hassas grup.",
         "affected": [
           "GOOGL",
           "META",
@@ -51,265 +55,218 @@
         ]
       },
       {
-        "event": "ABD Mayıs perakende satışlar",
-        "date": "2026-06-17",
-        "importance": "high",
-        "consensus": "MarketWatch takvimi manşet +%0,5, otomotiv hariç +%0,6; önceki manşet +%0,5.",
-        "myCall": "Nominal veri beklenti civarı gelebilir, ama yüksek enerji fiyatları nedeniyle reel talep yorumu temkinli yapılmalı.",
-        "reasoning": "Census'un Nisan raporu perakende satışların +%0,5 arttığını ve verinin enflasyona göre düzeltilmediğini gösteriyor. Mayıs TÜFE sıcak olduğu için ciro artışı hacim artışıyla karıştırılmamalı.",
-        "ifLower": "+%0,3 ve altı büyüme endişesini artırır; AMZN, AAPL, TSLA ve tüketici hassas teknoloji baskı görür.",
-        "ifHigher": "+%0,7 ve üzeri nominal talep güçlü algısı yaratır; ancak Fed aynı gün şahin kalırsa bu iyi haber tahvil faizi üzerinden teknolojiye negatif dönebilir.",
-        "affected": [
-          "AMZN",
-          "AAPL",
-          "TSLA",
-          "META"
-        ]
-      },
-      {
-        "event": "Jabil ve CarMax bilançoları",
-        "date": "2026-06-17",
-        "importance": "medium",
-        "consensus": "JBL için yaklaşık 8,53-8,61 milyar dolar gelir ve 3,09-3,10 dolar EPS; KMX için yaklaşık 7,4 milyar dolar gelir ve 0,94-0,97 dolar EPS bekleniyor.",
-        "myCall": "JBL elektronik tedarik zinciri için, KMX ise faiz ve tüketici kredisi baskısı için daha iyi okuma verir; ikisi de takip listesine doğrudan sinyal değil, sektör sağlığı göstergesidir.",
-        "reasoning": "Jabil resmi olarak 17 Haziran sabahı sonuç açıklayacak. CarMax da aynı sabah raporlayacak; yüksek otomobil finansman maliyeti tüketici talebini ölçmek için iyi bir stres noktası.",
-        "ifLower": "JBL zayıf rehberlik verirse NVDA/AMD tedarik zinciri iştahı; KMX zayıf gelirse AMZN/TSLA gibi tüketici-beta isimleri baskılanır.",
-        "ifHigher": "JBL güçlü rehberlik verirse AI donanım zinciri rahatlar; KMX dirençli gelirse tüketici çöküşü anlatısı zayıflar.",
-        "affected": [
-          "NVDA",
-          "AMD",
-          "AMZN",
-          "TSLA"
-        ]
-      },
-      {
-        "event": "TCMB PPK toplantı özeti",
+        "event": "ABD Mayıs TÜFE sonrası enflasyon baskısı",
         "date": "2026-06-18",
         "importance": "high",
-        "consensus": "TCMB takviminde 11 Haziran kararının özeti 18 Haziran'da; politika faizi Haziran toplantısında %37'de sabit tutuldu.",
-        "myCall": "Özet metni sıkı duruşu korur; enerji ve kur geçişkenliği nedeniyle yumuşama dili beklemiyorum.",
-        "reasoning": "Trading Economics ve TCMB takvimi, Haziran kararının sabit faiz ve 18 Haziran özet akışını doğruluyor. BIST 100 yükselmiş olsa da kur ve enflasyon zemini hâlâ kırılgan.",
-        "ifLower": "Özet yumuşak okunursa TL baskısı ve banka kâr realizasyonu riski artar; AKBNK, ISCTR, YKBNK, GARAN ve SAHOL etkilenir.",
-        "ifHigher": "Sıkı ve net ton bankalara kısa vadede destek olur; ama kredi büyümesi ve kur tepkisi izlenmeden pozisyon büyütmek doğru olmaz.",
+        "consensus": "Mayıs TÜFE yıllık %4,2 ile beklentiye paralel; çekirdek yıllık %2,9, enerji yıllık %23,5 ve benzin yıllık %40,5 arttı.",
+        "myCall": "Enerji kaynaklı manşet baskı Fed’i hızlı gevşemeden uzak tutar; teknoloji çarpanları bu veriyi hafife almamalı.",
+        "reasoning": "BLS verisi manşet enflasyonun enerji kanalıyla yeniden hızlandığını gösteriyor; çekirdek daha sakin olsa da piyasa kısa vadede manşet ve Fed iletişimini fiyatlıyor.",
+        "ifLower": "Sonraki enflasyon verileri belirgin soğursa uzun vadeli büyüme hisseleri ve BTC likidite anlatısı rahatlar.",
+        "ifHigher": "Enerji ve manşet enflasyon daha da hızlanırsa Fed artırım ihtimali güçlenir; ABD büyüme hisseleri, BIST yabancı iştahı ve kripto aynı anda baskılanır.",
+        "affected": [
+          "AAPL",
+          "MSFT",
+          "NVDA",
+          "BTC",
+          "ETH",
+          "TTKOM"
+        ]
+      },
+      {
+        "event": "TCMB sıkı duruşu, BIST rallisi ve USD/TRY",
+        "date": "2026-06-18",
+        "importance": "high",
+        "consensus": "TCMB Haziran’da politika faizini %37’de sabit tuttu; BIST 100 bugün güçlü, USD/TRY ise 46,4 civarında haftalık zirve bölgesinde.",
+        "myCall": "BIST momentumu çalışıyor ama kur ve enerji geçişkenliği nedeniyle banka/holding tarafında kademeli pozisyon şart.",
+        "reasoning": "Trading Economics ve TCMB akışı sıkı duruşun sürdüğünü gösterirken, Wise/Investing verileri TL’nin zayıf eğilimini teyit ediyor. Bu ikisi beraber okunmadan BIST rallisi sağlıklı analiz edilemez.",
+        "ifLower": "Kur sakinleşir ve TCMB metni net sıkı kalırsa AKBNK, YKBNK, ISCTR, GARAN, SAHOL ve TTKOM tarafında teknik liderlik desteklenir.",
+        "ifHigher": "USD/TRY hızlanır veya TCMB dili gevşek algılanırsa banka rallisinde kâr realizasyonu ve BIST risk primi artar.",
         "affected": [
           "AKBNK",
-          "ISCTR",
           "YKBNK",
+          "ISCTR",
           "GARAN",
-          "SAHOL"
+          "SAHOL",
+          "TTKOM"
         ]
       },
       {
-        "event": "ABD işsizlik başvuruları ve Accenture bilançosu",
+        "event": "Accenture Q3 sonucu ve kurumsal AI harcaması",
         "date": "2026-06-18",
         "importance": "medium",
-        "consensus": "İlk işsizlik başvuruları son veride 229 bin; Trading Economics beklenti modeli çeyrek sonu 220 bin civarı. ACN için piyasa beklentisi yaklaşık 18,8-19,0 milyar dolar gelir ve 3,70-3,75 dolar EPS bandı.",
-        "myCall": "İş gücü sert bozulmaz; ACN'de asıl mesele gelirden çok yeni sipariş ve yapay zeka danışmanlık talebinin kalitesi olur.",
-        "reasoning": "İşsizlik başvuruları Fed sonrası büyüme korkusunu kalibre edecek. Accenture, MSFT/NVDA/AMD için kurumsal AI harcamasına dair doğrudan olmasa da güçlü bir okuma verir.",
-        "ifLower": "Başvurular düşük ve ACN rehberliği güçlü gelirse MSFT, NVDA, AMD ve PLTR için kurumsal harcama anlatısı desteklenir.",
-        "ifHigher": "Başvurular yükselir veya ACN rehberliği zayıflarsa büyüme kalitesi sorgulanır; PLTR, MSFT ve yüksek beklentili AI zinciri baskı görür.",
+        "consensus": "ACN için yaklaşık 18,7-18,9 milyar dolar gelir ve 3,7 dolar civarı EPS bekleniyordu; sonuçta kâr iyi, gelir/yeni sipariş ve görünüm zayıf algılandı.",
+        "myCall": "Bu, MSFT/NVDA/AMD için doğrudan satış verisi değil ama kurumsal AI danışmanlık talebinin kalitesi konusunda negatif gölge yaratır.",
+        "reasoning": "Investor’s Business Daily ve Barron’s akışı ACN hissesinin sert düştüğünü, yeni siparişlerin ve 2027 görünümünün piyasa güvenini bozduğunu aktarıyor.",
+        "ifLower": "ACN benzeri yazılım/danışmanlık şirketlerinde zayıflık yayılırsa MSFT, NVDA, AMD ve PLTR’de AI harcaması anlatısı sorgulanır.",
+        "ifHigher": "Sonraki kurumsal teknoloji sonuçları daha güçlü gelirse ACN tekil sorun sayılır; MSFT/NVDA üzerindeki baskı sınırlanır.",
         "affected": [
           "MSFT",
           "NVDA",
           "AMD",
           "PLTR"
         ]
+      },
+      {
+        "event": "BTC/ETH ETF akımı ve likidite testi",
+        "date": "2026-06-18",
+        "importance": "medium",
+        "consensus": "Spot BTC ETF çıkış serisi küçük girişle bitti, fakat önceki 13 günlük dönemde 4,4 milyar doların üzerinde çıkış yaşandı; ETH ETF’lerinde de çıkış serisi yeni kırıldı.",
+        "myCall": "Kripto için bu veri dip denemesi yaratabilir ama tek başına alım sinyali değil; likidite henüz ikna edici biçimde dönmedi.",
+        "reasoning": "CoinDesk verisi çıkış serisinin bittiğini ama girişin çok küçük kaldığını gösteriyor. Bu yüzden teknik aşırı satım ile fon akımı aynı yönde güçlü teyit vermiyor.",
+        "ifLower": "ETF girişleri kalıcılaşırsa BTC, ETH ve SOL tepki gücünü artırır; risk bütçesi yine küçük tutulmalı.",
+        "ifHigher": "Çıkışlar yeniden başlarsa BTC aşırı satım sinyali başarısız olur; ETH/SOL gibi daha oynak varlıklar daha sert baskılanır.",
+        "affected": [
+          "BTC",
+          "ETH",
+          "SOL",
+          "COIN"
+        ]
       }
     ],
-    "earningsFocus": "Bugün doğrudan takip listesinden büyük bilanço yok, ama JBL/KMX ve yarın ACN okuması izlenmeli. JBL tedarik zinciri ve AI donanım iştahı için NVDA/AMD'ye, KMX tüketici finansmanı için AMZN/TSLA'ya, ACN ise kurumsal AI harcaması için MSFT/NVDA/AMD/PLTR'ye dolaylı baskı kurar.",
-    "positioning": "BIST'te teknik güç gerçek, ama tek seferde yüklenmek amatörce olur; THYAO/AKBNK/YKBNK/ISCTR gibi liderlerde kademeli hareket ve bozulma koşulu şart. ABD'de Fed metni ve perakende veri görülmeden yeni yüksek beta almak gereksiz. Kriptoda BTC/ETH/SOL momentum sinyali var diye portföy ağırlığı artırma; ETF akışı ve Fed tonu netleşsin."
+    "earningsFocus": "Base takviminde bugün ACN ve KR öne çıkıyor; takip listesi açısından asıl okuma ACN üzerinden kurumsal teknoloji/AI talebi. ACN sonucu beklenti üstü kâra rağmen gelir, yeni sipariş ve görünüm tarafında zayıf algılandığı için MSFT/NVDA/AMD/PLTR üzerinde negatif katalizör baskısı yaratıyor. KR daha çok tüketici dayanıklılığı ve marj takibi için ikincil okuma.",
+    "positioning": "BIST tarafında teknik liderlik varken tamamen dışarıda kalmak da amatörce, ama kur ve TCMB riski varken tek hamlede yüklenmek de aynı derecede kötü. TTKOM/TCELL/banka liderlerinde kademeli alım ve net bozulma koşulu; ABD teknoloji ve kriptoda ise Fed sonrası faiz teyidi gelmeden beta büyütmeme disiplini uygulanmalı."
   },
-  "todayFocus": "Bugün iki şey izlenecek: 17 Haziran Fed tonu ve aynı gün perakende satışların nominal mi reel mi güçlü olduğu. BIST'te güçlü skorları takip et ama TCMB özeti öncesi banka rallisinde kârı koruma refleksi zayıflamasın.",
+  "todayFocus": "Bugün iki şeyi izle: Fed sonrası tahvil faizi/teknoloji tepkisi kalıcı mı, BIST rallisi USD/TRY 46,4 bandına rağmen genişleyebiliyor mu. Cevap hayırsa skor ekranında güzel görünen sinyali pozisyon büyütme bahanesi yapma.",
   "literacyTip": {
-    "title": "Ciro büyümesi hacim büyümesi değildir",
-    "body": "Perakende satışlar enflasyona göre düzeltilmez; enerji ve fiyat seviyesi yükselirken ciro artışı, daha fazla ürün satıldığı anlamına gelmeyebilir. CFO disipliniyle önce şunu sor: adet mi arttı, fiyat mı arttı, marj bunu taşıyor mu? Fed gününde bu ayrımı yapmayan yatırımcı iyi veriyi bile yanlış okuyabilir."
+    "title": "Sabit faiz her zaman güvercin değildir",
+    "body": "Merkez bankası faizi sabit bırakınca piyasa otomatik rahatlamaz; asıl önemli olan sonraki faiz patikası ve iletişim tonudur. Eğer enflasyon yüksekken banka “gerekirse daha sıkı olurum” diyorsa, sabit karar bile büyüme hisseleri ve kripto için negatif iskonto etkisi yaratabilir."
   },
-  "weeklyRetro": "Geçen haftadan ölçülebilir tek kapalı sistem tahmini YKBNK oldu: 10 Haziran AL sinyali 15 Haziran'da hedefe ulaştı ve %10,9 sonuç verdi. Bu iyi ama örneklem sadece 1; sistemin BIST AL/70-79 skor kovasında gerçekten kalibre olduğunu söylemek için erken. Geçen haftaki ana ders değişmedi: BIST momentumu çalışıyor, fakat kur ve küresel iskonto oranı riski aynı anda masada. Kripto tarafında ise önceki veri eksikliği bugün düzeldi, ama skor ortalaması 44 olduğu için teknik geri dönüş henüz güçlü piyasa teyidi değil.",
-  "decisionLearningNote": "decisionLearning tarafında 1 audit var: YKBNK hedefe 5 günde ulaştı, BIST/AL/70-79 kovası %100 ama örneklem tek sinyal. Bu veriden skor artırma kuralı çıkarmak acelecilik olur; doğru davranış kapanan sinyalleri biriktirmek ve en az 5 kapanıştan önce learningCalibration etkisi vermemek.",
+  "weeklyRetro": "Bu haftaki kapanan tahminler BIST tarafında güçlü: YKBNK 10 Haziran AL sinyali 15 Haziran’da, AKBNK 12 Haziran GUCLU AL sinyali 18 Haziran’da hedefe ulaştı; ikisi de yaklaşık %10,9 sonuç verdi. Bu iyi bir skor ama örneklem sadece 2, yani sistemi kutsamak için erken. Çıkarılacak ders net: BIST bankalarında yüksek skor + momentum çalışmış, fakat bu bulgu en az 5-10 kapanan örnek görmeden otomatik skor artırma kuralına çevrilmemeli.",
+  "decisionLearningNote": "decisionLearning 2 audit gösteriyor: ikisi de BIST, ikisi de hedefe ulaşmış, sistem tahminlerinde kapalı örneklem winRate %100 ve ortalama sonuç %10,9. Bu destekleyici ama istatistiksel olarak zayıf; öğrenilecek doğru kalibrasyon, BIST AL/GUCLU_AL ve 70+ skor kovasını izleme listesinde öne almak, fakat closed sample 5’in altındayken pozisyon boyutunu artırmamaktır.",
   "quiz": {
-    "question": "Fed faizi sabit bırakır, perakende satışlar beklenti civarı gelir ama Warsh basın toplantısında enflasyon ve enerji riski nedeniyle şahin-nötr konuşursa ilk portföy yorumu hangisi olmalı?",
+    "question": "Fed faizi sabit tutar ama enflasyon nedeniyle daha şahin algılanırsa, aynı gün teknik skoru güçlü görünen büyüme hisseleri için en doğru yorum hangisidir?",
     "options": [
-      "Bütün riskli varlıklarda agresif alım yapılmalı; faiz artmadığı için iskonto riski bitti.",
-      "Nominal tüketim fena değil ama iskonto oranı baskısı sürer; kalite ve nakit akışı güçlü isimler, yüksek beta teknoloji ve kriptoya göre daha dayanıklı kalır.",
-      "Sadece kripto etkilenir; hisse tarafında Fed tonu önemsizdir.",
-      "BIST bankaları kesin negatif etkilenir; yerel teknik momentumun hiçbir önemi kalmaz."
+      "Faiz artmadığı için iskonto riski bitti; teknik skoru güçlü her hissede pozisyon büyütülür.",
+      "Sabit karar tek başına yeterli değildir; şahin ton uzun vadeli büyüme nakit akışlarını daha yüksek iskonto oranıyla baskılayabilir.",
+      "Bu sadece bankaları etkiler; teknoloji hisselerinde Fed tonu önemli değildir.",
+      "Teknik skor varsa makro haberler yok sayılmalıdır."
     ],
     "correctIndex": 1,
-    "explanation": "Faizin sabit kalması tek başına güvercinlik değildir. Enflasyon sıcak ve Fed tonu sıkıysa piyasa önce iskonto oranını tartar; bu da yüksek beta varlıkları daha kırılgan yapar."
+    "explanation": "CFO disiplini teknik sinyali makro fiyatlamadan ayrı okumaz. Faiz sabit kalsa bile daha yüksek gelecek faiz patikası beklentisi büyüme hisselerinin değerlemesini aşağı çekebilir."
   },
   "macroSignalOverlay": {
-    "summary": "Makro katman teknik skorların yerine geçmez; sadece 17-18 Haziran Fed, perakende satış, TCMB özeti, BTC likiditesi, bilanço ve şirket haberleri nedeniyle kısa vadeli katalizör baskısını puanlar. Toplam etki sinyal motorunda +8/-8 ile sınırlıdır.",
+    "summary": "Bu katman AL/SAT üretmez ve teknik skorların yerine geçmez. Fed/Warsh, TÜFE, TCMB-BIST/TL, BTC likiditesi, ACN bilançosu ve şirket haberlerinin kısa vadeli baskısını puanlar; sinyal motorunda toplam varlık etkisi +8/-8 ile sınırlı kalmalıdır.",
     "signals": [
       {
-        "type": "macroCatalyst",
+        "type": "fedPolicy",
         "market": "us",
+        "symbol": null,
         "adjustment": -2,
-        "confidence": 0.82,
-        "source": "Federal Reserve calendar https://www.federalreserve.gov/newsevents/2026-june.htm; Trading Economics https://tradingeconomics.com/united-states/interest-rate",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-18T23:59:00.000+03:00",
-        "reason": "Fed kararı ve Warsh'ın ilk basın toplantısı aynı gün; faiz sabit beklense de %4,2 TÜFE nedeniyle şahin-nötr ton yüksek beta ABD varlıklarını baskılar."
+        "confidence": 0.84,
+        "source": "Axios https://www.axios.com/2026/06/18/fed-warsh-yields-stocks-bonds; Nuveen https://www.nuveen.com/en-us/insights/investment-outlook/fed-update; Federal Reserve https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+        "asOf": "2026-06-18T20:17:52.757Z",
+        "expiresAt": "2026-06-22T20:59:59.000Z",
+        "reason": "Fed sabit kaldı ama Warsh iletişimi daha şahin ve daha az yönlendirmeli algılandı; yüksek beta ABD varlıklarında iskonto oranı baskısı artıyor."
       },
       {
-        "type": "macroCatalyst",
+        "type": "cpiInflation",
         "market": "us",
+        "symbol": null,
         "adjustment": -1,
-        "confidence": 0.76,
+        "confidence": 0.8,
         "source": "BLS CPI May 2026 https://www.bls.gov/news.release/cpi.nr0.htm",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-21T23:59:00.000+03:00",
-        "reason": "Mayıs TÜFE yıllık %4,2 ve enerji yıllık %23,5; Fed haftasında iskonto oranı duyarlılığı yüksek kalıyor."
+        "asOf": "2026-06-18T20:17:52.757Z",
+        "expiresAt": "2026-06-25T20:59:59.000Z",
+        "reason": "Mayıs TÜFE yıllık %4,2, enerji yıllık %23,5; Fed’in hızlı gevşeme ihtimalini azaltan temel baskı bu."
       },
       {
-        "type": "macroCatalyst",
+        "type": "bistTlPressure",
+        "market": "bist",
+        "symbol": null,
+        "adjustment": 0,
+        "confidence": 0.66,
+        "source": "Trading Economics BIST https://tradingeconomics.com/turkey/stock-market; Wise USDTRY https://wise.com/us/currency-converter/usd-to-try-rate/history; Trading Economics Turkey rate https://tradingeconomics.com/turkey/interest-rate",
+        "asOf": "2026-06-18T20:17:52.757Z",
+        "expiresAt": "2026-06-22T20:59:59.000Z",
+        "reason": "BIST 100 güçlü ama USD/TRY 46,4 civarında; bu yüzden pozitif endeks momentumu ile kur/enflasyon baskısı birbirini dengeliyor."
+      },
+      {
+        "type": "btcLiquidity",
+        "market": "crypto",
+        "symbol": null,
+        "adjustment": -2,
+        "confidence": 0.78,
+        "source": "CoinDesk https://www.coindesk.com/markets/2026/06/05/bitcoin-and-ether-etfs-end-record-multi-billion-outflow-streak",
+        "asOf": "2026-06-18T20:17:52.757Z",
+        "expiresAt": "2026-06-25T20:59:59.000Z",
+        "reason": "BTC ETF çıkış serisi bitse de önceki 13 günde 4,4 milyar doların üzerinde çıkış oldu; küçük giriş kalıcı likidite dönüşü sayılmaz."
+      },
+      {
+        "type": "earnings",
         "market": "us",
+        "symbol": "MSFT",
         "adjustment": -1,
-        "confidence": 0.68,
-        "source": "MarketWatch economic calendar https://www.marketwatch.com/economy-politics/calendar; Census retail sales https://www.census.gov/retail/sales.html",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-18T18:00:00.000+03:00",
-        "reason": "Perakende satış beklentisi manşette +%0,5 ve ex-auto +%0,6; veri Fed günü geldiği için nominal güç yanlış okunursa teknoloji ve tüketici-beta oynaklığı artar."
+        "confidence": 0.7,
+        "source": "Investors Business Daily https://www.investors.com/news/technology/accenture-stock-acn-stock-accenture-earnings-q3-2026/; Barrons https://www.barrons.com/articles/accenture-earnings-stock-price-3679988e",
+        "asOf": "2026-06-18T20:17:52.757Z",
+        "expiresAt": "2026-06-22T20:59:59.000Z",
+        "reason": "ACN sonuçlarında yeni sipariş ve görünüm zayıf algılandı; kurumsal AI harcaması anlatısı MSFT için kısa vadede daha fazla kanıt ister."
       },
       {
         "type": "earnings",
         "market": "us",
         "symbol": "NVDA",
         "adjustment": -1,
-        "confidence": 0.63,
-        "source": "Jabil earnings schedule https://investors.jabil.com/news/news-details/2026/Jabils-Third-Quarter-of-Fiscal-Year-2026-Earnings-Announcement-Set/default.aspx; Jabil consensus via Zacks/TradingView",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-18T18:00:00.000+03:00",
-        "reason": "JBL sonucu AI donanım tedarik zinciri için bugün okunacak; sonuç gelmeden NVDA'da sektör aktarımı pozitif sayılmaz."
+        "confidence": 0.68,
+        "source": "Investors Business Daily https://www.investors.com/news/technology/accenture-stock-acn-stock-accenture-earnings-q3-2026/",
+        "asOf": "2026-06-18T20:17:52.757Z",
+        "expiresAt": "2026-06-22T20:59:59.000Z",
+        "reason": "ACN zayıf bookings okuması AI yatırım harcamasının her halka için otomatik güçlü olmadığını gösteriyor; NVDA beta pozisyonu için teyit eşiği yükseldi."
       },
       {
         "type": "earnings",
         "market": "us",
         "symbol": "AMD",
         "adjustment": -1,
-        "confidence": 0.61,
-        "source": "Jabil earnings schedule https://investors.jabil.com/news/news-details/2026/Jabils-Third-Quarter-of-Fiscal-Year-2026-Earnings-Announcement-Set/default.aspx",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-18T18:00:00.000+03:00",
-        "reason": "JBL ve yarın ACN, AMD için dolaylı talep testi; Fed günü teyit gelmeden AI beta büyütmek riskli."
+        "confidence": 0.64,
+        "source": "Accenture newsroom https://newsroom.accenture.com/news/2026/accenture-to-announce-third-quarter-fiscal-2026-results; Investors Business Daily https://www.investors.com/news/technology/accenture-stock-acn-stock-accenture-earnings-q3-2026/",
+        "asOf": "2026-06-18T20:17:52.757Z",
+        "expiresAt": "2026-06-22T20:59:59.000Z",
+        "reason": "Kurumsal AI talebi tartışmalı okunurken AMD gibi AI-beta isimlerinde pozisyon büyütmek için sadece tema yetmez, sipariş kanıtı gerekir."
       },
       {
-        "type": "earnings",
+        "type": "companyNews",
         "market": "us",
-        "symbol": "AMZN",
+        "symbol": "AAPL",
         "adjustment": -1,
-        "confidence": 0.58,
-        "source": "CarMax IR https://investors.carmax.com/news-and-events/news/news-details/2026/CarMax-Announces-First-Quarter-Conference-Call-and-Annual-Meeting-Information/default.aspx; Investors Business Daily KMX preview",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-18T18:00:00.000+03:00",
-        "reason": "KMX tüketici kredi ve talep sağlığı için bugün stres testi; zayıf sonuç AMZN gibi tüketici-beta isimlerde risk iştahını törpüler."
-      },
-      {
-        "type": "earnings",
-        "market": "us",
-        "symbol": "MSFT",
-        "adjustment": 1,
-        "confidence": 0.62,
-        "source": "Accenture earnings preview via Zacks https://www.zacks.com/stock/news/2937395/accenture-set-to-report-q3-earnings-heres-what-you-should-know",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-19T23:59:00.000+03:00",
-        "reason": "ACN'nin 18 Haziran sonucu kurumsal AI talebini test edecek; beklenti güçlü kaldığı için MSFT'ye sınırlı pozitif okuma veriyor."
+        "confidence": 0.7,
+        "source": "MarketWatch https://www.marketwatch.com/story/its-unavoidable-apple-says-it-will-be-forced-to-raise-prices-due-to-the-ai-boom-e3d1e4c4",
+        "asOf": "2026-06-18T20:17:52.757Z",
+        "expiresAt": "2026-06-25T20:59:59.000Z",
+        "reason": "AI kaynaklı bellek çipi sıkışıklığı Apple için fiyat artışı ve marj/volüm dengesi riski yaratıyor; teknik skor güçlü olsa da haber akışı saf pozitif değil."
       },
       {
         "type": "companyNews",
         "market": "us",
         "symbol": "META",
         "adjustment": 1,
-        "confidence": 0.66,
-        "source": "Meta newsroom https://about.fb.com/news/2026/06/meta-launching-new-features-500-million-monthly-threads-users",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-20T23:59:00.000+03:00",
-        "reason": "Threads'in 500 milyon aylık kullanıcıya ulaşması META için ürün büyümesi katalizörü; makro baskıyı silmez ama mikro destek yaratır."
+        "confidence": 0.55,
+        "source": "base.calendar:companyNews/Yahoo; MarketWatch AI capex context https://www.marketwatch.com/story/its-unavoidable-apple-says-it-will-be-forced-to-raise-prices-due-to-the-ai-boom-e3d1e4c4",
+        "asOf": "2026-06-18T20:17:52.757Z",
+        "expiresAt": "2026-06-22T20:59:59.000Z",
+        "reason": "META haber akışı AI yatırım temasını canlı tutuyor; fakat bu sadece mikro destek, Fed kaynaklı iskonto baskısını tek başına silemez."
       },
       {
-        "type": "companyNews",
-        "market": "us",
-        "symbol": "NVDA",
-        "adjustment": -1,
-        "confidence": 0.6,
-        "source": "TechRadar Broadcom/Nvidia AI chip report https://www.techradar.com/pro/a-knee-jerk-reaction-or-something-more-nvidias-market-cap-dropped-by-almost-usd330-billion-in-24-hours-as-the-ai-giant-reeled-from-broadcoms-poor-guidance",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-21T23:59:00.000+03:00",
-        "reason": "Broadcom rehberliği ve custom AI chip rekabeti NVDA çarpanında hassasiyet yaratıyor; güçlü teknik teyit olmadan AI liderliği körlemesine fiyatlanmamalı."
-      },
-      {
-        "type": "btcLiquidity",
-        "market": "crypto",
-        "adjustment": -2,
-        "confidence": 0.78,
-        "source": "CoinDesk ETF flow report https://www.coindesk.com/markets/2026/06/05/bitcoin-and-ether-etfs-end-record-multi-billion-outflow-streak; CoinStats BTC market note",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-21T23:59:00.000+03:00",
-        "reason": "BTC ETF çıkış serisi son bulmuş olsa da önceki çok milyar dolarlık çıkış rejimi taze; kripto teknik momentumunu tam risk-on sinyali saymak için erken."
-      },
-      {
-        "type": "btcLiquidity",
-        "market": "us",
-        "symbol": "COIN",
-        "adjustment": -2,
-        "confidence": 0.74,
-        "source": "CoinDesk ETF flow report https://www.coindesk.com/markets/2026/06/05/bitcoin-and-ether-etfs-end-record-multi-billion-outflow-streak",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-21T23:59:00.000+03:00",
-        "reason": "COIN teknik momentum taşısa da iş modeli kripto hacmi ve ETF iştahına bağlı; Fed günü zayıf likidite geçmişi baskı yaratır."
-      },
-      {
-        "type": "macroCatalyst",
-        "market": "bist",
-        "adjustment": -1,
-        "confidence": 0.72,
-        "source": "TCMB calendar https://www.tcmb.gov.tr/wps/wcm/connect/en/tcmb%2Ben/main%2Bmenu/announcements/calendar; Trading Economics Turkey rate https://tradingeconomics.com/turkey/interest-rate",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-19T23:59:00.000+03:00",
-        "reason": "TCMB özeti 18 Haziran'da; %37 faiz sabit ama enerji ve kur geçişkenliği nedeniyle metnin tonu BIST banka momentumu için risk."
-      },
-      {
-        "type": "macroCatalyst",
+        "type": "bistMomentum",
         "market": "bist",
         "symbol": "AKBNK",
         "adjustment": 1,
-        "confidence": 0.67,
-        "source": "Trading Economics BIST 100 https://tradingeconomics.com/turkey/stock-market; base.json technical snapshot",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-19T23:59:00.000+03:00",
-        "reason": "BIST 100 16 Haziran'da 14.493 puana yükseldi ve AKBNK teknik skoru 90; yerel momentum hâlâ destekleyici."
+        "confidence": 0.62,
+        "source": "base.decisionLearning; Trading Economics BIST https://tradingeconomics.com/turkey/stock-market",
+        "asOf": "2026-06-18T20:17:52.757Z",
+        "expiresAt": "2026-06-22T20:59:59.000Z",
+        "reason": "AKBNK sistem tahmini hedefe ulaştı ve BIST geneli güçlü; örneklem küçük olduğu için pozitif etki sınırlı tutulmalı."
       },
       {
-        "type": "macroCatalyst",
+        "type": "bistMomentum",
         "market": "bist",
         "symbol": "YKBNK",
         "adjustment": 1,
-        "confidence": 0.67,
-        "source": "Trading Economics BIST 100 https://tradingeconomics.com/turkey/stock-market; base.json technical snapshot",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-19T23:59:00.000+03:00",
-        "reason": "YKBNK 89 teknik skor ve geçen hafta kapanan başarılı sinyal nedeniyle izlenebilir; ama örneklem tek olduğu için skor desteği sınırlı tutuldu."
-      },
-      {
-        "type": "macroCatalyst",
-        "market": "bist",
-        "symbol": "ISCTR",
-        "adjustment": 1,
-        "confidence": 0.65,
-        "source": "Trading Economics BIST 100 https://tradingeconomics.com/turkey/stock-market; base.json technical snapshot",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-19T23:59:00.000+03:00",
-        "reason": "ISCTR 85 teknik skorla banka momentumu içinde; TCMB özeti öncesi destek var ama makro risk nedeniyle etki küçük tutuldu."
-      },
-      {
-        "type": "macroCatalyst",
-        "market": "bist",
-        "symbol": "THYAO",
-        "adjustment": -1,
-        "confidence": 0.59,
-        "source": "BLS CPI energy data https://www.bls.gov/news.release/cpi.nr0.htm; base.json technical snapshot",
-        "asOf": "2026-06-17T09:04:00.5207137+03:00",
-        "expiresAt": "2026-06-21T23:59:00.000+03:00",
-        "reason": "THYAO teknik lider ama enerji fiyat baskısı havacılık marjı için risk; 93 teknik skorun üzerine kör pozitif yazmak doğru değil."
+        "confidence": 0.61,
+        "source": "base.decisionLearning; Trading Economics BIST https://tradingeconomics.com/turkey/stock-market",
+        "asOf": "2026-06-18T20:17:52.757Z",
+        "expiresAt": "2026-06-22T20:59:59.000Z",
+        "reason": "YKBNK önceki AL tahmini hedefe ulaştı; BIST banka momentumu destekleniyor ama kur riski nedeniyle sınırsız pozitif okunmaz."
       }
     ]
   }

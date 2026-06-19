@@ -180,3 +180,25 @@ Amaç: günlük akışı zamanla iyileştirmek — kalibrasyon, veri kalitesi, t
 - 18 Haz: TCMB PPK ozeti, ABD issizlik basvurulari, ACN bilançosu.
 - Fed sonucu sonrasi ABD teknik skorlarinda GOOGL/META ile COIN/NFLX ayrismasi var mi?
 - Kripto ETF akisinda cikis serisi kalici olarak kiriliyor mu, yoksa tek gunluk nefes mi?
+
+## 2026-06-18 (8. calistirma - gunluk zamanlanmis gorev)
+
+**Veri/skor anomalileri**
+- `fetch-all` Supabase `ConnectTimeoutError` ile fail etti; `report.js` yine base rapor uretti ama `dataAsOf` eski kaldi: ABD 2026-06-05, BIST/Kripto 2026-06-08. Bu kosuda teknik skorlar guncel fiyat degil, cache/veri gecikmesi olarak okunmali.
+- `report.js` ekonomik takvimi yine 0 olay yazdi. Fed/Warsh, CPI, TCMB-BIST/TL, BTC ETF akimi ve ACN bilançosu web fallback ile eklendi; bu sistemik takvim kalitesi problemi devam ediyor.
+- Macro overlay bugun eski "Fed bekleniyor" tonundan "Fed sonrasi sahin fiyatlama" tonuna cevrildi. Bu onemli: dun beklenti, bugun gerceklesen reaksiyon var.
+
+**Takip listesi fikirleri**
+- BIST bankalari icin decisionLearning pozitif: YKBNK ve AKBNK hedefe ulasti, ama sample size 2. Bunu pozisyon boyutu artirma kurali yapmak icin erken.
+- ACN sonucu MSFT/NVDA/AMD/PLTR zinciri icin negatif kurumsal AI talep golgesi yaratti. Tema hala guclu olabilir ama siparis kaniti zayif gelirse beta cezalandirilir.
+- AAPL teknik olarak iyi gorunse de bellek cip sikisikligi ve olasi fiyat artisi marj/volum dengesini zorlayabilir. Sadece skorla hareket etme.
+
+**Kalibrasyon onerileri**
+1. Supabase timeout olunca final raporda `dataStaleReason` gibi acik alan yazilmali; aksi halde kullanici base tarihinin eski oldugunu kacirabilir.
+2. Economic calendar icin Finnhub bos dondugunde secondary provider veya manuel fallback bayragi artik sart.
+3. Macro overlay sinyallerinde 0 adjustment desteklenmeli ve UI'da "baski var ama net skor etkisi yok" diye ayrismali; BIST/TL bugun buna iyi ornek.
+
+**Yarin izle**
+- Fed sonrasi tahvil faizi ve Nasdaq tepkisi kalici mi?
+- USDTRY 46.4 bandindan koparsa BIST banka rallisi bunu tasiyabiliyor mu?
+- BTC/ETH ETF akimi tekrar cikisa donuyor mu, yoksa kucuk girisler kalicilasiyor mu?
