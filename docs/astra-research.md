@@ -50,4 +50,6 @@ Akış çöker ve `data/report/.daily-research.lock` kalırsa içindeki PID'nin 
 
 ## Doğrulama
 
-`npm test` 22 test dosyasını çalıştırır. Açıklama sonrası tahmin reddi, immutable kayıtlar, sıfır/eksik gerçekleşen ayrımı, aynı örneklemli konsensüs karşılaştırması, Brier, çakışmada yeniden okuma, sağlayıcı arızası ve HTML kaçışı kapsanır. Sentetik tarayıcı kontrolü için `FINANS_RESEARCH_FIXTURE=1`, `FINANS_TEST_PORT=5182` ile `node test/fixtures/integrity-dashboard.js` çalıştırılır; gerçek hesap verisine yazmaz.
+`npm test` 23 test dosyasını çalıştırır. Açıklama sonrası tahmin reddi, immutable kayıtlar, sıfır/eksik gerçekleşen ayrımı, aynı örneklemli konsensüs karşılaştırması, Brier, çakışmada yeniden okuma, sağlayıcı arızası, API yetkisi/yönlendirme ve HTML kaçışı kapsanır. Sentetik tarayıcı kontrolü için `FINANS_RESEARCH_FIXTURE=1`, `FINANS_TEST_PORT=5182` ile `node test/fixtures/integrity-dashboard.js` çalıştırılır; gerçek hesap verisine yazmaz.
+
+8 Eylül ilk canlı çalışma: dört kaynak, iki olay, bir koşullu senaryo; sayısal forecast ve yön sinyali sıfır. Kaynak/konsensüs boşlukları nedeniyle tahminden kaçınıldı. Canlı rapor ve ölçüm uçları 200, yetkisiz sonuç yazımı 401 ile doğrulandı. Bu ilk yayın performans kanıtı değildir.

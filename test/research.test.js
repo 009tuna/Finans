@@ -25,6 +25,7 @@ assert.throws(() => ledger.validateResearch({ ...research, forecasts: [{ ...fore
 assert.throws(() => ledger.validateResearch({ ...research, forecasts: [{ ...forecast, consensus: null }] }, NOW));
 assert.throws(() => ledger.validateResearch({ ...research, forecasts: [{ ...forecast, unit: 'TRY' }] }, NOW));
 const ai = toAiReport({ ...research, model: 'gpt-6-astra', promptVersion: 'test', generatedAt: NOW }, { runId: 'run1', snapshotId: NOW });
+assert.equal(ai.worldNews[0].impact, 'bağlam', 'legacy impact label must stay short and must not infer direction');
 let l = ledger.addResearch(ledger.empty(), ai, NOW);
 assert.equal(l.forecasts.length, 1);
 assert.equal(ledger.addResearch(l, ai, NOW).forecasts.length, 1);

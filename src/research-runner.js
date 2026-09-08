@@ -102,7 +102,7 @@ function toAiReport(research, base) {
   const sources = new Map(research.sources.map((s) => [s.id, s]));
   return { schemaVersion: 3, runId: base.runId, snapshotId: base.snapshotId, generatedAt: research.generatedAt,
     macroSummary: research.macroSummary, todayFocus: research.todayFocus, commentary: research.commentary,
-    worldNews: research.events.map((e) => ({ title: e.title, impact: e.whatChanged, source: sources.get(e.sourceIds[0])?.url })),
+    worldNews: research.events.map((e) => ({ title: e.title, impact: 'bağlam', source: sources.get(e.sourceIds[0])?.url })),
     macroSignalOverlay: { signals: research.signals.map((s) => ({ ...s, source: sources.get(s.sourceId).url, confidenceKind: 'model-opinion' })) }, research };
 }
 module.exports = { MODEL, PROMPT_VERSION, checkSchema, buildContext, generate, toAiReport };
