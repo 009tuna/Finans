@@ -1,0 +1,7 @@
+data/
+test/
+docs/
+.agents/
+.claude/
+.env*
+*.log

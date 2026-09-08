@@ -204,7 +204,7 @@
     const items = [
       { label: 'Teknik veri', status: 'deterministic', text: 'Kural tabanli skorlar ve indikatörler; rapor tarihi ' + (base.date || '-') + '.' },
       { label: 'Piyasa kapanislari', status: 'timestamp', text: ['ABD ' + (dataAsOf.usAsOf || '-'), 'BIST ' + (dataAsOf.bistAsOf || '-'), 'Kripto ' + (dataAsOf.cryptoAsOf || '-')].join(' · ') },
-      { label: 'Takvim verisi', status: hasForecast ? 'forecast' : (hasActual ? 'actual' : 'empty'), text: hasForecast ? 'Beklenti verileri var; aciklanmayan degerler tahmindir.' : 'Takvimde gerceklesen veri agirlikli.' },
+      { label: 'Takvim verisi', status: hasForecast ? 'forecast' : (hasActual ? 'actual' : 'empty'), text: hasForecast ? 'Beklenti verileri var; aciklanmayan degerler tahmindir.' : hasActual ? 'Takvimde gerceklesen veriler var.' : 'Ekonomik takvim verisi yok; kapsam dogrulanamadi.' },
       { label: 'Yapay zeka katmani', status: ai ? 'ai' : 'missing', text: ai ? 'Makro/haber yorumu yapay zeka tarafindan yazildi; teknik skor deterministik kalir.' : 'Yapay zeka yorumu yok; rapor sadece kural tabanli.' },
     ];
     return { hasAi: !!ai, items: items };

@@ -211,6 +211,7 @@ async function runAll() {
     journalForSignals = updatedJournal;
   } catch (err) {
     console.error('⚠️ [fetch-all] Sistem tahminleri kaydedilemedi:', err.message);
+    throw err;
   }
 
   attachSignalHealth(snapshot, journalForSignals);

@@ -5,6 +5,8 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const { randomUUID } = require('crypto');
+const { isFresh, snapshotId } = require('../public/report-integrity');
 const { fetchEconomic, fetchEarnings, fetchCompanyNews } = require('./calendar');
 const { getLatestSnapshot, saveReport } = require('./db');
 const { buildMacroSignalOverlay } = require('./signal-overlay');
@@ -15,28 +17,18 @@ const DATA = path.join(ROOT, 'data');
 const REPORT_DIR = path.join(DATA, 'report');
 
 function loadConfig() {
-  return JSON.parse(fs.readFileSync(path.join(ROOT, 'config.json'), 'utf8'));
+  const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'config.json'), 'utf8'));
+  if (process.env.FINNHUB_TOKEN) cfg.finnhubToken = process.env.FINNHUB_TOKEN;
+  return cfg;
 }
 function ymd(d) {
   return d.toISOString().slice(0, 10);
 }
-function readJsonIfExists(filePath) {
-  try {
-    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  } catch (_) {
-    return null;
-  }
-}
-
 async function buildBaseReport() {
   const cfg = loadConfig();
   const token = cfg.finnhubToken;
-  // Snapshot Supabase'den (latest.json artık yazılmıyor); yerel dev için dosya fallback.
-  let snap = await getLatestSnapshot();
-  if (!snap) {
-    try { snap = JSON.parse(fs.readFileSync(path.join(DATA, 'latest.json'), 'utf8')); } catch (_) {}
-  }
-  if (!snap) throw new Error('Snapshot yok (Supabase market_snapshots boş ve latest.json bulunamadı). Önce node src/fetch-all.js çalıştırın.');
+  const snap = await getLatestSnapshot({ strict: true });
+  if (!snap || !isFresh(snap.generatedAt, new Date().toISOString())) throw new Error('Guncel snapshot yok. Once piyasa verisini yenileyin.');
   const all = []
     .concat((snap.us || []).map((x) => ({ market: 'ABD', ...x })))
     .concat((snap.bist || []).map((x) => ({ market: 'BIST', ...x })))
@@ -90,23 +82,26 @@ async function buildBaseReport() {
   const weekTo = new Date(today.getTime() + 6 * 86400000);
   const from = ymd(today);
   const to = ymd(weekTo);
-  const usTopSymbols = opportunities.filter((o) => o.market === 'ABD').map((o) => o.symbol);
+  const usTopSymbols = opportunities.filter((o) => o.market === 'us' || o.market === 'ABD').map((o) => o.symbol);
   const newsSymbols = [...new Set(usTopSymbols.concat((cfg.watchlists.us || []).slice(0, 6)))].slice(0, 8);
 
-  let calendar = { weekFrom: from, weekTo: to, economic: [], earnings: [], companyNews: [] };
-  try {
-    const [economic, earnings, companyNews] = await Promise.all([
+  const newsFrom = ymd(new Date(today.getTime() - 3 * 86400000));
+  const calendar = { weekFrom: from, weekTo: to, newsFrom, newsTo: from, economic: [], earnings: [], companyNews: [], coverage: {} };
+  const results = await Promise.allSettled([
       fetchEconomic(token, from, to),
       fetchEarnings(token, from, to, cfg.watchlists.us),
-      fetchCompanyNews(token, newsSymbols, from, to),
+      fetchCompanyNews(token, newsSymbols, newsFrom, from),
     ]);
-    // Etki sırasına göre (yüksek önce) en önemli 24 olay — base.json'u küçük tutar (token tasarrufu)
-    const impRank = { high: 0, medium: 1, low: 2 };
-    const econSorted = economic.slice().sort((a, b) => (impRank[a.impact] != null ? impRank[a.impact] : 3) - (impRank[b.impact] != null ? impRank[b.impact] : 3) || a.date.localeCompare(b.date));
-    calendar = { weekFrom: from, weekTo: to, economic: econSorted.slice(0, 40), earnings: earnings.slice(0, 18), companyNews };
-  } catch (e) {
-    calendar.error = String((e && e.message) || e);
-  }
+  ['economic', 'earnings', 'companyNews'].forEach((key, i) => {
+    const result = results[i];
+    const rows = result.status === 'fulfilled' ? result.value : [];
+    calendar[key] = rows;
+    const errors = result.status === 'rejected' ? ['Kaynak kullanilamiyor'] : rows.sourceErrors || [];
+    calendar.coverage[key] = { status: errors.length ? (rows.length ? 'partial' : 'unavailable') : rows.length ? 'available' : 'empty', count: rows.length, errors };
+  });
+  const impRank = { high: 0, medium: 1, low: 2 };
+  calendar.economic = calendar.economic.slice().sort((a, b) => (impRank[a.impact] ?? 3) - (impRank[b.impact] ?? 3) || a.date.localeCompare(b.date)).slice(0, 40);
+  calendar.earnings = calendar.earnings.slice(0, 18);
 
   const generatedAt = new Date().toISOString();
 
@@ -140,11 +135,16 @@ async function buildBaseReport() {
       }));
   } catch (err) {
     console.error('⚠️ [report] Scorecard verisi yüklenemedi:', err.message);
+    throw err;
   }
 
   const base = {
+    schemaVersion: 2,
+    runId: randomUUID(),
+    snapshotId: snapshotId(snap),
     generatedAt,
-    date: (snap.generatedAt || new Date().toISOString()).slice(0, 10),
+    date: generatedAt.slice(0, 10),
+    quality: { status: (snap.errors || []).length || Object.values(calendar.coverage).some((x) => x.status !== 'available') ? 'partial' : 'available', snapshotErrors: snap.errors || [], calendar: calendar.coverage },
     dataAsOf: snap.market || null,
     sentiment: { avg, label: sentLabel, gainers, total: all.length, buys },
     markets: {
@@ -162,10 +162,9 @@ async function buildBaseReport() {
   };
 
   try {
-    const aiReport = readJsonIfExists(path.join(REPORT_DIR, 'ai.json'));
     base.signalOverlay = buildMacroSignalOverlay({
       snapshot: snap,
-      aiReport,
+      aiReport: null,
       baseReport: base,
       journal,
       now: generatedAt,
@@ -178,22 +177,18 @@ async function buildBaseReport() {
   return base;
 }
 
-async function run() {
+async function run({ reportDir = REPORT_DIR } = {}) {
   const base = await buildBaseReport();
+  // Publish first; a failed cloud write must not leave a new local input for AI.
+  await saveReport(base.date, { base, ai: null });
+  console.log('Temel rapor Supabase\'e yazıldı: ' + base.date + ' | ' + base.runId + ' | kalite: ' + base.quality.status);
   // Yerel dosya (Claude routine base.json'u okur) — best-effort.
   try {
-    fs.mkdirSync(REPORT_DIR, { recursive: true });
-    fs.writeFileSync(path.join(REPORT_DIR, 'base.json'), JSON.stringify(base, null, 2));
-    fs.writeFileSync(path.join(REPORT_DIR, 'base-' + base.date + '.json'), JSON.stringify(base));
+    fs.mkdirSync(reportDir, { recursive: true });
+    fs.writeFileSync(path.join(reportDir, 'base.json'), JSON.stringify(base, null, 2));
+    fs.writeFileSync(path.join(reportDir, 'base-' + base.date + '.json'), JSON.stringify(base));
   } catch (e) {
     console.warn('Yerel base.json yazılamadı (sorun değil, Supabase asıl):', e.message);
-  }
-  // Supabase'e yaz (asıl kaynak — Vercel buradan okur).
-  try {
-    await saveReport(base.date, { base });
-    console.log('Temel rapor Supabase\'e yazıldı: ' + base.date);
-  } catch (e) {
-    console.error('⚠️  Temel rapor Supabase\'e yazılamadı:', e.message);
   }
   const c = base.calendar || {};
   console.log('Temel rapor üretildi: ' + base.date + ' | duyarlılık ' + base.sentiment.label + ' (' + base.sentiment.avg + ')');

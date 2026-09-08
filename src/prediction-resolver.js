@@ -215,6 +215,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  main,
   resolveOne,
   applyResolvedPrediction,
 };

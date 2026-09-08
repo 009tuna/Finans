@@ -4,7 +4,9 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const { saveReport } = require('../src/db');
+const db = require('../src/db');
+const { readJournal } = require('../src/decision-journal');
+const { publish } = require('../src/ai-publication');
 
 async function main() {
   const file = path.join(__dirname, '..', 'data', 'report', 'ai.json');
@@ -13,9 +15,9 @@ async function main() {
     process.exit(1);
   }
   const ai = JSON.parse(fs.readFileSync(file, 'utf8'));
-  const date = (ai.date || ai.generatedAt || new Date().toISOString()).slice(0, 10);
-  await saveReport(date, { ai });
-  console.log('✅ AI rapor Supabase\'e yazıldı:', date);
+  const result = await publish(ai, { db, readJournal, journalPath: path.join(__dirname, '..', 'data', 'journal.json') });
+  console.log('✅ AI rapor yayinlandi ve geri okunarak dogrulandi:', result.date, result.runId);
 }
 
-main().catch((e) => { console.error('❌ push-ai-report hatası:', e.message); process.exit(1); });
+if (require.main === module) main().catch((e) => { console.error('❌ push-ai-report hatası:', e.message); process.exit(1); });
+module.exports = { main };

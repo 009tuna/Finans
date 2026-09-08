@@ -225,7 +225,7 @@
    * çelişkiler, fırsatlar) tek risk seviyesi + sade hüküm + aksiyon listesine indirir.
    * Snapshot'taki HAZIR veriden hesaplar (anında, ek API çağrısı yok).
    */
-  function buildExecutiveSummary(snapshot) {
+  function buildExecutiveSummary(snapshot, evidence) {
     if (!snapshot) return null;
     const mr = snapshot.marketRegime || {};
     const all = [].concat(snapshot.us || [], snapshot.bist || [], snapshot.crypto || [])
@@ -259,7 +259,8 @@
 
     const riskLevel = riskPoints >= 4 ? { label: 'Yüksek', tone: 'neg' }
       : riskPoints >= 2 ? { label: 'Orta', tone: 'warn' }
-      : { label: 'Düşük', tone: 'pos' };
+      : !evidence || !evidence.macroAvailable || (snapshot.errors || []).length || !mr.us || !mr.bist || !mr.crypto
+        ? { label: 'Belirsiz', tone: 'warn' } : { label: 'Düşük', tone: 'pos' };
 
     const best = (snapshot.topPicks || [])[0] || null;
 
@@ -275,7 +276,7 @@
     if (best) finalActions.push('En yüksek puanlı fırsat: ' + best.market + ' ' + best.symbol + ' (' + best.label + ' · ' + best.score + ') — varlığın rejim/maliyet kartını oku.');
     finalActions.push(honesty);
 
-    const headline = 'Piyasa ortamı ' + riskLevel.label.toLowerCase() + ' riskli'
+    const headline = (riskLevel.label === 'Belirsiz' ? 'Makro veya veri kapsamı eksik; toplam risk düşük olarak sınıflandırılamıyor' : 'Piyasa ortamı ' + riskLevel.label.toLowerCase() + ' riskli')
       + (avgQuality != null ? ' · ortalama karar kalitesi ' + avgQuality + '/100' : '')
       + (environment.length ? '. ' + environment.slice(0, 3).join(' · ') + '.' : '.');
 

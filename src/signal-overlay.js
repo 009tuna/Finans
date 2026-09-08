@@ -19,8 +19,11 @@ function addHours(iso, hours) {
 }
 
 function isExpired(signal, now) {
-  if (!signal || !signal.expiresAt) return false;
-  return new Date(signal.expiresAt).getTime() <= new Date(now).getTime();
+  if (!signal) return true;
+  const start = Date.parse(signal.asOf);
+  const end = Date.parse(signal.expiresAt);
+  const current = Date.parse(now);
+  return ![start, end, current].every(Number.isFinite) || start > current || end <= current || end <= start;
 }
 
 function normalizeMarket(market) {
@@ -44,46 +47,18 @@ function allAssets(snapshot) {
     .filter((x) => x && x.symbol && x.analysis && typeof x.analysis.score === 'number');
 }
 
-function textBlob(aiReport) {
-  if (!aiReport) return '';
-  const parts = [
-    aiReport.macroSummary,
-    aiReport.todayFocus,
-    aiReport.commentary && aiReport.commentary.us,
-    aiReport.commentary && aiReport.commentary.bist,
-    aiReport.commentary && aiReport.commentary.crypto,
-  ];
-  return parts.filter(Boolean).join(' ').toLowerCase();
-}
-
-function scoreText(text, positiveTerms, negativeTerms) {
-  let score = 0;
-  positiveTerms.forEach((term) => { if (text.includes(term)) score += 1; });
-  negativeTerms.forEach((term) => { if (text.includes(term)) score -= 1; });
-  return clamp(score, -2, 2);
-}
-
-function marketText(aiReport, market) {
-  const global = textBlob(aiReport);
-  const local = aiReport && aiReport.commentary && aiReport.commentary[market] ? String(aiReport.commentary[market]).toLowerCase() : '';
-  return (local || global).trim();
-}
-
-function buildMarketOverlay(aiReport, nowIso) {
-  const positive = ['risk appetite', 'olumlu', 'destek', 'dovish', 'yumusak', 'yumuşak', 'rally', 'genisleme', 'genişleme', 'likidite'];
-  const negative = ['olumsuz', 'baski', 'baskı', 'hawkish', 'sikilasma', 'sıkılaşma', 'resesyon', 'enflasyon', 'riskten kacis', 'riskten kaçış', 'volatilite', 'jeopolitik'];
+function buildMarketOverlay(aiSignals, nowIso) {
   const out = {};
   ['us', 'bist', 'crypto'].forEach((market) => {
-    const text = marketText(aiReport, market);
-    const adjustment = scoreText(text, positive, negative);
+    const signals = aiSignals.filter((s) => s.market === market && !s.symbol && !isExpired(s, nowIso));
     out[market] = {
       market,
-      adjustment,
-      confidence: adjustment === 0 ? 0.35 : 0.6,
-      reason: adjustment === 0 ? MARKET_NAMES[market] + ' makro metni notr' : MARKET_NAMES[market] + ' makro metni ' + (adjustment > 0 ? 'destekleyici' : 'baskilayici'),
-      source: 'ai-report:commentary',
-      asOf: nowIso,
-      expiresAt: addHours(nowIso, DEFAULT_TTL_HOURS),
+      adjustment: componentImpact(signals),
+      confidence: signals.length ? signals.reduce((n, s) => n + s.confidence, 0) / signals.length : null,
+      status: signals.length ? 'available' : 'missing',
+      reason: signals.length ? MARKET_NAMES[market] + ' kaynakli makro gorus' : MARKET_NAMES[market] + ' icin guncel kaynakli makro sinyal yok',
+      asOf: signals.length ? signals.map((s) => s.asOf).sort()[0] : null,
+      expiresAt: signals.length ? signals.map((s) => s.expiresAt).sort()[0] : null,
     };
   });
   return out;
@@ -91,19 +66,26 @@ function buildMarketOverlay(aiReport, nowIso) {
 
 function normalizeSignal(raw, nowIso) {
   if (!raw || typeof raw !== 'object') return null;
-  const asOf = raw.asOf || raw.generatedAt || nowIso;
+  const asOf = raw.asOf || raw.generatedAt;
+  if (!Number.isFinite(Date.parse(asOf))) return null;
+  try { if (!['https:', 'http:'].includes(new URL(raw.source).protocol)) return null; } catch (_) { return null; }
   const type = raw.type || raw.kind || 'macro';
-  const source = raw.source || 'ai-report:macroSignalOverlay';
+  const maxExpiry = addHours(asOf, DEFAULT_TTL_HOURS);
+  if (raw.expiresAt && !Number.isFinite(Date.parse(raw.expiresAt))) return null;
+  const expiresAt = raw.expiresAt && Date.parse(raw.expiresAt) < Date.parse(maxExpiry) ? raw.expiresAt : maxExpiry;
   return {
     type,
+    category: 'directional',
+    eventId: raw.eventId || null,
     market: raw.market ? normalizeMarket(raw.market) : null,
     symbol: raw.symbol ? String(raw.symbol).toUpperCase() : null,
     adjustment: clamp(raw.adjustment, -MAX_ADJUSTMENT, MAX_ADJUSTMENT),
     confidence: clamp(raw.confidence == null ? 0.5 : raw.confidence, 0, 1),
-    source,
+    source: raw.source,
+    confidenceKind: 'model-opinion',
     reason: String(raw.reason || raw.title || type + ' overlay'),
     asOf,
-    expiresAt: raw.expiresAt || addHours(asOf, DEFAULT_TTL_HOURS),
+    expiresAt,
   };
 }
 
@@ -115,12 +97,21 @@ function extractAiSignals(aiReport, nowIso) {
     : Array.isArray(overlay.components)
       ? overlay.components
       : [];
-  return rawSignals.map((x) => normalizeSignal(x, nowIso)).filter(Boolean);
+  const seen = new Set();
+  return rawSignals.map((x) => normalizeSignal(x, nowIso)).filter(Boolean)
+    .sort((a, b) => Date.parse(b.asOf) - Date.parse(a.asOf))
+    .filter((s) => {
+      const key = [s.eventId || s.source, s.market, s.symbol].join('|');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }
 
 function component(type, adjustment, reason, source, nowIso, confidence) {
   return {
     type,
+    category: 'readiness',
     adjustment: clamp(adjustment, -MAX_ADJUSTMENT, MAX_ADJUSTMENT),
     confidence: clamp(confidence == null ? 0.55 : confidence, 0, 1),
     reason,
@@ -144,26 +135,29 @@ function buildCatalystComponents(asset, baseReport, nowIso) {
   (cal.companyNews || []).forEach((news) => {
     if (String(news.symbol || '').toUpperCase() !== symbol) return;
     const headline = news.headline || news.title || '';
-    const high = includesAny(headline, ['earnings', 'bilan', 'launch', 'partnership', 'approval', 'lawsuit', 'fed', 'cpi']);
+    const asOf = news.publishedAt || (Number.isFinite(news.datetime) ? new Date(news.datetime * 1000).toISOString() : news.date);
+    if (!Number.isFinite(Date.parse(asOf))) return;
     out.push(component(
       'companyNews',
-      high ? 2 : 1,
+      0,
       symbol + ' haber katalizoru: ' + headline,
-      news.source || 'calendar:companyNews',
-      news.date || nowIso,
-      high ? 0.7 : 0.55
+      news.url || news.source || 'calendar:companyNews',
+      asOf,
+      0
     ));
   });
 
   (cal.earnings || []).forEach((earning) => {
     if (String(earning.symbol || '').toUpperCase() !== symbol) return;
+    if (!Number.isFinite(Date.parse(earning.date))) return;
+    if (earning.date < nowIso.slice(0, 10) || Date.parse(earning.date) > Date.parse(nowIso) + 7 * 86400000) return;
     out.push(component(
       'earnings',
-      2,
+      0,
       symbol + ' bilanco penceresi karar baskisini artiriyor',
       'calendar:earnings',
-      earning.date || nowIso,
-      0.68
+      nowIso,
+      0
     ));
   });
 
@@ -171,14 +165,15 @@ function buildCatalystComponents(asset, baseReport, nowIso) {
     const name = event.event || event.name || '';
     const high = String(event.importance || event.impact || '').toLowerCase() === 'high';
     if (!high) return;
+    if (!Number.isFinite(Date.parse(event.date)) || event.date < nowIso.slice(0, 10) || Date.parse(event.date) > Date.parse(nowIso) + 7 * 86400000) return;
     if (market === 'us' && includesAny(name, ['cpi', 'fed', 'pce', 'payroll', 'jobs'])) {
-      out.push(component('macroCatalyst', -1, name + ' verisi ABD risk primini etkileyebilir', 'calendar:economic', event.date || nowIso, 0.58));
+      out.push(component('macroCatalyst', 0, name + ' verisi ABD risk primini etkileyebilir', 'calendar:economic', nowIso, 0));
     }
     if (market === 'bist' && includesAny(name, ['cpi', 'fed', 'rate', 'inflation', 'enflasyon'])) {
-      out.push(component('macroCatalyst', -1, name + ' verisi BIST/TL duyarliligini artiriyor', 'calendar:economic', event.date || nowIso, 0.58));
+      out.push(component('macroCatalyst', 0, name + ' verisi BIST/TL duyarliligini artiriyor', 'calendar:economic', nowIso, 0));
     }
     if (market === 'crypto' && includesAny(name, ['cpi', 'fed', 'liquidity', 'rate'])) {
-      out.push(component('btcLiquidity', -1, name + ' verisi BTC likidite duyarliligini artiriyor', 'calendar:economic', event.date || nowIso, 0.56));
+      out.push(component('btcLiquidity', 0, name + ' verisi BTC likidite duyarliligini artiriyor', 'calendar:economic', nowIso, 0));
     }
   });
 
@@ -292,7 +287,7 @@ function matchingAiComponents(asset, aiSignals) {
 }
 
 function componentImpact(components) {
-  return clamp(components.reduce((sum, x) => sum + (Number(x.adjustment) || 0), 0), -MAX_ADJUSTMENT, MAX_ADJUSTMENT);
+  return clamp(components.filter((x) => x.category === 'directional').reduce((sum, x) => sum + (Number(x.adjustment) || 0), 0), -MAX_ADJUSTMENT, MAX_ADJUSTMENT);
 }
 
 function statusFromAdjustment(adj) {
@@ -305,6 +300,7 @@ function statusFromAdjustment(adj) {
 function summarizeOverlay(overlay) {
   const assets = Object.values((overlay && overlay.assets) || {});
   return {
+    withEvidence: assets.filter((x) => x.evidenceStatus === 'available').length,
     boosted: assets.filter((x) => x.totalAdjustment > 0).length,
     reduced: assets.filter((x) => x.totalAdjustment < 0).length,
     highPressure: assets.filter((x) => x.components.some((c) => ['earnings', 'companyNews', 'macroCatalyst', 'btcLiquidity'].includes(c.type))).length,
@@ -315,8 +311,8 @@ function summarizeOverlay(overlay) {
 function buildMacroSignalOverlay({ snapshot, aiReport, baseReport, journal, now } = {}) {
   const nowIso = now || new Date().toISOString();
   const normalizedJournal = normalizeJournal(journal);
-  const market = buildMarketOverlay(aiReport, nowIso);
   const aiSignals = extractAiSignals(aiReport, nowIso);
+  const market = buildMarketOverlay(aiSignals, nowIso);
   const calibration = calibrationComponent(normalizedJournal, nowIso);
   const learningSummary = buildLearningSummary(normalizedJournal, nowIso);
   const learningRules = learningSummary.learningRules || [];
@@ -326,8 +322,6 @@ function buildMacroSignalOverlay({ snapshot, aiReport, baseReport, journal, now 
     const active = [];
     const expired = [];
     const marketKey = normalizeMarket(asset.market);
-    const m = market[marketKey];
-    if (m && m.adjustment !== 0) active.push(Object.assign({ type: 'macro', adjustment: m.adjustment }, m));
     matchingAiComponents(asset, aiSignals).forEach((sig) => {
       if (isExpired(sig, nowIso)) expired.push(sig);
       else active.push(sig);
@@ -351,9 +345,10 @@ function buildMacroSignalOverlay({ snapshot, aiReport, baseReport, journal, now 
 
     const totalAdjustment = componentImpact(active);
     const technicalScore = clamp(asset.analysis.score, 0, 100);
-    const confidence = active.length
-      ? Number((active.reduce((sum, x) => sum + x.confidence, 0) / active.length).toFixed(2))
-      : 0;
+    const directional = active.filter((x) => x.category === 'directional');
+    const confidence = directional.length
+      ? Number((directional.reduce((sum, x) => sum + x.confidence, 0) / directional.length).toFixed(2))
+      : null;
 
     assets[assetKey(asset)] = {
       market: marketKey,
@@ -363,12 +358,16 @@ function buildMacroSignalOverlay({ snapshot, aiReport, baseReport, journal, now 
       adjustedScore: clamp(technicalScore + totalAdjustment, 0, 100),
       status: statusFromAdjustment(totalAdjustment),
       confidence,
+      confidenceKind: 'model-opinion',
+      evidenceStatus: directional.length ? 'available' : 'missing',
+      readinessIssues: active.filter((x) => x.category === 'readiness' && x.adjustment < 0),
       components: active,
       expiredComponents: expired,
     };
   });
 
   const overlay = {
+    schemaVersion: 2,
     generatedAt: nowIso,
     expiresAt: addHours(nowIso, DEFAULT_TTL_HOURS),
     maxAdjustment: MAX_ADJUSTMENT,

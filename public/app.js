@@ -12,6 +12,8 @@ let backtestChart = null;
 let mcChart = null;
 let portfolioData = null;
 let REPORT_CACHE = null;
+let REPORT_CACHED_AT = 0;
+let REPORT_REQUEST = null;
 let activeDetailCharts = {};
 let assetDeskChart = null;
 let assetDeskResize = null;
@@ -115,27 +117,31 @@ function countUp(el, target, { decimals = 0, dur = 650 } = {}) {
 
 /* ---------- Veri yükleme ---------- */
 let JOURNAL = { notes: {}, alerts: [], predictions: [], theses: {}, catalysts: [], riskRules: [] };
+let JOURNAL_READY = false;
 
 async function loadJournal() {
   try {
     const res = await fetch('/api/journal', { cache: 'no-store' });
+    if (!res.ok) throw new Error('Gunluk yuklenemedi');
     JOURNAL = await res.json();
+    JOURNAL_READY = Object.prototype.hasOwnProperty.call(JOURNAL, '_revision');
   } catch (e) {
     console.error('Journal yüklenemedi:', e);
+    JOURNAL_READY = false;
     JOURNAL = { notes: {}, alerts: [], predictions: [], theses: {}, catalysts: [], riskRules: [] };
   }
 }
 
 async function saveJournal() {
-  try {
-    await fetch('/api/journal', {
+    if (!JOURNAL_READY) throw new Error('Gunluk kaynagi yuklenemedi. Sayfayi yenileyin.');
+    const res = await authedFetch('/api/journal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(JOURNAL),
     });
-  } catch (e) {
-    console.error('Journal kaydedilemedi:', e);
-  }
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Gunluk kaydedilemedi');
+    JOURNAL = result;
 }
 
 async function loadPortfolio() {
@@ -195,7 +201,8 @@ async function refresh() {
     const res = await authedFetch('/api/refresh', { method: 'POST' });
     if (res.status === 401) { alert('Yenileme için doğru yönetici parolası gerekli.'); return; }
     const fresh = await res.json();
-    if (fresh && !fresh.empty) { DATA = fresh; updateFreshness(); renderView(); }
+    if (!res.ok) throw new Error(fresh.error || 'Veri yenilenemedi');
+    if (fresh && !fresh.empty) { DATA = fresh; REPORT_CACHE = null; updateFreshness(); renderView(); }
   } catch (e) { /* sessiz */ }
   finally { btn.disabled = false; btn.classList.remove('loading'); }
 }
@@ -205,7 +212,7 @@ async function silentRefresh() {
     const res = await authedFetch('/api/refresh', { method: 'POST' }, { silent: true });
     if (!res.ok) return;
     const fresh = await res.json();
-    if (fresh && !fresh.empty) { DATA = fresh; updateFreshness(); renderView(); }
+    if (fresh && !fresh.empty) { DATA = fresh; REPORT_CACHE = null; updateFreshness(); renderView(); }
   } catch (e) { /* sessiz */ }
 }
 function maybeAutoRefresh() {
@@ -228,7 +235,7 @@ const VIEW_META = {
   screener: ['🔍 Teknik Tarayıcı', 'Kritik indikatör sinyalleri ve alarmlar', 'view-screener'],
   backtest: ['📈 Strateji Testi', 'Geçmiş fiyat verileriyle teknik puan stratejisi testi', 'view-backtest'],
   forecast: ['🔮 Finansal Projeksiyon', 'Olasılıksal portföy simülasyonu, stres testleri ve DCF analizleri', 'view-forecast'],
-  report: ['📰 Günlük Rapor', 'Her sabah 09:00 otomatik rapor', 'view-report'],
+  report: ['📰 Günlük Rapor', 'Teknik rapor, kaynak kapsamı ve doğrulanmış analiz durumu', 'view-report'],
   literacy: ['📚 Finansal Okuryazarlık', 'İndikatör ve risk rehberi', 'view-literacy'],
 };
 function setView(view) {
@@ -356,7 +363,7 @@ function reportExecutiveReadingHtml(base, ai) {
       '<section class="reader-block"><h3>Bana etkisi</h3><p>' + esc(today) + '</p><div class="reader-impact">' +
         '<span>AL sinyali <b>' + esc(String(s.buys == null ? '-' : s.buys)) + '</b></span>' +
         '<span>Yukselen <b>' + esc(String(s.gainers == null ? '-' : s.gainers)) + '</b></span>' +
-        '<span>Makro baski <b>' + esc(String(overlaySummary.reduced || 0)) + '</b></span>' +
+        '<span>Makro baski <b>' + (overlaySummary.withEvidence > 0 ? esc(String(overlaySummary.reduced || 0)) : 'Kanıt yok') + '</b></span>' +
       '</div><p>' + esc(positioning) + '</p></section>' +
     '</div>' +
   '</div>';
@@ -365,11 +372,14 @@ function reportExecutiveReadingHtml(base, ai) {
 async function renderReport() {
   const el = $('#reportContent');
   let data = null;
-  try { data = await (await fetch('/api/report', { cache: 'no-store' })).json(); } catch (e) { data = null; }
+  try { data = await loadReportCache(true); } catch (e) {
+    el.innerHTML = '<div class="card"><p role="status">Rapor kaynağına erişilemedi. Tekrar deneyin.</p></div>';
+    return;
+  }
   const base = data && data.base;
   const ai = data && data.ai;
   if (!base) {
-    el.innerHTML = '<div class="card reveal"><div class="rep-empty">Henüz rapor üretilmedi.<br>Her sabah 09:00\'da otomatik oluşturulur — ya da elle: <code>node src/report.js</code></div></div>';
+    el.innerHTML = '<div class="card reveal"><div class="rep-empty">Henüz rapor bulunamadı. Günlük veri ve rapor akışının tamamlanması bekleniyor.</div></div>';
     return;
   }
   const s = base.sentiment;
@@ -377,12 +387,22 @@ async function renderReport() {
   const aiBadge = ai ? '<span class="ai-badge">✦ Yapay zeka · canlı makro yorum</span>' : '';
 
   let h = '';
+  const integrity = data.integrity || {};
+  const sameSnapshot = integrity.baseStatus === 'current';
+  h += '<div class="card report-integrity" role="status"><strong>' +
+    (sameSnapshot ? 'Rapor ve fiyat verisi eşleşiyor' : 'Rapor güncel fiyat verisiyle eşleşmiyor') + '</strong>' +
+    '<p>Rapor üretimi: ' + esc(base.generatedAt || 'Bilinmiyor') + ' · Dayandığı veri: ' + esc(base.snapshotId || 'Doğrulanamadı') + '</p>' +
+    (!sameSnapshot ? '<p>Aşağıdaki puanlar raporun veri kesitine aittir; güncel piyasa tablosundan farklı olabilir.</p>' : '') +
+    (!ai ? '<p>Güncel ve bu raporla eşleşen AI analizi yok. Makro yön sinyali kullanılmıyor.</p>' : '') +
+    (base.quality && base.quality.status === 'partial' ? '<p>Veri kapsamı eksik. Kaynak durumlarını aşağıdaki takvimde kontrol edin.</p>' : '') + '</div>';
   // Başlık
   h += '<div class="card reveal"><div class="report-head"><div>' +
     '<h2>📰 Günlük Piyasa Raporu</h2><div class="report-date">' + base.date + ' · ' + s.total + ' varlık · ' + s.buys + ' AL sinyali · ' + s.gainers + ' yükselen</div></div>' +
     '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">' + aiBadge + '<span class="sent-pill ' + sc + '">' + s.label + ' · ' + s.avg + '/100</span></div></div></div>';
 
   h += reportExecutiveReadingHtml(base, ai);
+  h += FinansResearch.researchHtml(ai && ai.research);
+  h += '<section class="card research-card" id="researchEvaluation" aria-live="polite">Tahmin ölçümleri yükleniyor…</section>';
   h += reportSignalOverlayHtml(base);
 
   // Yapay zeka makro + haber
@@ -509,6 +529,7 @@ async function renderReport() {
   h += '<div class="card reveal"><p class="muted">Üretim: ' + (ai ? 'kural-tabanlı teknik + yapay zeka makro/haber katmanı' : 'kural-tabanlı teknik (yapay zeka katmanı bekleniyor)') + ' · ' + relTime(base.generatedAt) + '. <b>Yatırım tavsiyesi değildir.</b></p></div>';
 
   el.innerHTML = h;
+  FinansResearch.loadEvaluation($('#researchEvaluation'));
   triggerRevealAnimations(el);
 }
 function esc(t) { return String(t == null ? '' : t).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
@@ -548,9 +569,17 @@ function weeklyHtml(base, ai) {
   const econ = cal.economic || [];
   const earn = cal.earnings || [];
   const news = cal.companyNews || [];
-  if (!wo && !econ.length && !earn.length && !news.length) return '';
+  if (!wo && !econ.length && !earn.length && !news.length && !cal.coverage) return '';
 
   let h = '<div class="card reveal"><div class="card-head"><h2>📅 Bu Hafta: Veri &amp; Katalizör Takvimi</h2>' + (wo ? '<span class="ai-badge">✦ Yapay zeka · finans direktörü senaryosu</span>' : '') + '</div>';
+  if (cal.coverage) {
+    const labels = { economic: 'Ekonomik takvim', earnings: 'Bilançolar', companyNews: 'Şirket haberleri' };
+    const states = { available: 'Alındı', partial: 'Kısmi veri', unavailable: 'Kaynağa erişilemedi', empty: 'Kaynak döndü, olay bulunamadı' };
+    h += '<div role="status">' + Object.keys(labels).map((key) => {
+      const coverage = cal.coverage[key] || {};
+      return '<p>' + labels[key] + ': ' + esc(states[coverage.status] || 'Doğrulanamadı') + ' · ' + (Number(coverage.count) || 0) + ' kayıt</p>';
+    }).join('') + '</div>';
+  }
 
   if (wo && wo.cfoSummary) h += '<div class="tip-card" style="margin-bottom:16px"><h4>🧠 Finans Direktörü Bakışı: Haftanın Sentezi</h4><p>' + esc(wo.cfoSummary) + '</p></div>';
 
@@ -641,7 +670,8 @@ async function renderOverviewBriefing() {
     ai = null;
   }
 
-  const s = base && base.sentiment ? base.sentiment : null;
+  const matchesSnapshot = base && window.FinansReportIntegrity.assess(base, ai, DATA).baseStatus === 'current';
+  const s = matchesSnapshot && base.sentiment ? base.sentiment : null;
   const overlaySummary = base && base.signalOverlay && base.signalOverlay.summary ? base.signalOverlay.summary : {};
   const macro = ai && ai.macroSummary
     ? ai.macroSummary
@@ -655,12 +685,12 @@ async function renderOverviewBriefing() {
     : '<li>Canli haber ozeti icin gunluk AI raporu bekleniyor.</li>';
   const sentiment = s ? s.label + ' / ' + s.avg + '/100' : 'Rapor bekleniyor';
   const breadth = s ? s.gainers + ' yukselen / ' + s.total + ' varlik' : 'Veri yukleniyor';
-  const pressure = (overlaySummary.reduced || 0) + ' baski, ' + (overlaySummary.boosted || 0) + ' destek';
+  const pressure = overlaySummary.withEvidence > 0 ? (overlaySummary.reduced || 0) + ' baski, ' + (overlaySummary.boosted || 0) + ' destek' : 'Güncel kanıt yok';
 
   el.innerHTML = '<div class="overview-briefing card reveal">' +
     '<div class="brief-main">' +
       '<span class="brief-kicker">Bugun once bunu oku</span>' +
-      '<h2>Gunluk rapor ana ekranin merkezinde.</h2>' +
+      '<h2>Piyasa özeti</h2>' +
       '<p>' + esc(macro) + '</p>' +
       '<div class="brief-actions">' +
         '<button class="btn" type="button" onclick="setView(\'report\')">Gunluk raporu oku</button>' +
@@ -739,7 +769,9 @@ function renderExecSummary() {
   const el = $('#execSummary');
   if (!el) return;
   if (!window.FinansInsights || !window.FinansInsights.buildExecutiveSummary) { el.innerHTML = ''; return; }
-  const s = window.FinansInsights.buildExecutiveSummary(DATA);
+  const overlay = getReportSignalOverlay();
+  const macroAvailable = !!overlay && ['us', 'bist', 'crypto'].every((m) => overlay.market[m] && overlay.market[m].status === 'available');
+  const s = window.FinansInsights.buildExecutiveSummary(DATA, { macroAvailable });
   if (!s) { el.innerHTML = ''; return; }
   const tone = s.riskLevel.tone;
   el.innerHTML = '<div class="card reveal exec-card exec-' + tone + '">' +
@@ -3499,7 +3531,9 @@ function assetLearningCard(x) {
 }
 
 function getReportSignalOverlay() {
-  return REPORT_CACHE && REPORT_CACHE.base && REPORT_CACHE.base.signalOverlay ? REPORT_CACHE.base.signalOverlay : null;
+  if (!REPORT_CACHE) return null;
+  const report = window.FinansReportIntegrity.envelope(REPORT_CACHE, DATA);
+  return report.base && report.base.signalOverlay || null;
 }
 
 function getAssetSignalOverlay(asset) {
@@ -3695,11 +3729,22 @@ function renderIdeaFunnel() {
   '</div>';
 }
 
-async function loadReportCache() {
-  if (REPORT_CACHE) return REPORT_CACHE;
-  const res = await fetch('/api/report', { cache: 'no-store' });
-  REPORT_CACHE = await res.json();
-  return REPORT_CACHE;
+function checkedReport(raw) {
+  const result = window.FinansReportIntegrity.envelope(raw, DATA);
+  if (!raw.ai && raw.integrity) result.integrity.aiStatus = raw.integrity.aiStatus;
+  return Object.assign({}, raw, result);
+}
+async function loadReportCache(force) {
+  if (!force && REPORT_CACHE && Date.now() - REPORT_CACHED_AT < 30000) return checkedReport(REPORT_CACHE);
+  if (REPORT_REQUEST) return REPORT_REQUEST;
+  REPORT_REQUEST = (async () => {
+    const res = await fetch('/api/report', { cache: 'no-store' });
+    if (!res.ok) throw new Error('Rapor kaynagi kullanilamiyor');
+    REPORT_CACHE = checkedReport(await res.json());
+    REPORT_CACHED_AT = Date.now();
+    return REPORT_CACHE;
+  })();
+  try { return await REPORT_REQUEST; } finally { REPORT_REQUEST = null; }
 }
 
 async function renderCatalystCalendar() {
@@ -4308,7 +4353,7 @@ document.addEventListener('submit', async (e) => {
         }
       }
     } catch (err) {
-      if (statusEl) statusEl.textContent = '✗ Hata oluştu';
+      if (statusEl) statusEl.textContent = '✗ ' + err.message;
     }
   }
 });

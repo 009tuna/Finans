@@ -20,13 +20,18 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 }
 
 // Okuma için anon key (public RLS policy ile uyumlu)
+const databaseFetch = process.platform === 'win32' && !process.env.VERCEL ? require('./windows-fetch').windowsFetch : (...args) => fetch(...args);
+const clientOptions = { global: { fetch: (input, init = {}) => databaseFetch(input, {
+  ...init,
+  signal: init.signal ? AbortSignal.any([init.signal, AbortSignal.timeout(12000)]) : AbortSignal.timeout(12000),
+}) } };
 const supabase = SUPABASE_URL && SUPABASE_ANON_KEY
-  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, clientOptions)
   : null;
 
 // Yazma için service role key (RLS bypass + cron job)
 const supabaseAdmin = SUPABASE_URL && SUPABASE_SERVICE_KEY
-  ? createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+  ? createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, clientOptions)
   : supabase; // Fallback: yoksa anon client kullan (write policy açık)
 
 // =====================================================
@@ -126,8 +131,11 @@ async function savePortfolio(portfolio) {
  * En son piyasa verisi anlık görüntüsünü döndürür.
  * @returns {object|null}
  */
-async function getLatestSnapshot() {
-  if (!supabase) return null;
+async function getLatestSnapshot({ strict = false } = {}) {
+  if (!supabase) {
+    if (strict) throw new Error('Veritabani baglantisi gerekli');
+    return null;
+  }
 
   try {
     const { data, error } = await supabase
@@ -139,6 +147,7 @@ async function getLatestSnapshot() {
     if (error && error.code !== 'PGRST116') throw error; // PGRST116 = row not found
     return data ? data.data : null;
   } catch (e) {
+    if (strict) throw e;
     console.error('⚠️  [db] getLatestSnapshot hatası:', e.message);
     return null;
   }
@@ -150,7 +159,7 @@ async function getLatestSnapshot() {
  * @param {object} snapshot
  */
 async function saveSnapshot(snapshot) {
-  if (!supabaseAdmin) return;
+  if (!supabaseAdmin || !SUPABASE_SERVICE_KEY) throw new Error('Snapshot icin veritabani yazma yetkisi gerekli');
 
   try {
     const { error } = await supabaseAdmin
@@ -206,7 +215,7 @@ async function getHistory() {
  * @param {object} snapshot - runAll() tarafından döndürülen snapshot
  */
 async function appendHistory(snapshot) {
-  if (!supabaseAdmin) return;
+  if (!supabaseAdmin || !SUPABASE_SERVICE_KEY) throw new Error('Gecmis icin veritabani yazma yetkisi gerekli');
 
   try {
     const date = snapshot.generatedAt.slice(0, 10);
@@ -245,6 +254,7 @@ async function appendHistory(snapshot) {
 
   } catch (e) {
     console.error('⚠️  [db] appendHistory hatası:', e.message);
+    throw e;
   }
 }
 
@@ -257,8 +267,11 @@ async function appendHistory(snapshot) {
  * @param {string} key
  * @returns {{ value: any, updatedAt: number }|null}
  */
-async function getCache(key) {
-  if (!supabase) return null;
+async function getCache(key, { strict = false } = {}) {
+  if (!supabase) {
+    if (strict) throw new Error('Veritabani baglantisi yapilandirilmadi');
+    return null;
+  }
 
   try {
     const { data, error } = await supabase
@@ -272,12 +285,32 @@ async function getCache(key) {
 
     return {
       value:     data.cache_value,
+      revision:  data.updated_at,
       updatedAt: new Date(data.updated_at).getTime()
     };
   } catch (e) {
+    if (strict) throw e;
     console.error('⚠️  [db] getCache hatası:', e.message);
     return null;
   }
+}
+
+// Atomic compare-and-set: a stale reader must never overwrite newer predictions.
+async function compareAndSetCache(key, value, expectedRevision) {
+  if (!supabaseAdmin || !SUPABASE_SERVICE_KEY) throw new Error('Veritabani yazma yetkisi yapilandirilmadi');
+  const revision = new Date(Math.max(Date.now(), (Date.parse(expectedRevision) || 0) + 1)).toISOString();
+  const row = { cache_key: key, cache_value: value, updated_at: revision };
+  const query = expectedRevision === null
+    ? supabaseAdmin.from('api_cache').insert(row)
+    : supabaseAdmin.from('api_cache').update(row).eq('cache_key', key).eq('updated_at', expectedRevision);
+  const { data, error } = await query.select('updated_at');
+  if (error && error.code !== '23505') throw error;
+  if (error || !data || data.length !== 1) {
+    const conflict = new Error('Kayit baska bir islem tarafindan degistirildi. Guncel kaydi yeniden yukleyin.');
+    conflict.statusCode = 409;
+    throw conflict;
+  }
+  return data[0].updated_at;
 }
 
 /**
@@ -312,9 +345,12 @@ async function setCache(key, value) {
  * @param {string} [date] YYYY-MM-DD
  * @returns {{ base: object|null, ai: object|null, date: string|null }}
  */
-async function getReport(date) {
+async function getReport(date, { strict = false } = {}) {
   const empty = { base: null, ai: null, date: null };
-  if (!supabase) return empty;
+  if (!supabase) {
+    if (strict) throw new Error('Veritabani baglantisi gerekli');
+    return empty;
+  }
 
   try {
     let query = supabase.from('reports').select('date, base, ai');
@@ -327,6 +363,7 @@ async function getReport(date) {
     const row = Array.isArray(data) ? data[0] : data;
     return row ? { base: row.base || null, ai: row.ai || null, date: row.date } : empty;
   } catch (e) {
+    if (strict) throw e;
     console.error('⚠️  [db] getReport hatası:', e.message);
     return empty;
   }
@@ -339,7 +376,7 @@ async function getReport(date) {
  * @param {{ base?: object, ai?: object }} fields
  */
 async function saveReport(date, fields = {}) {
-  if (!supabaseAdmin) return;
+  if (!supabaseAdmin || !SUPABASE_SERVICE_KEY) throw new Error('Rapor icin veritabani yazma yetkisi gerekli');
 
   try {
     const row = { date, updated_at: new Date().toISOString() };
@@ -357,6 +394,15 @@ async function saveReport(date, fields = {}) {
   }
 }
 
+async function publishAiReport(date, runId, fields) {
+  if (!supabaseAdmin || !SUPABASE_SERVICE_KEY) throw new Error('Rapor icin veritabani yazma yetkisi gerekli');
+  const { data, error } = await supabaseAdmin.from('reports')
+    .update({ ...fields, updated_at: new Date().toISOString() })
+    .eq('date', date).eq('base->>runId', runId).select('date');
+  if (error) throw error;
+  if (!data || data.length !== 1) throw new Error('Temel rapor degisti; eski AI raporu yayinlanmadi');
+}
+
 module.exports = {
   supabase,
   supabaseAdmin,
@@ -368,6 +414,8 @@ module.exports = {
   appendHistory,
   getCache,
   setCache,
+  compareAndSetCache,
   getReport,
-  saveReport
+  saveReport,
+  publishAiReport
 };

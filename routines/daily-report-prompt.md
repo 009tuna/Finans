@@ -28,6 +28,8 @@ Not: `data/latest.json` dosyasını OKUMA (çok büyük, gereksiz token); tüm �
 ```json
 {
   "generatedAt": "<ISO zaman formatı>",
+  "runId": "base.json runId degerini aynen kopyala",
+  "snapshotId": "base.json snapshotId degerini aynen kopyala",
   "macroSummary": "3-4 cümle: Sayısal verilerle zenginleştirilmiş küresel risk iştahı + genel makro görünüm",
   "worldNews": [{"title": "Tek cümlelik, net sayısal ve somut veri içeren gelişme", "impact": "olumlu | olumsuz | nötr"}],
   "commentary": {
@@ -43,7 +45,7 @@ Not: `data/latest.json` dosyasını OKUMA (çok büyük, gereksiz token); tüm �
         "date": "YYYY-MM-DD",
         "importance": "high | medium",
         "consensus": "Net rakamlarla piyasa beklentisi (önceki değer ile karşılaştırmalı)",
-        "myCall": "Kendi sayısal öngörün ve tahminin",
+        "myCall": "Kanit yeterliyse aralik ve dayanak; degilse tahmin icin yeterli kanit yok. Aciklanmis veri icin forecast yazma.",
         "reasoning": "Web araştırmalarına dayanan gerçek ve somut gerekçeler",
         "ifLower": "Beklentiden düşük gelirse: Olası piyasa tepkisi, tahvil/kripto/hisse yönleri ve etki edeceği semboller",
         "ifHigher": "Beklentiden yüksek gelirse: Piyasa tepkisi ve etki edeceği semboller",
@@ -86,9 +88,13 @@ Not: `data/latest.json` dosyasını OKUMA (çok büyük, gereksiz token); tüm �
 ```
 
 ### macroSignalOverlay Kuralları:
-*   En az **4-5 adet** aktif makro ve mikro sinyal tanımla.
+*   Sinyal sayisi alt siniri yoktur. Kanit yetersizse `signals: []` yaz. Yalniz haberin varligi, bilanco yaklasmasi veya anahtar kelimeler yon sinyali degildir.
 *   Her sinyalin `source` alanı mutlaka gerçek ve güncel bir haber/veri kaynağının URL linkini taşımalıdır.
-*   `weeklyOutlook.events` alanından seçilen en kritik **5 olayı** yukarıdaki şablona göre eksiksiz doldur.
+*   `weeklyOutlook.events` icinde sadece dogrulanabilen olaylari kullan; bes olay doldurmak zorunda degilsin. Kaynak eksikligini ve takvim kapsamindaki bosluklari acikca belirt.
+*   Base raporun `quality` alanini oku. Eksik veriyi varsayimla doldurma. Olgu, konsensus, kendi tahminin ve kosullu piyasa tepkisi ayri anlatilsin.
+*   Her sinyalin `asOf` degeri bilginin gercek yayin/erisim zamani olsun; eski haberi bugun olusmus gibi damgalama. Gelecek zamanli sinyal yazma. `expiresAt`, `asOf` sonrasinda ve en fazla 36 saat uzakta olsun.
+*   `confidence` model gorusudur, olculmus basari olasiligi degildir. Her tahmine karsi senaryo ve yanlislanma kosulu ekle.
+*   Bu rutin taslak dosyayi yazar. Yayin, dis akistaki `scripts/push-ai-report.js` dogrulayicisindan gectikten sonra tamamlanir.
 
 4. `data/_private/agent-journal.md` SONUNA bugünün tarihiyle ÖZEL ajan notu ekle (kullanıcıya gösterilmez, senin çalışma hafızandır): veri/skor anomalileri, takip listesi fikirleri, kalibrasyon önerileri, yarın izlenecekler ve sistem akışı fikirlerini son derece dürüst, teknik ve öz eleştirel biçimde yaz.
 

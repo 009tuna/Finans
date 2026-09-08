@@ -13,17 +13,21 @@ hazırlayan kişisel sistem.
 **`start-dashboard.bat`** → tarayıcıda panel açılır: **http://localhost:5174**
 Veri yoksa **↻ Yenile**'ye basın.
 
-## ⏰ Her Sabah 09:00 — Otomatik Günlük Akış
-Windows Görev Zamanlayıcı'daki `FinansOtomasyonu` görevi `daily-update.bat`'i çalıştırır:
-1. **Veri çek** — ABD+BIST+Kripto fiyat/indikatör
-2. **Temel rapor** — teknik özet + bu haftanın takvimi (`node src/report.js`)
-3. **Panel aç** — tarayıcıda gösterir
-4. **AI katmanı** — `claude` (headless) web'de makro/haber/consensus araştırıp senaryo analizli raporu yazar
+## Rapor bütünlüğü ve yayın akışı
 
-```powershell
-schtasks /Run /TN "FinansOtomasyonu"   # şimdi elle çalıştır (test)
-schtasks /Query /TN "FinansOtomasyonu" # durumu gör
-```
+Rapor artık üretildiği fiyat verisine `snapshotId`, kendi çalışmasına `runId` ile bağlıdır. Eski veya farklı veri kesitine ait AI yorumu güncel sinyale katılmaz. Kaynağa erişilememesi ile kaynakta olay bulunmaması ayrı gösterilir. Ayrıntılar ve geçiş adımları: [8 Eylül geliştirme notu](docs/2026-09-08-report-integrity.md).
+
+GitHub Actions hafta içi fiyatları, tahmin sonuçlarını ve temel raporu günceller. Yerel `npm run research` akışı **GPT-6 Astra** ile kaynak araştırması yapar, açıklama öncesi tahminleri kaydeder ve doğrulanan raporu Supabase'e yayınlar. Codex oturumu ve kullanım hakkı gerekir. Ayrıntılar: [Astra araştırması ve ölçüm](docs/astra-research.md).
+
+## ⏰ Otomatik Günlük Akış
+`daily-update.bat` veya `npm run research` aynı akışı çalıştırır:
+1. Günün fiyat verisi yoksa yeniler; mevcut bulut güncellemesini tekrar kullanır.
+2. Teknik tahminleri ve araştırma tahminlerinin mevcut sonuçlarını çözer.
+3. Gerekiyorsa fiyat kesitiyle eşleşen temel raporu üretir.
+4. Astra ile canlı web araştırması ve koşullu senaryolar üretir.
+5. Şema/zaman/kaynak kontrolünden sonra araştırmayı ve tahminleri kaydeder; raporu yayınlayıp geri okur.
+
+Yerel Codex araştırması her gün 09:30 (Europe/Berlin) için zamanlanmıştır. Bilgisayar ve Codex erişilebilir olmalıdır. Elle çalıştırma: `npm run research`.
 
 ---
 
@@ -62,4 +66,4 @@ public/             panel arayüzü (koyu tema + animasyonlar)
 data/report/        base.json (deterministik) + ai.json (AI katmanı)
 ```
 
-Gereksinim: **Node.js** + **claude CLI** (AI raporu için). Ek npm paketi gerekmez.
+Gereksinim: **Node.js 22+**, `npm ci`, Supabase yapılandırması ve AI araştırması için oturum açılmış **Codex CLI**. Projeye özel CLI sürümü bağımlılıklarda sabitlenmiştir.

@@ -1,6 +1,7 @@
 {
   "version": 2,
   "rewrites": [
+    { "source": "/api/research", "destination": "/api/report?resource=research" },
     { "source": "/api/forecast/montecarlo", "destination": "/api/forecast/montecarlo" },
     { "source": "/api/forecast/correlation", "destination": "/api/forecast/correlation" },
     { "source": "/api/forecast/dcf",         "destination": "/api/forecast/dcf" },
@@ -8,6 +9,7 @@
     { "source": "/api/(.*)",                 "destination": "/api/$1" }
   ],
   "functions": {
+    "api/report.js":                    { "maxDuration": 60 },
     "api/refresh.js":                   { "maxDuration": 60 },
     "api/forecast/montecarlo.js":       { "maxDuration": 60 },
     "api/forecast/correlation.js":      { "maxDuration": 60 },

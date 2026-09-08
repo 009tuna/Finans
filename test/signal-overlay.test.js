@@ -54,7 +54,7 @@ const aiReport = {
         type: 'companyNews',
         adjustment: 15,
         confidence: 0.9,
-        source: 'AI company-news scan',
+        source: 'https://example.com/company',
         reason: 'Apple earnings and partnership catalyst pressure',
         asOf: NOW,
         expiresAt: '2026-06-14T06:00:00.000Z',
@@ -65,7 +65,7 @@ const aiReport = {
         type: 'macro',
         adjustment: -6,
         confidence: 0.8,
-        source: 'Expired macro',
+        source: 'https://example.com/expired',
         reason: 'Old CPI pressure',
         asOf: '2026-06-12T06:00:00.000Z',
         expiresAt: '2026-06-12T09:00:00.000Z',
@@ -107,10 +107,10 @@ console.log('1. builds bounded overlay without mutating technical score...');
 const overlay = buildMacroSignalOverlay({ snapshot: baseSnapshot(), aiReport, baseReport, journal, now: NOW });
 const aapl = overlay.assets['us:AAPL'];
 assert.equal(aapl.technicalScore, 74);
-assert.equal(aapl.totalAdjustment, 5);
-assert.equal(aapl.adjustedScore, 79);
-assert.ok(aapl.components.some((x) => x.type === 'companyNews' && x.source === 'AI company-news scan'));
-assert.ok(aapl.expiredComponents.some((x) => x.source === 'Expired macro'));
+assert.equal(aapl.totalAdjustment, 8);
+assert.equal(aapl.adjustedScore, 82);
+assert.ok(aapl.components.some((x) => x.type === 'companyNews' && x.source === 'https://example.com/company'));
+assert.ok(aapl.expiredComponents.some((x) => x.source === 'https://example.com/expired'));
 console.log('   ok');
 
 console.log('2. total overlay adjustment clamps at +/-8...');
@@ -120,8 +120,8 @@ const clampOverlay = buildMacroSignalOverlay({
     commentary: { us: 'risk appetite olumlu destek dovish rally likidite' },
     macroSignalOverlay: {
       signals: [
-        { market: 'us', symbol: 'AMD', adjustment: 12, source: 'AI stress test', reason: 'positive catalyst', asOf: NOW, expiresAt: '2026-06-14T06:00:00.000Z' },
-        { market: 'us', symbol: 'AMD', adjustment: 7, source: 'AI stress test 2', reason: 'second catalyst', asOf: NOW, expiresAt: '2026-06-14T06:00:00.000Z' },
+        { market: 'us', symbol: 'AMD', adjustment: 12, source: 'https://example.com/stress', reason: 'positive catalyst', asOf: NOW, expiresAt: '2026-06-14T06:00:00.000Z' },
+        { market: 'us', symbol: 'AMD', adjustment: 7, source: 'https://example.com/stress2', reason: 'second catalyst', asOf: NOW, expiresAt: '2026-06-14T06:00:00.000Z' },
       ],
     },
   },
@@ -137,7 +137,7 @@ const snap = baseSnapshot();
 const attached = attachSignalOverlay(snap, overlay);
 assert.notStrictEqual(attached, snap);
 assert.equal(attached.us[0].analysis.score, 74);
-assert.equal(attached.us[0].signalOverlay.adjustedScore, 79);
+assert.equal(attached.us[0].signalOverlay.adjustedScore, 82);
 console.log('   ok');
 
 console.log('4. symbol catalysts do not leak to unrelated assets...');
@@ -157,9 +157,10 @@ assert.ok(aapl.components.some((x) => x.type === 'scenarioSensitivity'));
 console.log('   ok');
 
 console.log('6. market macro and summary fields are present...');
-assert.ok(overlay.market.us.adjustment > 0);
-assert.ok(overlay.market.bist.adjustment < 0);
-assert.ok(overlay.market.crypto.adjustment > 0);
+assert.equal(overlay.market.us.adjustment, 0);
+assert.equal(overlay.market.us.status, "missing");
+assert.equal(overlay.market.bist.adjustment, 0);
+assert.equal(overlay.market.crypto.adjustment, 0);
 assert.ok(overlay.summary.boosted >= 1);
 assert.ok(overlay.generatedAt);
 assert.ok(overlay.expiresAt);

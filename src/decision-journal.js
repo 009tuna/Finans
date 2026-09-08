@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 let db = null;
 try {
@@ -12,6 +13,7 @@ try {
 
 function normalizeJournal(input) {
   return {
+    ...(input && Object.prototype.hasOwnProperty.call(input, '_revision') ? { _revision: input._revision } : {}),
     notes: input && input.notes && typeof input.notes === 'object' ? input.notes : {},
     alerts: Array.isArray(input && input.alerts) ? input.alerts : [],
     predictions: Array.isArray(input && input.predictions) ? input.predictions : [],
@@ -163,32 +165,69 @@ function readJournalFile(filePath) {
 
 function writeJournalFile(filePath, journal) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, JSON.stringify(normalizeJournal(journal), null, 2) + '\n');
+  const content = normalizeJournal(journal);
+  delete content._revision;
+  const temp = filePath + '.' + crypto.randomUUID() + '.tmp';
+  try {
+    fs.writeFileSync(temp, JSON.stringify(content, null, 2) + '\n');
+    fs.renameSync(temp, filePath);
+  } finally {
+    if (fs.existsSync(temp)) fs.unlinkSync(temp);
+  }
+}
+
+function cloudJournal() { return !!(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY); }
+function localRevision(filePath) {
+  try { return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex'); }
+  catch (e) { if (e.code === 'ENOENT') return null; throw e; }
 }
 
 async function readJournal(filePath) {
-  if (db && process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
-    try {
-      const cached = await db.getCache('journal');
-      if (cached && cached.value) {
-        return normalizeJournal(cached.value);
-      }
-    } catch (e) {
-      console.warn('[journal] Supabase read error, falling back to file:', e.message);
-    }
+  if (cloudJournal()) {
+    const cached = await db.getCache('journal', { strict: true });
+    return { ...normalizeJournal(cached && cached.value), _revision: cached ? cached.revision : null };
   }
-  return readJournalFile(filePath);
+  const revision = localRevision(filePath);
+  // Corrupt data is an error, not an empty journal that may overwrite records.
+  const journal = revision === null ? normalizeJournal(null) : normalizeJournal(JSON.parse(fs.readFileSync(filePath, 'utf8')));
+  return { ...journal, _revision: revision };
 }
 
 async function writeJournal(filePath, journal) {
   const normalized = normalizeJournal(journal);
-  writeJournalFile(filePath, normalized);
-  if (db && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    try {
-      await db.setCache('journal', normalized);
-    } catch (e) {
-      console.warn('[journal] Supabase write error:', e.message);
+  if (!Object.prototype.hasOwnProperty.call(normalized, '_revision')) {
+    const error = new Error('Kayit surumu eksik. Gunlugu yeniden yukleyin.');
+    error.statusCode = 409;
+    throw error;
+  }
+  const expected = normalized._revision;
+  delete normalized._revision;
+  if (cloudJournal()) {
+    // Cloud is authoritative. Never write a local file first (Vercel is read-only).
+    const revision = await db.compareAndSetCache('journal', normalized, expected);
+    return { ...normalized, _revision: revision };
+  }
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const lockPath = filePath + '.lock';
+  let lock;
+  try { lock = fs.openSync(lockPath, 'wx'); }
+  catch (e) {
+    if (e.code !== 'EEXIST') throw e;
+    const conflict = new Error('Gunluk baska bir islem tarafindan yaziliyor. Tekrar deneyin.');
+    conflict.statusCode = 409;
+    throw conflict;
+  }
+  try {
+    if (localRevision(filePath) !== expected) {
+      const error = new Error('Gunluk degisti. Kaydetmeden once yeniden yukleyin.');
+      error.statusCode = 409;
+      throw error;
     }
+    writeJournalFile(filePath, normalized);
+    return { ...normalized, _revision: localRevision(filePath) };
+  } finally {
+    fs.closeSync(lock);
+    fs.unlinkSync(lockPath);
   }
 }
 

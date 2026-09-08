@@ -16,7 +16,9 @@ const { fetchAssetChart } = require('./src/chart-data');
 const { runMonteCarlo, calculateDCF, runStressTest, calculateCorrelationMatrix, calculateGraham, calculateDDM } = require('./src/forecast');
 const { getPortfolio, savePortfolio, getLatestSnapshot, getHistory, getReport, getCache } = require('./src/db');
 const { isAuthorized } = require('./src/admin-auth');
-const { readJournal, writeJournal } = require('./src/decision-journal');
+const { handleJournal } = require('./src/journal-api');
+const { getReportPayload } = require('./src/report-api');
+const { handleResearch } = require('./src/research-api');
 
 const ROOT = __dirname;
 
@@ -72,40 +74,23 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': MIME['.json'] });
       return res.end(JSON.stringify(Array.isArray(hist) ? hist : []));
     }
+    if (p === '/api/research') {
+      if (req.method === 'POST') req.body = await readBody(req);
+      const result = await handleResearch(req);
+      res.writeHead(result.status, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
+      return res.end(JSON.stringify(result.body));
+    }
     if (p === '/api/report') {
-      const r = await getReport(); // Supabase reports tablosu (en son)
-      
-      // Read tips archive
-      let tipsArchive = [];
-      if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
-        try {
-          const cached = await getCache('tips_archive');
-          if (cached && Array.isArray(cached.value)) {
-            tipsArchive = cached.value;
-          }
-        } catch (e) {
-          console.warn('[server] Supabase tips_archive okuma hatası:', e.message);
-        }
+      res.setHeader('Cache-Control', 'no-store');
+      if (req.method !== 'GET') { res.writeHead(405); return res.end(); }
+      try {
+        const payload = await getReportPayload();
+        res.writeHead(200, { 'Content-Type': MIME['.json'] });
+        return res.end(JSON.stringify(payload));
+      } catch (_) {
+        res.writeHead(503, { 'Content-Type': MIME['.json'] });
+        return res.end(JSON.stringify({ error: 'Rapor kaynagina erisilemedi. Lutfen tekrar deneyin.' }));
       }
-      
-      if (tipsArchive.length === 0) {
-        const archivePath = path.join(DATA, 'report/tips-archive.json');
-        if (fs.existsSync(archivePath)) {
-          try {
-            tipsArchive = JSON.parse(fs.readFileSync(archivePath, 'utf8'));
-          } catch (e) {
-            console.warn('[server] tips-archive.json okuma hatası:', e.message);
-          }
-        }
-      }
-
-      res.writeHead(200, { 'Content-Type': MIME['.json'] });
-      return res.end(JSON.stringify({ 
-        base: r.base || null, 
-        ai: r.ai || null, 
-        date: r.date || null,
-        tipsArchive: tipsArchive
-      }));
     }
     if (p === '/api/refresh' && req.method === 'POST') {
       if (!isAuthorized(req)) {
@@ -156,23 +141,19 @@ const server = http.createServer(async (req, res) => {
       }
     }
     if (p === '/api/journal') {
-      const journalPath = path.join(DATA, 'journal.json');
-      if (req.method === 'GET') {
-        const j = await readJournal(journalPath);
+      const body = req.method === 'POST' ? await readBody(req) : undefined;
+      const result = await handleJournal({ method: req.method, headers: req.headers, body }, path.join(DATA, 'journal.json'));
+      res.writeHead(result.status, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
+      return res.end(JSON.stringify(result.body));
+    }
+    if (p === '/api/backtest' && req.method === 'POST') {
+      try {
+        const result = await runBacktest(JSON.parse(await readBody(req)));
         res.writeHead(200, { 'Content-Type': MIME['.json'] });
-        return res.end(JSON.stringify(j));
-      }
-      if (req.method === 'POST') {
-        const bodyStr = await readBody(req);
-        try {
-          const parsed = JSON.parse(bodyStr);
-          await writeJournal(journalPath, parsed);
-          res.writeHead(200, { 'Content-Type': MIME['.json'] });
-          return res.end(JSON.stringify(parsed));
-        } catch (e) {
-          res.writeHead(400);
-          return res.end('Gecersiz JSON verisi');
-        }
+        return res.end(JSON.stringify(result));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': MIME['.json'] });
+        return res.end(JSON.stringify({ error: e.message }));
       }
     }
     if (p === '/api/forecast/montecarlo' && req.method === 'POST') {

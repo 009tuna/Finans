@@ -13,6 +13,9 @@ jobs:
     name: Piyasa Verilerini Çek ve Supabase'e Yaz
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    concurrency:
+      group: finans-market-publication
+      cancel-in-progress: false
 
     steps:
       - name: Kodu al
@@ -56,13 +59,14 @@ jobs:
           SUPABASE_ACCESS_TOKEN:     ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           FINNHUB_TOKEN:             ${{ secrets.FINNHUB_TOKEN }}
 
-      - name: Günün ipucunu arşivle (tips-archive → Supabase/dosya)
-        run: node scripts/archive-tip.js
+      - name: Araştırma tahminlerinin gerçekleşenlerini ölç
+        run: node scripts/resolve-research.js
         env:
           SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY:         ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SUPABASE_ACCESS_TOKEN:     ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          FINNHUB_TOKEN:             ${{ secrets.FINNHUB_TOKEN }}
 
-      - name: Tamamlandı
-        run: echo "✅ Veriler + temel rapor + tahminler + arşiv güncellendi - $(date '+%Y-%m-%d %H:%M:%S UTC')"
+      - name: Kaynak kapsamı
+        run: |
+          node -e 'const b=require("./data/report/base.json");const lines=["## Finans veri akışı", "Çalışma: "+b.runId, "Veri: "+b.snapshotId, "Kalite: "+b.quality.status, "Fiyat kaynağı hataları: "+b.quality.snapshotErrors.length, ...Object.entries(b.calendar.coverage).map(([k,v])=>k+": "+v.status+" ("+v.count+")"), "AI: Bu workflow AI üretmez; kaynaklı analiz ayrı yayın adımını bekliyor."];require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY,lines.join("\n\n")+"\n");'

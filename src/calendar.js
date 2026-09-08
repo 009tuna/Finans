@@ -10,6 +10,7 @@ const MAJOR = ['US', 'EU', 'EA', 'GB', 'TR', 'CN', 'JP', 'DE'];
 
 async function fetchEconomic(token, from, to) {
   const data = await fetchJson(BASE + '/calendar/economic?token=' + token);
+  if (!data || data.__error || !Array.isArray(data.economicCalendar)) throw new Error('Ekonomik takvim kaynagi kullanilamiyor');
   const list = (data && data.economicCalendar) || [];
   return list
     .filter((e) => {
@@ -35,6 +36,7 @@ async function fetchEconomic(token, from, to) {
 
 async function fetchEarnings(token, from, to, watchlist) {
   const data = await fetchJson(BASE + '/calendar/earnings?from=' + from + '&to=' + to + '&token=' + token);
+  if (!data || data.__error || !Array.isArray(data.earningsCalendar)) throw new Error('Bilanco takvimi kaynagi kullanilamiyor');
   const list = (data && data.earningsCalendar) || [];
   const wl = new Set(watchlist || []);
   return list
@@ -50,15 +52,22 @@ async function fetchEarnings(token, from, to, watchlist) {
 }
 
 async function fetchCompanyNews(token, symbols, from, to) {
+  const errors = [];
   const out = await mapLimit(symbols, 3, async (s) => {
     const data = await fetchJson(BASE + '/company-news?symbol=' + s + '&from=' + from + '&to=' + to + '&token=' + token).catch(() => null);
-    if (Array.isArray(data) && data.length) {
-      const n = data[0];
-      return { symbol: s, headline: n.headline, source: n.source, url: n.url, datetime: n.datetime };
-    }
-    return null;
+    if (!Array.isArray(data)) { errors.push(s + ': haber kaynagi kullanilamiyor'); return []; }
+    return data.filter((n) => Number.isFinite(n.datetime) && n.url && n.headline)
+      .sort((a, b) => b.datetime - a.datetime).slice(0, 3)
+      .map((n) => ({ symbol: s, headline: n.headline, source: n.source, url: n.url, datetime: n.datetime, publishedAt: new Date(n.datetime * 1000).toISOString() }));
   });
-  return out.filter(Boolean);
+  const seen = new Set();
+  const items = out.flat().filter((n) => {
+    const key = n.symbol + ':' + n.url;
+    if (seen.has(key)) return false;
+    seen.add(key); return true;
+  });
+  items.sourceErrors = errors;
+  return items;
 }
 
 module.exports = { fetchEconomic, fetchEarnings, fetchCompanyNews };
