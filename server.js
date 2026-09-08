@@ -74,7 +74,7 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': MIME['.json'] });
       return res.end(JSON.stringify(Array.isArray(hist) ? hist : []));
     }
-    if (p === '/api/research') {
+    if (p === '/api/research' || (p === '/api/report' && url.searchParams.get('resource') === 'research')) {
       if (req.method === 'POST') req.body = await readBody(req);
       const result = await handleResearch(req);
       res.writeHead(result.status, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });

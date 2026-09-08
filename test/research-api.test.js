@@ -1,0 +1,35 @@
+'use strict';
+const assert = require('assert/strict');
+const db = require('../src/db');
+const savedGet = db.getCache, savedWrite = db.compareAndSetCache;
+const oldSecret = process.env.ADMIN_SECRET;
+const { empty } = require('../src/research-ledger');
+let data = empty(); let writes = 0;
+data.forecasts.push({ id: 'test-f', market: 'bist', metric: 'Test', unit: '%', period: 'Synthetic', recordedAt: '2026-01-01T00:00:00Z', scheduledAt: '2026-01-02T00:00:00Z', pointEstimate: 3, consensus: 2, probabilityAboveConsensus: 0.6 });
+db.getCache = async () => ({ value: data, revision: 'test-revision' });
+db.compareAndSetCache = async (_, value) => { writes++; data = value; };
+const { handleResearch } = require('../src/research-api');
+const reportHandler = require('../api/report');
+process.env.ADMIN_SECRET = 'test-only';
+(async () => {
+  assert.equal((await handleResearch({ method: 'POST', headers: {}, body: {} })).status, 401);
+  assert.equal(writes, 0);
+  assert.equal((await handleResearch({ method: 'DELETE' })).status, 405);
+  const headers = { 'x-admin-secret': 'test-only' };
+  assert.equal((await handleResearch({ method: 'POST', headers, body: '{invalid' })).status, 400);
+  assert.equal((await handleResearch({ method: 'POST', headers, body: { action: 'resolve' } })).status, 400);
+  const body = { action: 'resolve', confirmed: true, forecastId: 'test-f', value: 0, unit: '%', metric: 'Test', period: 'Synthetic', publishedAt: '2026-01-02T00:00:00Z', sourceUrl: 'https://example.com/result' };
+  assert.equal((await handleResearch({ method: 'POST', headers, body })).status, 200);
+  assert.equal(writes, 1); assert.equal(data.outcomes.length, 1);
+  assert.equal((await handleResearch({ method: 'POST', headers, body: { ...body, value: 8 } })).status, 400);
+  let status, result;
+  const response = { setHeader() {}, status(v) { status = v; return this; }, json(v) { result = v; return this; } };
+  await reportHandler({ method: 'GET', url: '/api/report?resource=research' }, response);
+  assert.equal(status, 200); assert.equal(result.scorecard.resolved, 1);
+  db.getCache = async () => { throw new Error('unavailable'); };
+  assert.equal((await handleResearch({ method: 'GET' })).status, 503);
+  console.log('Research API: authorization, human confirmation, immutable outcomes, rewrite and unavailable state passed');
+})().catch((e) => { console.error(e); process.exitCode = 1; }).finally(() => {
+  db.getCache = savedGet; db.compareAndSetCache = savedWrite;
+  if (oldSecret === undefined) delete process.env.ADMIN_SECRET; else process.env.ADMIN_SECRET = oldSecret;
+});
