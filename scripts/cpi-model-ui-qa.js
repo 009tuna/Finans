@@ -1,13 +1,18 @@
 'use strict';
 // Local, in-memory acceptance fixture. No model call and no database write.
-const fs = require('node:fs');
-const path = require('node:path');
 const { createQaServer } = require('./ui-qa-server');
 const { cpiPayload, initial } = require('../src/cpi-store');
 const { empty, addResearch } = require('../src/research-ledger');
 const { METRICS } = require('../src/cpi-sources');
 function createModelFixture() {
-  const saved = JSON.parse(fs.readFileSync(path.join(__dirname, '../docs/research-audit/2026-10-01-cpi-readback.json'), 'utf8')).payload;
+  // Self-contained synthetic inputs: acceptance must not need a private API dump.
+  const nextEvent = { eventId: 'us_cpi:2026-09', period: '2026-09', scheduledAt: '2026-10-14T12:30:00.000Z',
+    sourceUrl: 'https://www.bls.gov/schedule/news_release/cpi.htm', contentHash: 'a'.repeat(64), observedAt: '2026-10-01T14:00:00.000Z' };
+  const saved = { nextEvent, events: [nextEvent], correctionReviews: [], sourceStatus: { status: 'available' },
+    metrics: METRICS.map(() => ({ forecasts: [] })), observations: METRICS.map((metric, i) => ({ ...metric,
+      id: metric.metric + ':2026-08:first_release', period: '2026-08', value: [0.4, 0.3, 3.4, 2.4][i], vintage: 'first_release',
+      publishedAt: '2026-09-11T12:30:00.000Z', observedAt: '2026-09-11T12:31:00.000Z',
+      sourceUrl: 'https://www.bls.gov/news.release/archives/cpi_09112026.htm', contentHash: 'b'.repeat(64) })) };
   const now = '2026-10-01T14:25:00.000Z';
   const reviewAt = '2026-10-01T14:35:00.000Z';
   const event = saved.nextEvent;

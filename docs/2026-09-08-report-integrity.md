@@ -1,6 +1,6 @@
 # Rapor ve sinyal bütünlüğü — 8 Eylül 2026
 
-Bu belge ilk geliştirme paketinin kaydıdır. Sonraki Astra entegrasyonu ve ölçüm katmanı için [güncel işletim belgesine](astra-research.md) bakın.
+Bu belge ilk geliştirme paketinin kaydıdır. Sonraki araştırma entegrasyonu ve ölçüm katmanı için [güncel işletim belgesine](research.md) bakın.
 
 İlk geliştirme paketi yanlış güncellik ve sahte kanıt sorunlarını giderir. Daha güçlü model kullanmak, eski haberi yeni sinyal yapan veya başarısız veri kaynağını boş takvim sayan bir sistemi düzeltmez.
 
