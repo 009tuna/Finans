@@ -56,6 +56,10 @@ Kontrol basılma 120 ms, seçim/tema 180 ms, detay 220 ms. Uzun sekme çıkış�
 
 Impeccable ana rehberdir. Taste marka/şablon değerlendirmesinde, UI UX Pro Max kontrol ve erişilebilirlik denetiminde kullanıldı. Görsel referanslardan yüzey hiyerarşisi ve veri alanı ilkeleri alındı; ekranlar kopyalanmadı. Yerel kontroller tam erişilebilirlik sertifikasyonu veya saha performans sonucu olarak sunulmaz.
 
+### 2 Ekim · raporun ilk ekranı ve doğrulama dili
+
+Raporun eşleşme, eksik kapsam ve yenileme durumları kısa bir bantta daima görünürdür. Üç veri zamanı ve eşleşme açıklamaları yerel ayrıntıda açılır. Bölüm bağlantıları 44 px hedeflerini korur; kaynak sütunu okuma alanına sabit aralıkla bağlanır. Kaynakta eksik yayın zamanı, doğrulanmamış içerik iddiasından ayrılır. İnsan kontrolü yalnız açık insan incelemesi kaydında yazılır; otomatik BLS ilk açıklaması ve sağlayıcı ilk gözlemi kendi etiketlerini taşır. [Kaynak ve sunum denetimi](docs/research-audit/2026-10-02-source-claim-review.md) kullanıcı görüntüsünü ve henüz tamamlanmamış görsel kabulü kaydeder.
+
 ### 1 Ekim · çalışma alanı yoğunluğu ve responsive kabul
 
 Değerleme üst kontrolleri kendi genişliğinde kırılır. DCF varsayım paneli kendi alanı 680 px'e ulaştığında iki sütun, dar yan panelde tek sütun kullanır; model geçişi bu düzeni ezmez. Sayısal alanlar eylem düğmesinin renk stilini devralmaz. Semboller kısaltılmadan okunur; okuryazarlık hesaplayıcısının alanları doğal biçimde kırılır. Mobil boş portföy eylemleri 44 px'tir.

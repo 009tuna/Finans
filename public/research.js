@@ -3,6 +3,13 @@
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const num = (v) => typeof v === 'number' && Number.isFinite(v) ? v.toLocaleString('tr-TR', { maximumFractionDigits: 4 }) : '—';
   const count = (v) => Number.isSafeInteger(v) && v >= 0 ? String(v) : '—';
+  function outcomeVerificationText(outcome) {
+    if (outcome.verification === 'provider-first-observed') return 'Sağlayıcıda ilk gördüğümüz değer; ilk açıklama sürümü garanti edilmez.';
+    if (outcome.verification === 'human-reviewed') return 'İnsan tarafından kontrol edildi.';
+    if (outcome.verification === 'bls-official-first-release') return outcome.vintage === 'first_release'
+      ? 'Resmî BLS ilk açıklama kaydı.' : 'BLS kaynak etiketi var; ilk açıklama sürümü doğrulanamadı.';
+    return 'Doğrulama yöntemi kayıtlı değil.';
+  }
   const market = (m) => ({ us: 'ABD', bist: 'BIST', crypto: 'Kripto' }[m] || m);
   const timestamp = (value) => { if (typeof value !== 'string' || !value.trim()) return 'Zaman doğrulanamadı · Europe/Istanbul'; const date = new Date(value); return Number.isNaN(date.getTime()) ? 'Zaman doğrulanamadı · Europe/Istanbul' : new Intl.DateTimeFormat('tr-TR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul', timeZoneName: 'short' }).format(date) + ' · Europe/Istanbul'; };
   const reportTimeLabels = (integrity) => [
@@ -10,6 +17,26 @@
     ['Analiz kesiti', integrity && integrity.analysisAsOf],
     ['Araştırma', integrity && integrity.researchAsOf],
   ].map(([label, value]) => '<div><dt>' + esc(label) + '</dt><dd>' + esc(timestamp(value)) + '</dd></div>').join('');
+  function sourcePublicationText(value) {
+    if (typeof value !== 'string' || !value.trim() || !Number.isFinite(Date.parse(value))) return 'Yayın zamanı bilinmiyor';
+    return 'Yayın: ' + timestamp(value);
+  }
+  function reportIntegrityHtml({ integrity = {}, hasResearch = false, partial = false, loadError = false } = {}) {
+    const sameSnapshot = integrity.baseStatus === 'current';
+    const message = !hasResearch || integrity.researchStatus !== 'current'
+      ? researchStatusMessage(integrity) || 'Bu rapor kesiti için okunabilir araştırma yok; model yorumları gizlendi.'
+      : sameSnapshot ? 'Fiyat ve analiz aynı veri kesitine ait.' : 'Puanlar raporun veri kesitine ait; güncel fiyatlarla farklı olabilir.';
+    return '<section class="report-integrity" aria-label="Rapor veri durumu"><strong>' +
+      (sameSnapshot ? 'Rapor ve fiyat verisi eşleşiyor' : 'Rapor güncel fiyat verisiyle eşleşmiyor') + '</strong>' +
+      '<p class="report-integrity-context">' + esc(message) + '</p>' +
+      (partial ? '<p class="report-integrity-warning">Veri kapsamı eksik. Kaynak durumlarını Takvim bölümünde kontrol edin.</p>' : '') +
+      (loadError ? '<p class="report-load-error" role="status">Rapor yenilenemedi; son başarılı rapor gösteriliyor.</p>' : '') +
+      '<details class="report-integrity-details"><summary>Veri zamanları ve eşleşme ayrıntıları</summary>' +
+      '<dl class="report-time-labels">' + reportTimeLabels(integrity) + '</dl>' +
+      '<p>Fiyat ve analiz farklı zamanlarda üretilebilir; her içerik kendi kesitiyle etiketlenir.</p>' +
+      (!sameSnapshot ? '<p>Aşağıdaki puanlar raporun veri kesitine aittir; güncel piyasa tablosundan farklı olabilir.</p>' : '') +
+      '</details></section>';
+  }
   const automationStatusText = (status) => ({ idle: 'Beklemede', running: 'Çalışıyor', completed: 'Tamamlandı', failed: 'Başarısız', interrupted: 'Kesildi', unavailable: 'Durum alınamadı' }[status] || 'Durum bilinmiyor');
   function automationStatusSummary(automation) {
     if (!automation || typeof automation !== 'object') return '';
@@ -106,6 +133,9 @@
     const unresolved = Array.isArray(r.unresolvedQuestions) ? r.unresolvedQuestions : [];
     return '<section class="card research-card"><div class="card-head"><h2>Model araştırması · Gelişmeler</h2><span class="ai-badge">' + esc(r.model || 'Model görüşü') + '</span></div>' +
       '<p class="muted">Kaynaklı model yorumu · ' + esc(timestamp(r.generatedAt)) + ' · Olasılıklar henüz kalibre edilmedi.</p>' +
+      '<p class="muted">' + (r.sourceVerification === 'model-cited-web-research'
+        ? 'Kaynaklar model tarafından seçildi. Piyasa etkileri model görüşüdür; kaynak atfı bağımsız içerik doğrulaması anlamına gelmez.'
+        : r.sourceVerification === 'synthetic-acceptance-only' ? 'Sentetik kabul içeriği; gerçek araştırma değildir.' : 'Kaynak doğrulama yöntemi kayıtlı değil.') + '</p>' +
       '<div class="research-coverage">' + coverage.map((c) => '<div><b>' + esc(market(c.market)) + ' · ' + esc({ available: 'Kaynak var', partial: 'Kısmi kapsam', insufficient_evidence: 'Kanıt yetersiz' }[c.status] || 'Durum bilinmiyor') + '</b><p>' + esc(c.reason) + '</p></div>').join('') + '</div>' +
       events.map((e) => '<article class="research-event"><p class="research-source">' + esc(market(e.market)) + '</p><h3>' + esc(e.title) + '</h3><p>' + esc(e.whatChanged) + '</p><details><summary>Karşı kanıt ve kaynaklar</summary><p><b>Beklentiden farkı:</b> ' + esc(e.expectationGap) + '</p><p><b>Karşı kanıt:</b> ' + esc(e.counterEvidence) + '</p><p class="research-source">' + sourceLinks(e.sourceIds) + '</p></details></article>').join('') +
       (scenarios.length ? '<h3>Piyasa etkileri · koşullu senaryolar</h3>' + scenarios.map((s) => '<article class="research-event"><b>' + esc(market(s.market) + ' ' + s.symbol + ' · ' + s.horizon) + '</b><p><b>Koşul:</b> ' + esc(s.condition) + '</p><p>' + esc(s.impact) + '</p><p><b>Bozulma koşulu:</b> ' + esc(s.invalidation) + '</p><p class="research-source">' + sourceLinks(s.sourceIds) + '</p></article>').join('') : '') +
@@ -120,8 +150,10 @@
       (s.groups.length ? '<div class="research-table"><table><thead><tr><th>Piyasa / ölçüm</th><th>Sonuç</th><th>MAE</th><th>Model / konsensüs MAE</th><th>Brier</th><th>Örneklem</th></tr></thead><tbody>' + s.groups.map((g) => '<tr><td>' + esc(market(g.market) + ' · ' + g.metric + ' (' + g.unit + ')') + '</td><td>' + count(g.resolved) + '/' + count(g.forecasts) + '</td><td>' + num(g.mae) + '</td><td>' + num(g.pairedModelMae) + ' / ' + num(g.consensusMae) + ' (n=' + count(g.pairedCount) + ')</td><td>' + num(g.brier) + ' (n=' + count(g.brierCount) + ')</td><td>' + (g.sampleStatus === 'insufficient_sample' ? 'Yetersiz' : 'Yalnız betimsel') + '</td></tr>').join('') + '</tbody></table></div>' : '') +
       (data.forecasts || []).map((f) => {
         const o = (data.outcomes || []).find((x) => x.forecastId === f.id);
-        return '<details class="research-event"><summary>' + esc(market(f.market) + ' ' + f.symbol + ' · ' + f.metric + ' · ' + f.period) + ' — ' + (o ? 'Sonuçlandı' : 'Bekliyor') + '</summary><p>Tahmin: ' + num(f.pointEstimate) + ' ' + esc(f.unit) + ' · Konsensüs: ' + num(f.consensus) + ' · P(gerçekleşen &gt; konsensüs): ' + (f.probabilityAboveConsensus === null ? '—' : num(f.probabilityAboveConsensus * 100) + '% (öznel)') + '</p><p>Kayıt: ' + esc(f.recordedAt) + ' · Açıklama: ' + esc(f.scheduledAt) + '</p><p>' + esc(f.rationale) + '</p>' +
-          (o ? '<p>Gerçekleşen: ' + num(o.value) + ' · ' + link(o.sourceUrl, 'Sonuç kaynağı') + ' · ' + (o.verification === 'provider-first-observed' ? 'Sağlayıcıda ilk gördüğümüz değer; ilk açıklama sürümü garanti edilmez.' : 'İnsan tarafından kontrol edildi.') + '</p>' : '<p>' + link(f.resolution.sourceUrl, 'Gerçekleşenin izleneceği kaynak') + '</p>') +
+        const probability = Number.isFinite(f.probabilityAboveConsensus) && f.probabilityAboveConsensus >= 0 && f.probabilityAboveConsensus <= 1
+          ? num(f.probabilityAboveConsensus * 100) + '% (öznel)' : '—';
+        return '<details class="research-event"><summary>' + esc(market(f.market) + ' ' + f.symbol + ' · ' + f.metric + ' · ' + f.period) + ' — ' + (o ? 'Sonuçlandı' : 'Bekliyor') + '</summary><p>Tahmin: ' + num(f.pointEstimate) + ' ' + esc(f.unit) + ' · Konsensüs: ' + num(f.consensus) + ' · P(gerçekleşen &gt; konsensüs): ' + probability + '</p><p>Kayıt: ' + esc(timestamp(f.recordedAt)) + ' · Açıklama: ' + esc(timestamp(f.scheduledAt)) + '</p><p>' + esc(f.rationale) + '</p>' +
+          (o ? '<p>Gerçekleşen: ' + num(o.value) + ' · ' + link(o.sourceUrl, 'Sonuç kaynağı') + ' · ' + outcomeVerificationText(o) + '</p>' : '<p>' + link(f.resolution.sourceUrl, 'Gerçekleşenin izleneceği kaynak') + '</p>') +
           '<p class="research-source">' + (f.sourceEvidence || []).map((x) => link(x.url, x.title)).join(' · ') + '</p></details>';
       }).join('');
   }
@@ -133,6 +165,6 @@
       if (el && el.isConnected) el.innerHTML = evaluationHtml(data);
     } catch (_) { if (el && el.isConnected) el.innerHTML = '<h2>Tahmin ölçümü</h2><p>Ölçüm günlüğüne erişilemedi. Başarı oranı gösterilemiyor.</p>'; }
   }
-  root.FinansResearch = { researchHtml, evaluationHtml, loadEvaluation, reportTimeLabels, automationHtml, automationStatusSummary, researchStatusMessage, timestamp, canUseReportOverlay, restoreStrippedResearchMetadata, proseHtml, modelContextHtml };
+  root.FinansResearch = { researchHtml, evaluationHtml, loadEvaluation, reportTimeLabels, reportIntegrityHtml, sourcePublicationText, automationHtml, automationStatusSummary, researchStatusMessage, timestamp, canUseReportOverlay, restoreStrippedResearchMetadata, proseHtml, modelContextHtml };
   if (typeof module === 'object' && module.exports) module.exports = root.FinansResearch;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
