@@ -5,3 +5,9 @@ docs/
 .claude/
 .env*
 *.log
+.codex/
+# Local source inspection downloads and internal visual concept.
+/kap*
+/cpi-real.html
+/public/visual-proposal.html
+/scripts/vercel-windows-cli.js

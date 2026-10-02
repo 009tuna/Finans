@@ -19,6 +19,7 @@ const { isAuthorized } = require('./src/admin-auth');
 const { handleJournal } = require('./src/journal-api');
 const { getReportPayload } = require('./src/report-api');
 const { handleResearch } = require('./src/research-api');
+const { handleIntelligence } = require('./src/intelligence-api');
 
 const ROOT = __dirname;
 
@@ -64,6 +65,13 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', 'http://localhost');
   let p = decodeURIComponent(url.pathname);
   try {
+    if (p === '/api/macro' || p === '/api/market-news'
+      || (p === '/api/report' && ['macro', 'market-news'].includes(url.searchParams.get('resource')))) {
+      const resource = p === '/api/report' ? url.searchParams.get('resource') : p.slice('/api/'.length);
+      const result = await handleIntelligence(req, { resource });
+      res.writeHead(result.status, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
+      return res.end(JSON.stringify(result.body));
+    }
     if (p === '/api/data') {
       const data = await getLatestSnapshot();
       res.writeHead(200, { 'Content-Type': MIME['.json'] });

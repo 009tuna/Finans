@@ -1,8 +1,12 @@
 // Action layer: deterministic dashboard action surfaces for browser and Node tests.
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory();
-  else root.FinansActionLayer = factory();
-})(typeof self !== 'undefined' ? self : this, function () {
+  var evidence = root && root.FinansPredictionEvidence;
+  if (typeof module === 'object' && module.exports) {
+    try { evidence = require('./prediction-evidence'); } catch (_) { evidence = null; }
+  }
+  if (typeof module === 'object' && module.exports) module.exports = factory(evidence);
+  else root.FinansActionLayer = factory(evidence);
+})(typeof self !== 'undefined' ? self : this, function (predictionEvidence) {
   'use strict';
 
   function pct(v) {
@@ -236,24 +240,34 @@
   function buildPredictionScorecard(journal) {
     const predictions = (journal && journal.predictions) || [];
     const closedItems = predictions.filter(function (x) { return x.outcome && x.outcome !== 'open'; });
-    const wins = closedItems.filter(function (x) { return x.outcome === 'target-hit' || x.outcome === 'expired-win'; }).length;
-    
-    let avgResultPct = 0;
-    if (closedItems.length > 0) {
-      let totalPct = 0;
-      closedItems.forEach(function (x) { totalPct += (x.resultPct || 0); });
-      avgResultPct = Math.round((totalPct / closedItems.length) * 10) / 10;
-    }
+    function knownWin(x) { return x.outcome === 'target-hit' || x.outcome === 'expired-win'; }
+    function knownLoss(x) { return x.outcome === 'stop-hit' || x.outcome === 'expired-loss'; }
+    const wins = closedItems.filter(function (x) { return x.outcomeEvidence !== 'ambiguous_bar' && knownWin(x); }).length;
+    const losses = closedItems.filter(function (x) { return x.outcomeEvidence !== 'ambiguous_bar' && knownLoss(x); }).length;
+    const ambiguous = closedItems.filter(function (x) { return x.outcomeEvidence === 'ambiguous_bar'; }).length;
+    const decisiveCount = wins + losses;
+    const resultValues = closedItems.filter(function (x) { return x.outcomeEvidence !== 'ambiguous_bar' && (knownWin(x) || knownLoss(x)); })
+      .map(function (x) { return x.resultPct; }).filter(function (x) { return typeof x === 'number' && isFinite(x); });
+    const avgResultPct = resultValues.length
+      ? Math.round((resultValues.reduce(function (sum, n) { return sum + n; }, 0) / resultValues.length) * 10) / 10
+      : null;
     
     function getSubScorecard(source) {
       const filtered = predictions.filter(function (x) { return (x.source || 'user') === source; });
       const closed = filtered.filter(function (x) { return x.outcome && x.outcome !== 'open'; });
-      const w = closed.filter(function (x) { return x.outcome === 'target-hit' || x.outcome === 'expired-win'; }).length;
+      const w = closed.filter(function (x) { return x.outcomeEvidence !== 'ambiguous_bar' && knownWin(x); }).length;
+      const l = closed.filter(function (x) { return x.outcomeEvidence !== 'ambiguous_bar' && knownLoss(x); }).length;
+      const ambiguousCount = closed.filter(function (x) { return x.outcomeEvidence === 'ambiguous_bar'; }).length;
+      const denominator = w + l;
       return {
         total: filtered.length,
         closed: closed.length,
         wins: w,
-        winRate: closed.length ? Math.round((w / closed.length) * 100) : 0,
+        losses: l,
+        decisive: denominator,
+        ambiguous: ambiguousCount,
+        unscored: closed.length - denominator - ambiguousCount,
+        winRate: denominator ? Math.round((w / denominator) * 100) : null,
       };
     }
 
@@ -267,6 +281,7 @@
         symbol: x.symbol,
         market: x.market,
         outcome: x.outcome,
+        outcomeEvidence: x.outcomeEvidence || null,
         resultPct: x.resultPct,
         resolvedAt: x.resolvedAt ? x.resolvedAt.slice(0, 10) : ''
       };
@@ -277,15 +292,30 @@
       open: predictions.length - closedItems.length,
       closed: closedItems.length,
       wins: wins,
-      losses: closedItems.length - wins,
-      winRate: closedItems.length ? Math.round((wins / closedItems.length) * 100) : 0,
+      losses: losses,
+      decisive: decisiveCount,
+      ambiguous: ambiguous,
+      unscored: closedItems.length - decisiveCount - ambiguous,
+      winRate: decisiveCount ? Math.round((wins / decisiveCount) * 100) : null,
       avgResultPct: avgResultPct,
+      resultSampleSize: resultValues.length,
       last5Closed: last5Closed,
       bySource: {
         system: getSubScorecard('system'),
         user: getSubScorecard('user')
       }
     };
+  }
+
+  // Cohorts are an additive metadata layer. The legacy scorecard above intentionally
+  // keeps its historical contract and arithmetic for old reports/tests.
+  function buildPredictionCohorts(journal, nowIso) {
+    if (!predictionEvidence || typeof predictionEvidence.group !== 'function') {
+      return { unavailable:true, groups:[], counts:{}, reasons:{classifier_unavailable:1} };
+    }
+    const result = predictionEvidence.group((journal && journal.predictions) || [], nowIso);
+    result.groups.forEach(function (group) { group.scorecard = buildPredictionScorecard({predictions:group.items}); });
+    return result;
   }
 
   function calculatePosition(capital, riskPct, price, atr) {
@@ -378,18 +408,12 @@
   }
 
   function activeLearningRules(reportBase) {
-    const learning = reportBase && reportBase.decisionLearning;
-    const nowIso = (reportBase && reportBase.generatedAt) || new Date().toISOString();
-    return ((learning && learning.learningRules) || [])
-      .filter(function (rule) { return !isLearningRuleExpired(rule, nowIso); })
-      .sort(function (a, b) {
-        return learningRuleSpecificity(b) - learningRuleSpecificity(a) || (b.sampleSize || 0) - (a.sampleSize || 0);
-      });
+    // There is no validated rule activation workflow in this release.
+    return [];
   }
 
   function buildDecisionLearningPanel(reportBase) {
     const learning = reportBase && reportBase.decisionLearning;
-    const scorecard = reportBase && reportBase.scorecard;
     if (!learning) {
       return {
         empty: true,
@@ -412,27 +436,38 @@
         reason: rule.reason,
       };
     });
-    const system = scorecard && scorecard.bySource ? scorecard.bySource.system : null;
+    const modern = learning.evidenceVersion === 'technical-learning-v2';
+    const proposals = modern ? (learning.learningRules || []).filter(function (rule) {
+      return rule.activation === 'proposal_only' && rule.validationStatus === 'chronological_validation_required';
+    }).map(function(rule) { return Object.assign({}, rule, {scopeLabel:[marketName(rule.scope && rule.scope.market), rule.scope && rule.scope.label, rule.scope && rule.scope.scoreBucket].filter(Boolean).join(' / ')}); }) : [];
     return {
       empty: false,
-      summary: learning.systemAudits
-        ? 'Sistem ' + learning.systemAudits + ' kapanan karardan kalibrasyon dersi cikariyor.'
-        : 'Sistem tarafinda kapanan karar yok; ogrenme etkisi beklemede.',
+      summary: modern ? 'Örüntü önerileri ayrı bir ileri dönem örnekleminde doğrulanmadan puanı değiştirmez.' : 'Bu rapor eski öğrenme yöntemini kullanıyor. Çıkarımları arşiv bağlamıdır; etkin kural veya ölçülmüş başarı sayılmaz.',
       metrics: [
-        { label: 'Audit', value: learning.totalAudits || 0 },
-        { label: 'Sistem', value: learning.systemAudits || 0 },
-        { label: 'Kural', value: (learning.learningRules || []).length },
-        { label: 'Sistem isabet', value: system && system.closed ? system.winRate + '%' : '-' },
+        { label: 'İncelenen kayıt', value: learning.totalAudits || 0 },
+        { label: 'Ölçüme uygun sistem kaydı', value: modern ? learning.systemAudits || 0 : 'Doğrulanmadı' },
+        { label: 'Örüntü önerisi', value: proposals.length },
+        { label: 'Aktif kural', value: 0 },
       ],
-      lessons: (learning.recentLessons || []).slice(0, 4),
+      lessons: modern ? (learning.recentLessons || []).slice(0, 4) : [],
       rules: rules,
-      reviewQueue: (learning.reviewQueue || []).slice(0, 4),
+      reviewQueue: modern ? (learning.reviewQueue || []).slice(0, 4) : [],
+      activation: learning.activation || 'proposal_only',
+      validationStatus: learning.validationStatus || 'chronological_validation_required',
+      proposalRules: proposals.slice(0, 4),
+      archivedRules: modern ? [] : (learning.learningRules || []),
+      archivedLessons: modern ? learning.archivedLessons || [] : learning.recentLessons || [],
+      excludedCount: modern ? (learning.excludedAudits || []).length : learning.totalAudits || 0,
     };
   }
 
   function buildAssetLearningSnippet(asset, reportBase) {
     const learning = reportBase && reportBase.decisionLearning;
     if (!learning || !asset) return null;
+    if (learning.evidenceVersion !== 'technical-learning-v2') return {
+      kind:'archive', adjustment:0, sampleSize:null,
+      title:'Eski öğrenme raporu', detail:'Bu raporun çıkarımları sürüm ve ölçüm kanıtıyla doğrulanmadı; puanı değiştirmez.'
+    };
     const rules = activeLearningRules(reportBase)
       .filter(function (rule) { return learningRuleMatchesAsset(rule, asset); });
     const rule = rules[0] || null;
@@ -702,9 +737,11 @@
       });
     });
 
-    const rank = { ready: 0, gated: 1, blocked: 2, watch: 3 };
+    const rank = { ready: 0, gated: 1, watch: 2, blocked: 3 };
     rows.sort(function (a, b) {
-      const r = (rank[a.status] || 9) - (rank[b.status] || 9);
+      const ar = Object.prototype.hasOwnProperty.call(rank, a.status) ? rank[a.status] : 9;
+      const br = Object.prototype.hasOwnProperty.call(rank, b.status) ? rank[b.status] : 9;
+      const r = ar - br;
       if (r !== 0) return r;
       return b.score - a.score;
     });
@@ -927,6 +964,7 @@
     buildReportTrust: buildReportTrust,
     buildAlertRules: buildAlertRules,
     buildPredictionScorecard: buildPredictionScorecard,
+    buildPredictionCohorts: buildPredictionCohorts,
     calculatePosition: calculatePosition,
     buildIdeaFunnel: buildIdeaFunnel,
     buildCatalystCalendar: buildCatalystCalendar,

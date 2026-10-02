@@ -1,6 +1,7 @@
 'use strict';
 
 const { normalizeJournal } = require('./decision-journal');
+const { classify: classifyPrediction } = require('../public/prediction-evidence');
 
 const CLOSED_WIN = new Set(['target-hit', 'expired-win']);
 const CLOSED_LOSS = new Set(['stop-hit', 'expired-loss']);
@@ -58,18 +59,20 @@ function isLoss(outcome) {
 
 function attributionTags(prediction) {
   const outcome = String(prediction.outcome || '');
-  const tags = [outcome];
+  const ambiguous = prediction.outcomeEvidence === 'ambiguous_bar';
+  const tags = ambiguous ? ['ambiguous_bar'] : [outcome];
   const market = String(prediction.market || '').toLowerCase();
   const label = normalizedLabel(prediction.label);
   if (market) tags.push(market + '-market');
   if (label.includes('GUCLU')) tags.push('high-conviction');
-  if (isWin(outcome) && Number(prediction.resultPct) > 0) tags.push('positive-follow-through');
+  if (!ambiguous && isWin(outcome) && Number(prediction.resultPct) > 0) tags.push('positive-follow-through');
   return tags;
 }
 
 function failureTags(prediction) {
   const outcome = String(prediction.outcome || '');
   const tags = [];
+  if (prediction.outcomeEvidence === 'ambiguous_bar' || (!isWin(outcome) && !isLoss(outcome))) return tags;
   if (isLoss(outcome)) tags.push(outcome);
   if (outcome === 'stop-hit') tags.push('risk-limit-hit');
   if (outcome === 'expired-loss') tags.push('time-decay-loss');
@@ -79,18 +82,21 @@ function failureTags(prediction) {
 function lessonFor(prediction, holdingDays) {
   const symbol = String(prediction.symbol || 'Varlik').toUpperCase();
   const market = String(prediction.market || '').toUpperCase();
-  const result = round(prediction.resultPct || 0, 1);
+  const result = Number.isFinite(prediction.resultPct) ? round(prediction.resultPct, 1) : null;
+  if (prediction.outcomeEvidence === 'ambiguous_bar') {
+    return symbol + ' gunluk mum hedef ve stop seviyelerini ayni donemde gordu; siralama bilinmedigi icin sonuc basari veya basarisizlik sayilmadi.';
+  }
   if (prediction.outcome === 'target-hit') {
     return symbol + ' hedefe ' + holdingDays + ' gunde ulasti; ' + market + ' tarafinda bu skor araligi takip edilmeli.';
   }
   if (prediction.outcome === 'expired-win') {
-    return symbol + ' vade sonunda +' + result + '% ile kapandi; sinyal calisti ama hedefe ulasmadan zaman doldu.';
+    return symbol + ' vade sonunda ' + (result === null ? 'sayisal sonucu yok' : '+' + result + '% ile') + ' kapandi; sinyal calisti ama hedefe ulasmadan zaman doldu.';
   }
   if (prediction.outcome === 'stop-hit') {
     return symbol + ' stop seviyesine indi; bu kosulda giris kalitesi ve stop mesafesi yeniden incelenmeli.';
   }
   if (prediction.outcome === 'expired-loss') {
-    return symbol + ' vade sonunda ' + result + '% ile zayif kapandi; sinyal gecikti veya momentum teyidi yetersiz kaldi.';
+    return symbol + ' vade sonunda ' + (result === null ? 'sayisal sonucu yok' : result + '% ile') + ' zayif kapandi; sinyal gecikti veya momentum teyidi yetersiz kaldi.';
   }
   return symbol + ' sinyali kapandi; sonuc audit kaydina alindi.';
 }
@@ -103,12 +109,12 @@ function auditPrediction(prediction) {
     String(prediction.symbol || '').toUpperCase(),
     String(prediction.createdAt || '').slice(0, 10),
   ].join(':')) + ':audit';
-  return {
+  const audit = {
     id,
     predictionId: prediction.id || null,
     market: String(prediction.market || '').toLowerCase(),
     symbol: String(prediction.symbol || '').toUpperCase(),
-    source: prediction.source || 'user',
+    source: prediction.source || null,
     label: prediction.label || '',
     score: prediction.score,
     scoreBucket: scoreBucket(prediction.score),
@@ -116,7 +122,8 @@ function auditPrediction(prediction) {
     target: prediction.target,
     stop: prediction.stop,
     outcome: prediction.outcome,
-    resultPct: Number.isFinite(Number(prediction.resultPct)) ? Number(prediction.resultPct) : 0,
+    outcomeEvidence: prediction.outcomeEvidence || null,
+    resultPct: typeof prediction.resultPct === 'number' && Number.isFinite(prediction.resultPct) ? prediction.resultPct : null,
     createdAt: prediction.createdAt || null,
     resolvedAt: prediction.resolvedAt || null,
     holdingDays,
@@ -125,6 +132,10 @@ function auditPrediction(prediction) {
     lesson: lessonFor(prediction, holdingDays),
     confidence: clamp(0.55 + Math.min(0.2, holdingDays / 100), 0.55, 0.75),
   };
+  ['strategyVersion', 'modelVersion', 'resolverVersion', 'barDate', 'barEndAt', 'closePrice'].forEach((key) => {
+    if (prediction[key] !== undefined && prediction[key] !== null) audit[key] = prediction[key];
+  });
+  return audit;
 }
 
 function groupStats(audits, keyFn, nowIso) {
@@ -139,9 +150,14 @@ function groupStats(audits, keyFn, nowIso) {
     const wins = rows.filter((x) => isWin(x.outcome)).length;
     const sampleSize = rows.length;
     const winRate = sampleSize ? Math.round((wins / sampleSize) * 100) : 0;
-    const avgResultPct = sampleSize ? round(rows.reduce((sum, x) => sum + (Number(x.resultPct) || 0), 0) / sampleSize, 1) : 0;
+    const resultValues = rows.map((x) => x.resultPct).filter((x) => typeof x === 'number' && Number.isFinite(x));
+    const avgResultPct = resultValues.length ? round(resultValues.reduce((sum, x) => sum + x, 0) / resultValues.length, 1) : null;
     return {
       key,
+      cohortKey: rows[0] && rows[0].cohortKey ? rows[0].cohortKey : null,
+      market: rows[0].market,
+      label: normalizedLabel(rows[0].label),
+      scoreBucket: rows[0].scoreBucket,
       sampleSize,
       wins,
       losses: sampleSize - wins,
@@ -154,8 +170,8 @@ function groupStats(audits, keyFn, nowIso) {
 
 function ruleAdjustment(stat) {
   if (!stat || stat.sampleSize < 5) return 0;
-  if (stat.winRate >= 65 && stat.avgResultPct > 0) return stat.avgResultPct >= 4 ? 2 : 1;
-  if (stat.winRate <= 40 || stat.avgResultPct < 0) return stat.avgResultPct <= -4 ? -2 : -1;
+  if (Number.isFinite(stat.avgResultPct) && stat.winRate >= 65 && stat.avgResultPct > 0) return stat.avgResultPct >= 4 ? 2 : 1;
+  if (stat.winRate <= 40 || (Number.isFinite(stat.avgResultPct) && stat.avgResultPct < 0)) return Number.isFinite(stat.avgResultPct) && stat.avgResultPct <= -4 ? -2 : -1;
   return 0;
 }
 
@@ -167,9 +183,10 @@ function confidenceForSample(sampleSize) {
 }
 
 function ruleReason(scope, stat, adj) {
-  const direction = adj > 0 ? 'pozitif kalibre oldu' : 'zayif kalibre oldu';
+  const direction = adj > 0 ? 'pozitif tarihsel örüntü' : 'zayıf tarihsel örüntü';
   const scopeText = [scope.market, scope.label, scope.scoreBucket].filter(Boolean).join(' / ');
-  return scopeText + ' gecmis sistem cagrisinda ' + stat.sampleSize + ' kapanis, %' + stat.winRate + ' isabet ve ortalama ' + stat.avgResultPct + '% sonuc: ' + direction + '.';
+  const average = Number.isFinite(stat.avgResultPct) ? stat.avgResultPct + '%' : 'bilinmeyen sayisal';
+  return scopeText + ' için aynı yöntemle ölçülen ' + stat.sampleSize + ' kapanış, %' + stat.winRate + ' isabet ve ortalama ' + average + ' sonuç: ' + direction + '. Ayrı bir ileri dönem örnekleminde doğrulanmadı.';
 }
 
 function ruleFromStat(scope, stat, nowIso) {
@@ -177,7 +194,7 @@ function ruleFromStat(scope, stat, nowIso) {
   if (!adjustment) return null;
   const labelKey = scope.label ? normalizedLabel(scope.label) : 'all';
   return {
-    id: ['learning', scope.market || 'all', labelKey, scope.scoreBucket || 'all'].join(':'),
+    id: ['learning', scope.cohortKey || 'unknown', scope.market || 'all', labelKey, scope.scoreBucket || 'all'].join(':'),
     scope,
     sampleSize: stat.sampleSize,
     winRate: stat.winRate,
@@ -187,6 +204,10 @@ function ruleFromStat(scope, stat, nowIso) {
     reason: ruleReason(scope, stat, adjustment),
     asOf: nowIso,
     expiresAt: addDays(nowIso, 7),
+    activation: 'proposal_only',
+    validationStatus: 'chronological_validation_required',
+    confidenceKind: 'heuristic-not-calibrated',
+    evidenceVersion: 'technical-learning-v2',
   };
 }
 
@@ -196,16 +217,17 @@ function scopeSpecificity(rule) {
 }
 
 function buildReviewQueue(audits, nowIso) {
-  const byMarket = groupStats(audits.filter((x) => x.source === 'system'), (x) => x.market, nowIso);
+  const byMarket = groupStats(audits.filter((x) => x.source === 'system'), (x) => [(x.cohortKey || 'unknown'), x.market].join('|'), nowIso);
   return byMarket
-    .filter((stat) => stat.sampleSize > 0 && (stat.sampleSize < 5 || stat.winRate <= 40 || stat.avgResultPct < 0))
+    .filter((stat) => stat.sampleSize > 0 && (stat.sampleSize < 5 || stat.winRate <= 40 || (Number.isFinite(stat.avgResultPct) && stat.avgResultPct < 0)))
     .slice(0, 5)
     .map((stat) => ({
       id: stat.key + ':learning-review:' + nowIso.slice(0, 10),
-      market: stat.key,
+      market: stat.market,
+      cohortKey: stat.cohortKey,
       symbol: null,
       priority: stat.winRate <= 40 || stat.avgResultPct < 0 ? 'high' : 'medium',
-      reason: stat.key.toUpperCase() + ' sistem cagri orneklemi ' + stat.sampleSize + '; isabet %' + stat.winRate + ', ortalama sonuc ' + stat.avgResultPct + '%.',
+      reason: stat.market.toUpperCase() + ' aynı yöntemle ölçülen sistem örneklemi ' + stat.sampleSize + '; isabet %' + stat.winRate + ', ortalama sonuç ' + (stat.avgResultPct === null ? 'bilinmiyor' : stat.avgResultPct + '%') + '.',
       nextAction: stat.sampleSize < 5 ? 'Orneklem dolana kadar skor etkisi verme; kapanan sinyalleri biriktir.' : 'Bu piyasa icin giris filtresini ve vade varsayimini yeniden test et.',
       createdAt: nowIso,
       status: 'open',
@@ -224,25 +246,38 @@ function buildLearningSummary(journal, nowIso = new Date().toISOString()) {
     if (audit && audit.id) byId[audit.id] = audit;
   });
   const audits = Object.values(byId).sort((a, b) => String(b.resolvedAt || '').localeCompare(String(a.resolvedAt || '')));
-  const systemAudits = audits.filter((x) => (x.source || 'user') === 'system');
+  const predictionIds = new Map();
+  normalized.predictions.forEach((p) => { if (p && p.id) predictionIds.set(p.id, (predictionIds.get(p.id) || 0) + 1); });
+  const evidence = audits.map((audit) => {
+    const classification = classifyPrediction(Object.assign({}, audit, { id: audit.predictionId }), nowIso);
+    if (predictionIds.get(audit.predictionId) > 1) {
+      classification.status = 'invalid'; classification.eligible = false;
+      classification.reasons.push('duplicate_record_id');
+    }
+    return { audit, classification };
+  });
+  const excluded = evidence.filter((x) => !x.classification.eligible);
+  const eligibleEvidence = evidence.filter((x) => x.classification.eligible && x.audit.outcomeEvidence !== 'ambiguous_bar' && (isWin(x.audit.outcome) || isLoss(x.audit.outcome)));
+  const learningAudits = eligibleEvidence.map((x) => Object.assign({}, x.audit, { cohortKey: x.classification.cohortKey }));
+  const systemAudits = learningAudits.filter((x) => (x.source || 'user') === 'system');
+  const cohortOf = (x) => x.cohortKey || 'unknown';
+  const withCohort = (keyFn) => (x) => [cohortOf(x), keyFn(x)].join('|');
 
-  const calibrationByMarket = groupStats(systemAudits, (x) => x.market, nowIso);
-  const calibrationByLabel = groupStats(systemAudits, (x) => normalizedLabel(x.label), nowIso);
-  const calibrationByScoreBucket = groupStats(systemAudits, (x) => x.scoreBucket, nowIso);
+  const calibrationByMarket = groupStats(systemAudits, withCohort((x) => x.market), nowIso);
+  const calibrationByLabel = groupStats(systemAudits, withCohort((x) => normalizedLabel(x.label)), nowIso);
+  const calibrationByScoreBucket = groupStats(systemAudits, withCohort((x) => x.scoreBucket), nowIso);
 
-  const exactStats = groupStats(systemAudits, (x) => [x.market, normalizedLabel(x.label), x.scoreBucket].join('|'), nowIso);
-  const marketBucketStats = groupStats(systemAudits, (x) => [x.market, x.scoreBucket].join('|'), nowIso);
-  const marketStats = groupStats(systemAudits, (x) => x.market, nowIso);
+  const exactStats = groupStats(systemAudits, withCohort((x) => [x.market, normalizedLabel(x.label), x.scoreBucket].join('|')), nowIso);
+  const marketBucketStats = groupStats(systemAudits, withCohort((x) => [x.market, x.scoreBucket].join('|')), nowIso);
+  const marketStats = groupStats(systemAudits, withCohort((x) => x.market), nowIso);
   const learningRules = exactStats
     .map((stat) => {
-      const parts = stat.key.split('|');
-      return ruleFromStat({ market: parts[0], label: parts[1], scoreBucket: parts[2] }, stat, nowIso);
+      return ruleFromStat({ market: stat.market, label: stat.label, scoreBucket: stat.scoreBucket, cohortKey: stat.cohortKey }, stat, nowIso);
     })
     .concat(marketBucketStats.map((stat) => {
-      const parts = stat.key.split('|');
-      return ruleFromStat({ market: parts[0], scoreBucket: parts[1] }, stat, nowIso);
+      return ruleFromStat({ market: stat.market, scoreBucket: stat.scoreBucket, cohortKey: stat.cohortKey }, stat, nowIso);
     }))
-    .concat(marketStats.map((stat) => ruleFromStat({ market: stat.key }, stat, nowIso)))
+    .concat(marketStats.map((stat) => ruleFromStat({ market: stat.market, cohortKey: stat.cohortKey }, stat, nowIso)))
     .filter(Boolean)
     .sort((a, b) => scopeSpecificity(b) - scopeSpecificity(a) || b.sampleSize - a.sampleSize);
 
@@ -250,10 +285,23 @@ function buildLearningSummary(journal, nowIso = new Date().toISOString()) {
     generatedAt: nowIso,
     totalAudits: audits.length,
     systemAudits: systemAudits.length,
+    eligibleAudits: learningAudits.length,
+    activation: 'proposal_only',
+    validationStatus: 'chronological_validation_required',
+    evidenceVersion: 'technical-learning-v2',
+    excludedAudits: excluded.map((x) => ({ id: x.audit.id, predictionId: x.audit.predictionId || null, status: x.classification.status, reasons: x.classification.reasons || [], source: x.audit.source || 'user', market: x.audit.market || null, resolvedAt: x.audit.resolvedAt || null })),
+    excludedReasonCounts: excluded.reduce((out, x) => {
+      const reasons = x.classification.reasons && x.classification.reasons.length ? x.classification.reasons : [x.classification.status || 'excluded'];
+      reasons.forEach((reason) => { out[reason] = (out[reason] || 0) + 1; });
+      return out;
+    }, {}),
+    eligibleCohorts: Array.from(new Set(systemAudits.map((x) => x.cohortKey))).map((cohortKey) => ({ cohortKey, sampleSize: systemAudits.filter((x) => x.cohortKey === cohortKey).length })),
     calibrationByMarket,
     calibrationByLabel,
     calibrationByScoreBucket,
-    recentLessons: audits.slice(0, 8).map((x) => ({
+    ambiguousOutcomes: audits.filter((x) => x.outcomeEvidence === 'ambiguous_bar').length,
+    unscoredOutcomes: audits.filter((x) => !isWin(x.outcome) && !isLoss(x.outcome)).length,
+    recentLessons: learningAudits.slice(0, 8).map((x) => ({
       id: x.id,
       market: x.market,
       symbol: x.symbol,
@@ -262,7 +310,10 @@ function buildLearningSummary(journal, nowIso = new Date().toISOString()) {
       resolvedAt: x.resolvedAt,
       lesson: x.lesson,
       confidence: x.confidence,
+      confidenceKind: 'heuristic-not-calibrated',
+      cohortKey: x.cohortKey,
     })),
+    archivedLessons: excluded.slice(0, 8).map((x) => ({ id:x.audit.id, market:x.audit.market, symbol:x.audit.symbol, lesson:x.audit.lesson, resolvedAt:x.audit.resolvedAt, status:x.classification.status, reasons:x.classification.reasons })),
     learningRules,
     reviewQueue: buildReviewQueue(systemAudits, nowIso),
   };

@@ -23,21 +23,24 @@ function validateAiReport(ai, base, snapshot, now = new Date().toISOString()) {
 }
 
 async function publish(ai, dependencies) {
-  const { db, readJournal, journalPath, now = new Date().toISOString() } = dependencies;
+  const { db, readJournal, journalPath, snapshot: frozenSnapshot, base: frozenBase, now = new Date().toISOString() } = dependencies;
   const date = ai && typeof ai.generatedAt === 'string' ? ai.generatedAt.slice(0, 10) : '';
   // The base report owns the publication date, including runs crossing midnight.
-  const record = await db.getReport(undefined, { strict: true });
-  const snapshot = await db.getLatestSnapshot({ strict: true });
+  const record = frozenBase ? { base: frozenBase, date: frozenBase.date } : await db.getReport(undefined, { strict: true });
+  const snapshot = frozenSnapshot || await db.getLatestSnapshot({ strict: true });
   validateAiReport(ai, record.base, snapshot, now);
   const journal = await readJournal(journalPath);
-  if (ai.research) {
-    const { addResearch, updateLedger } = require('./research-ledger');
-    await updateLedger((ledger) => addResearch(ledger, ai, new Date().toISOString()), db);
-  }
   const base = { ...record.base, signalOverlay: buildMacroSignalOverlay({ snapshot, aiReport: ai, baseReport: record.base, journal, now }) };
-  await db.publishAiReport(record.date, base.runId, { base, ai });
-  const saved = await db.getReport(record.date, { strict: true });
-  if (!saved.ai || saved.ai.runId !== ai.runId || saved.ai.generatedAt !== ai.generatedAt) throw new Error('AI yayin geri okuma dogrulamasi basarisiz');
-  return { date: record.date || date, runId: ai.runId };
+  const { addPublication, updateLedger } = require('./research-ledger');
+  const publicationDate = record.date || date;
+  const ledger = await updateLedger((current) => addPublication(current, base, ai, publicationDate, new Date().toISOString()), db);
+  const reread = await require('./research-ledger').readLedger(db);
+  const saved = reread.value.publication;
+  if (!saved || saved.schemaVersion !== 1 || saved.date !== publicationDate || saved.base.runId !== ai.runId
+    || saved.base.snapshotId !== ai.snapshotId || saved.ai?.runId !== ai.runId || saved.ai?.generatedAt !== ai.generatedAt
+    || saved.digest !== ledger.publication?.digest) {
+    throw new Error('Yayin kaydi geri okuma dogrulamasi basarisiz');
+  }
+  return { date: saved.date, runId: ai.runId, publishedAt: saved.publishedAt };
 }
 module.exports = { validateAiReport, publish };

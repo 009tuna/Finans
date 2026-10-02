@@ -8,6 +8,9 @@ on:
   # Manuel tetikleme (test için)
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   refresh:
     name: Piyasa Verilerini Çek ve Supabase'e Yaz
@@ -32,6 +35,9 @@ jobs:
       - name: Bağımlılıkları yükle
         run: npm ci
 
+      - name: Veri yazmadan önce regresyon kontrolleri
+        run: npm test
+
       - name: Piyasa verilerini çek
         run: node src/fetch-all.js
         env:
@@ -40,6 +46,13 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_ACCESS_TOKEN:     ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           FINNHUB_TOKEN:             ${{ secrets.FINNHUB_TOKEN }}
+
+      - name: Bağımsız makro ve düzenleyici kaynakları yenile
+        run: npm run intelligence
+        env:
+          SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY:         ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Tahminleri çöz (prediction-resolver → Supabase/dosya)
         run: node src/prediction-resolver.js
@@ -50,7 +63,7 @@ jobs:
           SUPABASE_ACCESS_TOKEN:     ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           FINNHUB_TOKEN:             ${{ secrets.FINNHUB_TOKEN }}
 
-      - name: Temel raporu üret (base → Supabase)
+      - name: Temel rapor taslağını üret (aktif araştırma korunur)
         run: node src/report.js
         env:
           SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}

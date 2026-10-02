@@ -9,6 +9,7 @@ const {
   buildReportTrust,
   buildAlertRules,
   buildPredictionScorecard,
+  buildPredictionCohorts,
   calculatePosition,
   buildIdeaFunnel,
   buildCatalystCalendar,
@@ -95,6 +96,18 @@ assert.equal(digest.improving[0].symbol, 'AMD');
 assert.ok(digest.headline.includes('AAPL'));
 console.log('   ok');
 
+console.log('6b. prediction cohorts keep markets, versions and legacy records separate...');
+const cohortCard = buildPredictionCohorts({ predictions: [
+  { id: 'a', symbol: 'A', market: 'us', source: 'system', outcome: 'open', evidenceVersion: 'technical-learning-v2', strategyVersion: 's1', resolverVersion: 'r1', createdAt: '2026-06-01T00:00:00Z', entry: 10, stop: 9, target: 12 },
+  { id: 'b', symbol: 'B', market: 'us', source: 'system', outcome: 'target-hit', strategyVersion: 's1', resolverVersion: 'daily-bar-resolver-v3', createdAt: '2026-05-31T00:00:00Z', resolvedAt: '2026-06-02T22:00:00Z', entry: 10, stop: 9, target: 12, outcomeEvidence: 'daily_bar_range', barEndAt: '2026-06-01T23:00:00Z', barDate: '2026-06-01', closePrice: 12, resultPct: 20 },
+  { id:'c', symbol: 'C', market: 'crypto', source: 'user', outcome: 'target-hit', createdAt:'2026-05-31T00:00:00Z',resolvedAt:'2026-06-02T22:00:00Z',entry:10,stop:9,target:12 },
+] }, '2026-06-03T00:00:00Z');
+assert.equal(cohortCard.counts.versioned_open, 1);
+assert.equal(cohortCard.counts.versioned_result, 1);
+assert.equal(cohortCard.counts.legacy, 1);
+assert.ok(cohortCard.groups.some((group) => group.market === 'crypto' && group.status === 'legacy'));
+console.log('   ok');
+
 console.log('2. buildPortfolioActions flags concentration and weak holding...');
 const portfolio = { crypto: [{ symbol: 'XRP', amount: 200, avgPrice: 1.1 }], us: [], bist: [] };
 const port = buildPortfolioActions({ data: snapshot, portfolioData: portfolio, usdtry: 40 });
@@ -153,6 +166,28 @@ assert.equal(card.bySource.system.total, 2);
 assert.equal(card.bySource.system.wins, 2);
 assert.equal(card.bySource.user.total, 2);
 assert.equal(card.bySource.user.wins, 0);
+const strictCard = buildPredictionScorecard({ predictions: [
+  { outcome: 'target-hit', resultPct: 8, source: 'system' },
+  { outcome: 'stop-hit', resultPct: -4, source: 'system' },
+  { outcome: 'stop-hit', outcomeEvidence: 'ambiguous_bar', resultPct: -2, source: 'system' },
+  { outcome: 'future-enum', resultPct: 'not-a-number', source: 'user' },
+  { outcome: 'future-enum-2', resultPct: null, source: 'user' },
+] });
+assert.equal(strictCard.closed, 5);
+assert.equal(strictCard.wins, 1);
+assert.equal(strictCard.losses, 1);
+assert.equal(strictCard.decisive, 2);
+assert.equal(strictCard.ambiguous, 1);
+assert.equal(strictCard.unscored, 2);
+assert.equal(strictCard.winRate, 50);
+assert.equal(strictCard.avgResultPct, 2);
+assert.equal(strictCard.resultSampleSize, 2);
+assert.equal(strictCard.last5Closed.find((x) => x.outcomeEvidence === 'ambiguous_bar').outcomeEvidence, 'ambiguous_bar');
+assert.equal(strictCard.bySource.system.ambiguous, 1);
+assert.equal(strictCard.bySource.user.winRate, null);
+const noValidPct = buildPredictionScorecard({ predictions: [{ outcome: 'target-hit', resultPct: '5' }] });
+assert.equal(noValidPct.avgResultPct, null);
+assert.equal(noValidPct.resultSampleSize, 0);
 console.log('   ok');
 
 console.log('7. calculatePosition calculates size and levels...');
@@ -236,6 +271,21 @@ assert.ok(cockpit.rows.some((x) => x.symbol === 'AMD' && x.status === 'gated'));
 assert.ok(cockpit.rows.some((x) => x.symbol === 'XRP' && x.status === 'blocked'));
 assert.ok(cockpit.rows[0].decisionAsk);
 assert.ok(cockpit.rows[0].missingEvidence.length >= 1);
+const readyAssets = Array.from({ length: 9 }, function (_, i) {
+  return { market: 'us', symbol: 'READY' + i, name: 'Ready candidate ' + i,
+    analysis: { score: 80 - i, tone: 'buy', label: 'AL' }, decision: { trade: { available: true } } };
+});
+const prioritySnapshot = { generatedAt: snapshot.generatedAt, us: readyAssets.concat([
+  { market: 'us', symbol: 'BLOCKED1', analysis: { score: 20, tone: 'sell', label: 'SAT' } },
+  { market: 'us', symbol: 'BLOCKED2', analysis: { score: 10, tone: 'sell', label: 'SAT' } },
+]) };
+const readyNotes = { notes: {} };
+readyAssets.forEach(function (asset) { readyNotes.notes['us:' + asset.symbol] = { thesis: 'tez', invalidation: 'kosul' }; });
+const priorityCockpit = buildCfoDecisionCockpit(prioritySnapshot, readyNotes, {});
+assert.equal(priorityCockpit.counts.ready, 9);
+assert.equal(priorityCockpit.counts.blocked, 2);
+assert.equal(priorityCockpit.rows.length, 8);
+assert.ok(priorityCockpit.rows.every(function (row) { return row.status === 'ready'; }));
 console.log('   ok');
 
 console.log('12. buildDecisionLearningPanel and buildAssetLearningSnippet expose audit lessons...');
@@ -265,11 +315,23 @@ const learningBase = {
 };
 const learningPanel = buildDecisionLearningPanel(learningBase);
 assert.equal(learningPanel.empty, false);
-assert.ok(learningPanel.metrics.some((x) => x.label === 'Kural' && x.value === 1));
-assert.ok(learningPanel.rules[0].reason.includes('ABD'));
+assert.ok(learningPanel.metrics.some((x) => x.label === 'Aktif kural' && x.value === 0));
+assert.equal(learningPanel.rules.length,0);
+assert.equal(learningPanel.proposalRules.length,0);
+assert.ok(learningPanel.archivedRules[0].reason.includes('ABD'));
 const assetLearning = buildAssetLearningSnippet(snapshot.us[1], learningBase);
-assert.equal(assetLearning.kind, 'rule');
-assert.equal(assetLearning.adjustment, 1);
+assert.equal(assetLearning.kind, 'archive');
+assert.equal(assetLearning.adjustment, 0);
+learningBase.decisionLearning.evidenceVersion = 'technical-learning-v2';
+learningBase.decisionLearning.learningRules[0].activation = 'proposal_only';
+learningBase.decisionLearning.learningRules[0].validationStatus = 'chronological_validation_required';
+const proposedPanel = buildDecisionLearningPanel(learningBase);
+assert.equal(proposedPanel.rules.length,0);
+assert.equal(proposedPanel.proposalRules.length,1);
+assert.equal(buildAssetLearningSnippet(snapshot.us[1],learningBase).adjustment,0);
+learningBase.decisionLearning.learningRules[0].activation = 'active';
+learningBase.decisionLearning.learningRules[0].validationStatus = 'chronologically_validated';
+assert.equal(buildDecisionLearningPanel(learningBase).rules.length,0,'unchecked activation flags cannot activate a rule');
 console.log('   ok');
 
 console.log('13. buildCompanyTearsheet and buildCompsSnapshot produce evidence-aware snapshots...');

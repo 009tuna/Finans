@@ -3,6 +3,7 @@
 
 const util = require('./util');
 const db = require('./db');
+const cryptoMarketData = require('./crypto-market-data');
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)';
 
@@ -87,16 +88,7 @@ function normalizeYahooChart(data, ctx) {
 }
 
 function normalizeBinanceKlines(data, ctx) {
-  if (!Array.isArray(data) || !data.length) throw new Error('Binance kline verisi yok');
-  const bars = data.map((k) => ({
-    time: Math.floor(num(k[0]) / 1000),
-    open: num(k[1]),
-    high: num(k[2]),
-    low: num(k[3]),
-    close: num(k[4]),
-    volume: num(k[5]),
-  })).filter((b) => finite(b.time) && finite(b.open) && finite(b.high) && finite(b.low) && finite(b.close));
-  if (!bars.length) throw new Error('Binance OHLCV serisi bos');
+  const bars = cryptoMarketData.normalizeKlines(data);
   return {
     market: ctx.market,
     symbol: ctx.symbol,
@@ -132,24 +124,26 @@ async function fetchAssetChart({ market, symbol, interval, range, limit }) {
   
   // 1. Supabase önbellek kontrolü (async — await şart; yoksa cache hiç tutmaz)
   const cachedEntry = await db.getCache(key);
-  if (cachedEntry && (Date.now() - cachedEntry.updatedAt) < ttlFor(defaults.interval)) {
+  const cachedAge = cachedEntry && Date.now() - cachedEntry.updatedAt;
+  if (cachedEntry && Number.isFinite(cachedAge) && cachedAge >= 0 && cachedAge < ttlFor(defaults.interval) &&
+      (!cachedEntry.value.technicalData || cachedEntry.value.technicalData.status !== 'stale')) {
     return Object.assign({}, cachedEntry.value, { cache: 'hit' });
   }
 
   let value;
   try {
     if (normalizedMarket === 'crypto') {
-      const url = 'https://data-api.binance.vision/api/v3/klines?symbol=' +
-        encodeURIComponent(sourceSymbol) + '&interval=' + encodeURIComponent(defaults.interval) +
-        '&limit=' + defaults.limit;
-      const data = await util.fetchJson(url, { retries: 2 });
-      if (data && data.__error) throw new Error(data.__error);
-      value = normalizeBinanceKlines(data, {
-        market: normalizedMarket,
-        symbol: displaySymbol,
-        sourceSymbol,
-        interval: defaults.interval,
-      });
+      const result = await cryptoMarketData.fetchBars(sourceSymbol, defaults.interval, defaults.limit);
+      value = {
+        market: normalizedMarket, symbol: displaySymbol, sourceSymbol,
+        source: 'binance',
+        interval: defaults.interval, range: null, currency: 'USD', name: displaySymbol,
+        bars: result.bars, fetchedAt: result.technicalData.fetchedAt || null,
+        technicalData: result.technicalData,
+      };
+      if (result.technicalData.status === 'stale') {
+        return Object.assign({}, value, { cache: 'fallback', fallback: true });
+      }
     } else {
       const url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sourceSymbol) +
         '?interval=' + encodeURIComponent(defaults.interval) +
@@ -166,7 +160,7 @@ async function fetchAssetChart({ market, symbol, interval, range, limit }) {
     }
 
     // Supabase önbelleğe kaydet
-    await db.setCache(key, value);
+    if (normalizedMarket !== 'crypto' || value.technicalData.status !== 'stale') await db.setCache(key, value);
     return Object.assign({}, value, { cache: 'miss' });
     
   } catch (err) {

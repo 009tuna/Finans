@@ -62,10 +62,26 @@ function buildCrypto(c) {
   if (c.__error) return { market: 'crypto', symbol: c.symbol || c.id, id: c.id, __error: c.__error };
   const ind = computeIndicators(c.series || {});
   const analysis = scoreAsset(ind, null, 'crypto');
+  const technicalData = c.technicalData || null;
+  if (technicalData && ['stale', 'unavailable'].includes(technicalData.status)) {
+    if (Number.isFinite(analysis.score)) {
+      analysis.lastKnownScore = analysis.score;
+      analysis.lastKnownLabel = analysis.label;
+    }
+    analysis.score = null;
+    analysis.tone = 'hold';
+    analysis.label = technicalData.status === 'stale' ? 'ESKİ VERİ' : 'TEKNİK VERİ YOK';
+    analysis.summary = technicalData.status === 'stale'
+      ? 'Son başarılı geçmiş gösteriliyor; güncel teknik sinyal üretilmedi.'
+      : 'Fiyat mevcut; teknik geçmiş kaynağına erişilemedi.';
+    analysis.reasons = [{ sentiment: 'neutral', text: technicalData.error || analysis.summary }];
+  }
   return {
     market: 'crypto',
     symbol: c.symbol,
     id: c.id,
+    providerId: c.providerId || c.id,
+    technicalData,
     name: c.name,
     logo: c.logo,
     currency: 'USD',
@@ -152,8 +168,17 @@ async function runAll() {
     return m;
   };
 
-  const insufficient = (arr, pfx) =>
-    arr.filter((x) => !x.__error && (!x.analysis || x.analysis.score == null)).map((x) => pfx + ' ' + x.symbol + ': yetersiz veri');
+  const insufficient = (arr, pfx) => arr.flatMap((x) => {
+    if (x.__error) return [];
+    const data = x.technicalData;
+    const messages = [];
+    if (data && ['stale', 'unavailable', 'insufficient'].includes(data.status)) {
+      const reason = data.status === 'stale' ? 'eski teknik geçmiş kullanılıyor' : data.status === 'unavailable' ? 'teknik kaynak erişilemiyor' : 'teknik geçmiş kısa';
+      messages.push(pfx + ' ' + x.symbol + ': ' + reason + (data.error ? ' — ' + data.error : ''));
+    } else if (!x.analysis || x.analysis.score == null) messages.push(pfx + ' ' + x.symbol + ': yetersiz veri');
+    if (data && data.cacheWarning) messages.push(pfx + ' ' + x.symbol + ': teknik önbellek — ' + data.cacheWarning);
+    return messages;
+  });
   const errs = []
     .concat(us.filter((x) => x.__error).map((x) => 'ABD ' + x.symbol + ': ' + x.__error))
     .concat(bist.filter((x) => x.__error).map((x) => 'BIST ' + x.symbol + ': ' + x.__error))

@@ -1,67 +1,77 @@
-# Finans Otomasyonu - DESIGN Context
+# Finans — Karar Masası
+30 Eylül 2026 · uygulanan görsel sistem
 
-## 1. Color System (OKLCH) — Restrained Tek-Accent Stratejisi
-Tüm renkler modern OKLCH modelini temel alır. Nötr koyu tonlar, marka rengine (indigo, hue: 250) doğru hafifçe tint edilmiştir.
-Renk stratejisi **Restrained**: tinted nötraller + tek accent ≤%10 yüzey.
+## Ürün yönü
+Portföy ve kararlar ilk sıradadır. Portföy tablo merkezli, varlık incelemesi grafik merkezli, rapor ve rehber okuma merkezli çalışır. Veri, model yorumu ve ölçülmüş sonuç ayrıdır. Logo, Plus Jakarta Sans, vanilla JavaScript ve dört tema korunur.
 
-| Token | OKLCH Tanımı | Hex Karşılığı | Kullanım Amacı |
-|---|---|---|---|
-| `--bg` | `oklch(11% 0.007 250)` | `#0f1115` | Derin lüks koyu arka plan |
-| `--bg-2` | `oklch(13% 0.009 250)` | `#12151b` | İkincil arka plan, hover alanları |
-| `--sidebar` | `oklch(10% 0.006 250)` | `#0d0e12` | Sol navigasyon menüsü |
-| `--card` | `oklch(14.5% 0.012 250)` | `#151820` | İçerik panelleri, veri kutuları |
-| `--card-2` | `oklch(12.5% 0.008 250)` | `#111319` | İç panel gölgeleri |
-| `--border` | `oklch(19% 0.014 250)` | `#1e222b` | Standart çizgiler ve ayırıcılar |
-| `--border-2` | `oklch(25% 0.02 250)` | `#2d323f` | Odaklanma veya hover durumundaki çizgiler |
-| `--text` | `oklch(95% 0.008 250)` | `#f1f3f6` | Birincil beyaz metin |
-| `--muted` | `oklch(68% 0.015 250)` | `#7f8798` | İkincil metinler ve açıklamalar |
-| `--muted-2` | `oklch(48% 0.012 250)` | `#525866` | Tablo başlıkları, devre dışı metinler |
+## Karbon tokenları
+| Rol | Token |
+|---|---|
+| Zemin | `oklch(18% .006 250)` |
+| Navigasyon | `oklch(16% .006 250)` |
+| İçerik | `oklch(23% .008 250)` |
+| Form/açılır kontrol | `oklch(28% .010 250)` |
+| Ayırıcı | `oklch(34% .010 250)` |
+| Metin | `oklch(96% .004 250)` |
+| İkincil | `oklch(80% .006 250)` |
+| Yardımcı | `oklch(72% .006 250)` |
+| Mavi | `oklch(68% .160 255)` |
+| Kırmızı | `oklch(68% .18 25)` |
 
-### Tek Accent (Steel Blue)
-* **Accent (Brand)**: `oklch(68% 0.11 230)` (`#5b8fd9`) — Soğuk çelik mavi, profesyonel ve sakin
-* **Accent-Soft**: `oklch(68% 0.11 230 / 0.12)` — Hover ve subtle arka planlar
+Kırmızının başlangıçtaki %64 açıklığı, yükseltilmiş yüzeyde normal metin kontrastını karşılamadığı için %68'e yükseltildi. Gümüş nötr koyu; Kehribar ve Yeşil kendi vurgu tonlarını kullanır. Tema değişimi mevcut grafik renklerini günceller.
 
-### Semafor Renkleri (Yalnızca Durum Bildirimi)
-* **Green (Buy)**: `oklch(72% 0.15 145)` (`#28d793`)
-* **Red (Sell)**: `oklch(64% 0.18 25)` (`#ef4444`)
-* **Yellow (Hold)**: `oklch(80% 0.13 85)` (`#eab308`)
-* **Orange (Reduce)**: `oklch(72% 0.15 45)` (`#f97316`)
+## Yazı ve yerleşim
+Masaüstü arayüz gövdesi 14 px, tablolar 14 px, metadata en az 12 px. Sayfa başlıkları 24 px, bölüm başlıkları 18 px; mobil giriş alanları tarayıcı yakınlaştırmasını tetiklememek için 16 px kalır. Rakamlar tabular-nums kullanır. Uzun metinler 72ch civarında okunur.
 
----
+Sol menü 192 px; üst çubuk 56 px. Genel Bakış portföy özetini tam genişlikte, karar tablosunu esnek ana sütunda, makro ve piyasa bağlamını 240–260 px yan sütunda gösterir. Dar kullanılabilir genişlikte sütunlar alt alta gelir. İkincil performans, öğrenim, model portföyü, rejim, fırsat ve döviz görünümleri yerel açılır bölümde kalır. Kenarlar geniş ekranda 24, orta ekranda 24, telefonda 16 px. Kontrol köşesi 6 px, bağımsız panel 10 px. Dekoratif parlamalar kaldırıldı; bölüm hiyerarşisi boşluk, başlık ve yüzey farkıyla kurulur.
 
-## 2. Typography (Plus Jakarta Sans)
-Yazı karakteri olarak modern, okunaklılığı yüksek **Plus Jakarta Sans** kullanılır.
+980 px altında çekmece menü. Piyasa liste/detay ayrımı kullanılabilir içerik genişliğinde 1040 px, değerleme ve portföy yan paneli 1080 px eşiğini kullanır. Tablo ve matris gerektiğinde kendi alanında kayar.
 
-* **Base Size**: `15px` / `1rem`
-* **Hierarchy Ratio**: `1.25`
-  * `xs`: `0.75rem` (11.2px)
-  * `sm`: `0.875rem` (13.1px)
-  * `base`: `1rem` (15px)
-  * `md`: `1.25rem` (18.75px)
-  * `lg`: `1.5625rem` (23.4px)
-  * `xl`: `1.953rem` (29.3px)
-* **Weights**:
-  * Light (`300`): Ek açıklamalar, dipnotlar
-  * Regular (`400`): Gövde metinleri, standart değerler
-  * Medium (`500`): Tablo hücreleri, buton metinleri
-  * SemiBold (`600`): Alt başlıklar, form etiketleri
-  * Bold (`700`): Başlıklar, semboller
-  * ExtraBold (`800`): Durum/Sinyal puanları
+## Ekran düzenleri
+- Genel Bakış: portföy özeti → karar değişiklikleri ve karar listesi, yanında piyasa durumu, makro/portföy etkisi, kaynaklı araştırma ve katalizörler. Performans, öğrenim ve ek piyasa görünümleri kullanıcının açabildiği ikincil bölümdedir. Model portföyü ayrı adlandırılır.
+- Portföy: kompakt özet → geniş tablo/düzenleme → dağılım/aksiyon/risk. Aynı sembol kaydı toplam miktar ve ortalama maliyeti değiştirir.
+- Piyasalar: arama/sıralama → liste/grafik → Özet/Teknik/Araştırma/Not ve takip. Grafik odağı mevcut grafiği büyütür.
+- Tarayıcı: ortak sonuç tablosu, tüm sinyaller, filtre, sayfalama ve teste aktarım.
+- Projeksiyon: Portföy senaryosu ve Şirket değerlemesi. Slider ve sayı girişleri eşlenir. Hesap açık eylemle başlar.
+- Rapor: özet/gelişmeler/etkiler/takvim/tahmin sonuçları, kaynak defteri ve açılır kaynaklar.
+- Okuryazarlık: konu defteri, okuma alanı, hesaplayıcı ve arşiv. Quiz mevcut rapor içeriğine bağlı kalır.
 
----
+## Davranış
+URL görünümü, piyasayı ve sembolü taşır. Arama tarayıcı geçmişine yeni kayıt eklemeden mevcut kaydın durumunu günceller. Tarihçe kaydı filtrelerini ve liste konumunu saklar. Not taslakları varlık anahtarıyla oturum belleğinde kalır; URL/varsayılan kalıcı depolamaya yazılmaz.
 
-## 3. Spacing & Spacial Rhythm
-* **Layout Grid**: 8px bazlı ölçeklendirme kullanılır. `8px`, `16px`, `24px`, `32px`, `48px` ve `64px` aralıkları ile dikey ritim kurulur.
-* **Layout Decluttering**: 
-  * "Her şeyi kart içine sarma" alışkanlığı terk edilmiştir.
-  * Finansal Okuryazarlık ve Teknik Tarayıcı sekmelerinde gereksiz kart borders kaldırılmış, çizgisel bölmeler ve değişen sütun genişlikleriyle dergi mizanpajı (editorial style) hedeflenmiştir.
-  * Tablolarda zebra şeritler yerine ince sınırlar ve geniş padding değerleri ile hücre nefes alabilirliği sağlanır.
+Kayıt hatasında son başarılı veri ve girdiler korunur. Eksik fiyatlı pozisyon silinmez. Boş portföy ile erişim hatası ayrıdır. Eski hesap yeni parametrelerin sonucu gibi gösterilmez. Teknik skor başarı olasılığı değildir; araştırma örneklemi yoksa isabet üretilmez.
 
----
+Journal yazmaları ortak kilitle seri yürür; alarm/not çift basma ek POST üretmez. Kayıt sürerken değişen not ve pozisyon girdileri yeni taslak olarak korunur. Strateji testinde kapanan işlem yoksa yüzde isabet gösterilmez. Projeksiyon sekmesi hesaplanmamış sıfır sonuçları açmaz. Grafiklerin değer tabloları klavyeyle erişilir; OKLCH tokenları grafik kütüphanesine sRGB olarak aktarılır.
 
-## 4. Motion (Micro-interactions)
-* **Eğriler (Easing Curves)**:
-  * Pürüzsüz Geçiş (easeOutExpo): `cubic-bezier(0.16, 1, 0.3, 1)` (Navitem geçişleri, hover durumları)
-  * Yaylanma Efekti (springBack): `cubic-bezier(0.34, 1.56, 0.64, 1)` (Butonlara tıklandığında ve form elemanlarında focus durumunda basış/açılış hissi)
-* **Fiyat Detayı Reveal**:
-  Tabloda bir satıra tıklandığında açılan detay alanı (`.detailwrap`), 300ms süren hafif bir yukarı kayma ve opaklık artışı ile birlikte yumuşak bir yaylanma efekti kullanılarak görünür hale gelir.
+## Araştırma zamanı ve günlük otomasyon
+Fiyat verisi, analiz kesiti ve araştırma zamanı ayrı, açık saat dilimiyle gösterilir. Önceki kesite ait doğrulanmış model araştırması okunabilir; güncel fiyatlara uygulanabilir makro sinyal ayrı bütünlük koşullarına bağlıdır. Günlük otomasyon ayrıntısı kapalıyken de durumunu gösterir. Açıldığında gerçek aşamalar, bilinen süreler ve son başarılı yayın ayrı okunur. Kayıt yokluğu, erişim hatası ve kesilmiş çalışma aynı durum değildir. Yayın sonrası yerel dosya hatası tamamlanmış veritabanı yayınını başarısız göstermez.
+
+[Yayın ve kabul kaydı](docs/research-audit/2026-09-30-report-publication-package.md).
+
+## Hareket
+Kontrol basılma 120 ms, seçim/tema 180 ms, detay 220 ms. Uzun sekme çıkışı, tüm kartlara aynı giriş ve rakam saydırma kaldırıldı. İçerik animasyon olmadan görünürdür. Sistem hareket azaltma tercihi CSS ve JS ile uygulanır.
+
+## Kabul kaydı
+[Uygulama ve doğrulama kanıtı](docs/karar-masasi-qa/verification.md), [v3 şartnamesi](docs/2026-09-29-kurumsal-ux-yol-haritasi.md).
+
+Impeccable ana rehberdir. Taste marka/şablon değerlendirmesinde, UI UX Pro Max kontrol ve erişilebilirlik denetiminde kullanıldı. Görsel referanslardan yüzey hiyerarşisi ve veri alanı ilkeleri alındı; ekranlar kopyalanmadı. Yerel kontroller tam erişilebilirlik sertifikasyonu veya saha performans sonucu olarak sunulmaz.
+
+### 1 Ekim · çalışma alanı yoğunluğu ve responsive kabul
+
+Değerleme üst kontrolleri kendi genişliğinde kırılır. DCF varsayım paneli kendi alanı 680 px'e ulaştığında iki sütun, dar yan panelde tek sütun kullanır; model geçişi bu düzeni ezmez. Sayısal alanlar eylem düğmesinin renk stilini devralmaz. Semboller kısaltılmadan okunur; okuryazarlık hesaplayıcısının alanları doğal biçimde kırılır. Mobil boş portföy eylemleri 44 px'tir.
+
+Stres testi boş portföyü sıfır etki gibi göstermez. Kaynak hatasında önceki başarılı sonuç korunur; değişen portföye ait sonuç açıkça ayrılır. Tekrar deneme gerçek eylemdir. On ana ekran/yedi viewport ve üç değerleme modeli tarandı; kapsam ve gerçek zoom dahil açık kapılar [yerel kabul kaydında](docs/research-audit/2026-10-01-workspace-responsive-acceptance.md) bulunur. Bu kayıt canlı dağıtım veya bütün ürünün erişilebilirlik kabulü değildir.
+
+### 2 Ekim · varlık bağlamı ve canlı kaynak kapsamı
+
+`#view=market&market=bist&symbol=FROTO` varlık detayını açar; liste URL'sinde simge bulunmaz. Son seçim, arama, sıralama ve liste konumu oturum belleğinde tutulur. Listeye dönüş detay geçmişini korur; geri/ileri hem URL'yi hem görünür düzeni geri getirir. Karar izi ortak varlığa geçiş eylemini kullanır.
+
+BIST'te Tümü/Düzenleyici/Şirketler filtreleri aynı kontrol sistemini kullanır. Şirket kaydı yayıncı tarihi ile gözlem zamanını ayırır; liste doğrulaması belge içeriği doğrulaması gibi sunulmaz. Çelişkili bağlantı açık ayrıntıya bağlanır. [Canlı yayın kabulü](docs/research-audit/2026-10-02-live-release-acceptance.md), bu paketi ve açık gerçek zoom/erişilebilirlik sınırlarını kaydeder.
+
+### 2 Ekim · model yorumunun zamanı ve kanıta geçiş
+
+Rapor özeti ve piyasa yorumunda oluşturulma zamanı görünürdür. Önceki model metni sonraki kaynak gelişmeleriyle sessizce yeniden yazılmaz; güncel beklentilere açık eylemle geçilir ve odak ilgili çalışma alanına taşınır. Açık HTTP/HTTPS kaynak bağlantıları tıklanabilir, ham HTML metin kalır. İlk yüklemede bağımsız okumalar birlikte başlar; rapor arızası son başarılı içeriği silmez. [Canlı paket kabulü](docs/research-audit/2026-10-02-reading-context-acceptance.md) yedi genişliği, dört temada yeni bileşen kontrastını ve kapsam sınırlarını içerir.
+
+### 2 Ekim · teknik sonuçlar ve öğrenme kanıtı
+
+Teknik sonuçlar kaynak/piyasa/strateji/çözümleyici gruplarında okunur; birleşik başarı yüzdesi yoktur. Sürümlü açık senaryo sonuç örneklemi değildir. Eski ham hesap açık arşiv etiketiyle erişilebilir kalır. Grup seçimi klavye odağını ve sayfa dönüşünde seçimi korur. Örüntü önerileri aktif kural veya kalibre edilmiş güven yüzdesi gibi sunulmaz. [Canlı kabul kaydı](docs/research-audit/2026-10-02-performance-evidence-acceptance.md) aynı veriyle karşılaştırmayı, yedi genişliği, 72 test dosyasını ve açık doğrulama kapılarını içerir.

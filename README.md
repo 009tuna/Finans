@@ -17,15 +17,17 @@ Veri yoksa **↻ Yenile**'ye basın.
 
 Rapor artık üretildiği fiyat verisine `snapshotId`, kendi çalışmasına `runId` ile bağlıdır. Eski veya farklı veri kesitine ait AI yorumu güncel sinyale katılmaz. Kaynağa erişilememesi ile kaynakta olay bulunmaması ayrı gösterilir. Ayrıntılar ve geçiş adımları: [8 Eylül geliştirme notu](docs/2026-09-08-report-integrity.md).
 
-GitHub Actions hafta içi fiyatları, tahmin sonuçlarını ve temel raporu günceller. Yerel `npm run research` akışı **GPT-6 Astra** ile kaynak araştırması yapar, açıklama öncesi tahminleri kaydeder ve doğrulanan raporu Supabase'e yayınlar. Codex oturumu ve kullanım hakkı gerekir. Ayrıntılar: [Astra araştırması ve ölçüm](docs/astra-research.md).
+GitHub Actions hafta içi fiyatları ve tahmin sonuçlarını günceller, temel rapor taslağı hazırlar. Taslak son başarılı araştırma yayınını değiştirmez. Yerel `npm run research` akışı **GPT-6.1 Sol** ile kaynak araştırması ve genel yorum üretir; yeterli kanıt bulunan açıklama öncesi tahminleri kaydeder ve doğrulanan tam paketi Supabase'e yayınlar. Rapor ve araştırma günlüğü tek revizyon koşullu kayıtta birlikte yazılır. Fiyat yenilense de doğrulanmış araştırma, kendi analiz kesiti ve zamanıyla okunabilir; eski AI sinyali yeni fiyatlara uygulanmaz. Mevcut F/K ve piyasa değeri yorumlanabilir; DCF/Graham hesabı bu akışta modele verilmez. Ayrıntılar: [Yayın paketi](docs/research-audit/2026-09-30-report-publication-package.md), [Araştırma ve ölçüm](docs/research.md), [tarihsel içerik ve sonuç denetimi](docs/research-audit/2026-09-30-degerlendirme.md).
 
 ## ⏰ Otomatik Günlük Akış
 `daily-update.bat` veya `npm run research` aynı akışı çalıştırır:
 1. Günün fiyat verisi yoksa yeniler; mevcut bulut güncellemesini tekrar kullanır.
 2. Teknik tahminleri ve araştırma tahminlerinin mevcut sonuçlarını çözer.
-3. Gerekiyorsa fiyat kesitiyle eşleşen temel raporu üretir.
-4. Astra ile canlı web araştırması ve koşullu senaryolar üretir.
-5. Şema/zaman/kaynak kontrolünden sonra araştırmayı ve tahminleri kaydeder; raporu yayınlayıp geri okur.
+3. Gerekiyorsa dondurulmuş fiyat kesitiyle eşleşen temel rapor taslağını üretir.
+4. Sol ile canlı web araştırması ve koşullu senaryolar üretir.
+5. Şema/zaman/kaynak kontrolünden sonra rapor, araştırma ve yeni tahminleri tek koşullu yazmada yayınlayıp doğrular. Hata olursa önceki yayın korunur.
+
+Günlük Rapor ekranı fiyat, analiz ve araştırma zamanlarını ayrı gösterir. Günlük otomasyon ayrıntısı gerçek aşama kayıtlarına dayanır; aşama kaydı bulunmaması tamamlanmış çalışma anlamına gelmez.
 
 Yerel Codex araştırması her gün 09:30 (Europe/Berlin) için zamanlanmıştır. Bilgisayar ve Codex erişilebilir olmalıdır. Elle çalıştırma: `npm run research`.
 
