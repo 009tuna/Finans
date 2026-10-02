@@ -90,4 +90,24 @@ const hostileCounts = research.evaluationHtml({ scorecard: { total: '<img>', res
 assert.match(hostileCounts, /— tahmin/);
 assert.doesNotMatch(hostileCounts, /<img>/);
 
+const auditForecast = { id: 'audit-f', market: 'us', symbol: '', metric: 'us_cpi_core_mom_sa', unit: 'percent', period: '2026-09',
+  pointEstimate: 0.3, consensus: null, recordedAt: '2026-10-02T08:02:13Z', scheduledAt: '2026-10-14T12:30:00Z',
+  resolution: { sourceUrl: 'https://www.bls.gov/news.release/archives/cpi_10142026.htm' } };
+function outcomeLabel(verification, vintage) {
+  return research.evaluationHtml({ forecasts: [auditForecast], outcomes: [{ forecastId: auditForecast.id, value: 0.2,
+    verification, vintage, sourceUrl: auditForecast.resolution.sourceUrl }] });
+}
+const official = outcomeLabel('bls-official-first-release', 'first_release');
+assert.match(official, /Resmî BLS ilk açıklama kaydı/);
+assert.doesNotMatch(official, /İnsan tarafından|—%|NaN/);
+assert.match(official, /Europe\/Istanbul/);
+assert.match(outcomeLabel('bls-official-first-release'), /ilk açıklama sürümü doğrulanamadı/);
+assert.match(outcomeLabel('provider-first-observed'), /ilk açıklama sürümü garanti edilmez/);
+assert.match(outcomeLabel('human-reviewed'), /İnsan tarafından kontrol edildi/);
+assert.match(outcomeLabel(undefined), /Doğrulama yöntemi kayıtlı değil/);
+assert.doesNotMatch(outcomeLabel('unknown'), /İnsan tarafından|Resmî BLS/);
+assert.match(research.researchHtml({ sourceVerification: 'model-cited-web-research' }), /kaynak atfı bağımsız içerik doğrulaması anlamına gelmez/);
+assert.match(research.researchHtml({ sourceVerification: 'synthetic-acceptance-only' }), /gerçek araştırma değildir/);
+assert.match(research.researchHtml({}), /Kaynak doğrulama yöntemi kayıtlı değil/);
+
 console.log('research progress UI tests passed');
