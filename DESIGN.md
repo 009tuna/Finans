@@ -21,9 +21,9 @@ Portföy ve kararlar ilk sıradadır. Portföy tablo merkezli, varlık incelemes
 Kırmızının başlangıçtaki %64 açıklığı, yükseltilmiş yüzeyde normal metin kontrastını karşılamadığı için %68'e yükseltildi. Gümüş nötr koyu; Kehribar ve Yeşil kendi vurgu tonlarını kullanır. Tema değişimi mevcut grafik renklerini günceller.
 
 ## Yazı ve yerleşim
-Masaüstü arayüz gövdesi 14 px, tablolar 14 px, metadata en az 12 px. Sayfa başlıkları 24 px, bölüm başlıkları 18 px; mobil giriş alanları tarayıcı yakınlaştırmasını tetiklememek için 16 px kalır. Rakamlar tabular-nums kullanır. Uzun metinler 72ch civarında okunur.
+Masaüstü arayüz gövdesi ve tablolar 13 px, menü 12 px, ikincil bilgiler 10–11 px. Sayfa başlıkları 20 px, bölüm başlıkları 16 px; mobil giriş alanları tarayıcı yakınlaştırmasını tetiklememek için 16 px kalır. Rakamlar tabular-nums kullanır. Rapor kalan çalışma alanını kullanır; eğitim metinlerinin 72ch okuma sınırı korunur. Bu yoğunluk, kullanıcının büyük ve seyrek ekranı açıkça reddetmesiyle güncellendi.
 
-Sol menü 192 px; üst çubuk 56 px. Genel Bakış portföy özetini tam genişlikte, karar tablosunu esnek ana sütunda, makro ve piyasa bağlamını 240–260 px yan sütunda gösterir. Dar kullanılabilir genişlikte sütunlar alt alta gelir. İkincil performans, öğrenim, model portföyü, rejim, fırsat ve döviz görünümleri yerel açılır bölümde kalır. Kenarlar geniş ekranda 24, orta ekranda 24, telefonda 16 px. Kontrol köşesi 6 px, bağımsız panel 10 px. Dekoratif parlamalar kaldırıldı; bölüm hiyerarşisi boşluk, başlık ve yüzey farkıyla kurulur.
+Sol menü 152 px; üst çubuk 48 px. Genel Bakış portföy özetini tam genişlikte, karar tablosunu esnek ana sütunda, makro ve piyasa bağlamını 240–260 px yan sütunda gösterir. Raporun kaynak defteri sağ içerik kenarında 208 px; orta sütun kalan genişliği kullanır. Dar kullanılabilir genişlikte sütunlar alt alta gelir. İkincil performans, öğrenim, model portföyü, rejim, fırsat ve döviz görünümleri yerel açılır bölümde kalır. Masaüstü kenarlar 16 px; panel ve kontroller sıkı aralıklarla çalışır. Kontrol köşesi 6 px, bağımsız panel 10 px. Dekoratif parlamalar kaldırıldı; bölüm hiyerarşisi yüzey ve başlık farkıyla kurulur.
 
 980 px altında çekmece menü. Piyasa liste/detay ayrımı kullanılabilir içerik genişliğinde 1040 px, değerleme ve portföy yan paneli 1080 px eşiğini kullanır. Tablo ve matris gerektiğinde kendi alanında kayar.
 
@@ -58,7 +58,7 @@ Impeccable ana rehberdir. Taste marka/şablon değerlendirmesinde, UI UX Pro Max
 
 ### 2 Ekim · raporun ilk ekranı ve doğrulama dili
 
-Raporun eşleşme, eksik kapsam ve yenileme durumları kısa bir bantta daima görünürdür. Üç veri zamanı ve eşleşme açıklamaları yerel ayrıntıda açılır. Bölüm bağlantıları 44 px hedeflerini korur; kaynak sütunu okuma alanına sabit aralıkla bağlanır. Kaynakta eksik yayın zamanı, doğrulanmamış içerik iddiasından ayrılır. İnsan kontrolü yalnız açık insan incelemesi kaydında yazılır; otomatik BLS ilk açıklaması ve sağlayıcı ilk gözlemi kendi etiketlerini taşır. [Kaynak ve sunum denetimi](docs/research-audit/2026-10-02-source-claim-review.md) kullanıcı görüntüsünü ve henüz tamamlanmamış görsel kabulü kaydeder.
+Raporun eşleşme, eksik kapsam ve yenileme durumları kısa bir bantta daima görünürdür. Üç veri zamanı ve eşleşme açıklamaları yerel ayrıntıda açılır. Kaynakta eksik yayın zamanı, doğrulanmamış içerik iddiasından ayrılır. İnsan kontrolü yalnız açık insan incelemesi kaydında yazılır; otomatik BLS ilk açıklaması ve sağlayıcı ilk gözlemi kendi etiketlerini taşır. [Kaynak ve sunum denetimi](docs/research-audit/2026-10-02-source-claim-review.md) önceki görünümün geri çekilen kabulünü kaydeder. [Yoğun çalışma alanı düzeltmesi](docs/research-audit/2026-10-02-compact-workspace-revision.md) kullanıcının güncel yönünü ve açık doğrulama koşullarını belirtir.
 
 ### 1 Ekim · çalışma alanı yoğunluğu ve responsive kabul
 

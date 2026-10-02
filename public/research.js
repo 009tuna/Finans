@@ -19,7 +19,7 @@
   ].map(([label, value]) => '<div><dt>' + esc(label) + '</dt><dd>' + esc(timestamp(value)) + '</dd></div>').join('');
   function sourcePublicationText(value) {
     if (typeof value !== 'string' || !value.trim() || !Number.isFinite(Date.parse(value))) return 'Yayın zamanı bilinmiyor';
-    return 'Yayın: ' + timestamp(value);
+    return 'Yayın: ' + new Intl.DateTimeFormat('tr-TR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' }).format(new Date(value));
   }
   function reportIntegrityHtml({ integrity = {}, hasResearch = false, partial = false, loadError = false } = {}) {
     const sameSnapshot = integrity.baseStatus === 'current';

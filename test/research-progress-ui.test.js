@@ -52,7 +52,7 @@ for (const status of ['missing', 'stale', 'context-mismatch', 'unverified']) {
   assert.match(research.reportIntegrityHtml({ integrity: { researchStatus: status } }).split('<details')[0], new RegExp(research.researchStatusMessage({ researchStatus: status }).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 }
 for (const unknown of [undefined, null, '', 'bad', 0]) assert.equal(research.sourcePublicationText(unknown), 'Yayın zamanı bilinmiyor');
-assert.match(research.sourcePublicationText('2026-10-02T08:00:00Z'), /^Yayın: .*11:00.*Europe\/Istanbul/);
+assert.match(research.sourcePublicationText('2026-10-02T08:00:00Z'), /^Yayın: .*2026.*11:00/);
 
 const previous = { researchStatus: 'previous-analysis' };
 assert.match(research.researchStatusMessage(previous), /Önceki analiz kesitine dayanıyor/);
