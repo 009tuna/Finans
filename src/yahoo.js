@@ -10,6 +10,10 @@ async function fetchSeries(symbol) {
     'https://query1.finance.yahoo.com/v8/finance/chart/' + symbol + '?interval=1d&range=1y',
     { headers: { 'User-Agent': UA, Accept: 'application/json' } }
   );
+  return normalizeSeries(data, symbol);
+}
+
+function normalizeSeries(data, symbol) {
   const r = data && data.chart && data.chart.result && data.chart.result[0];
   if (!r || !r.meta) return { symbol, __error: (data && data.__error) || 'veri yok' };
   const meta = r.meta;
@@ -21,17 +25,26 @@ async function fetchSeries(symbol) {
   const lows = [];
   const volumes = [];
   const dates = [];
+  const sourceTimestamps = [];
+  const rangeVerified = [];
+  let dateFormatter = null;
+  const timeZone = typeof meta.exchangeTimezoneName === 'string' ? meta.exchangeTimezoneName : null;
+  if (timeZone) {
+    try { dateFormatter = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }); }
+    catch (_) { /* An unknown exchange timezone cannot attest a daily bar date. */ }
+  }
   for (let i = 0; i < closesRaw.length; i++) {
-    if (typeof closesRaw[i] === 'number') {
+    const seconds = r.timestamp && r.timestamp[i];
+    const instant = Number.isFinite(seconds) && seconds > 0 ? new Date(seconds * 1000) : null;
+    if (Number.isFinite(closesRaw[i]) && closesRaw[i] > 0 && dateFormatter && instant && Number.isFinite(instant.getTime())) {
       closes.push(closesRaw[i]);
-      highs.push(typeof q.high[i] === 'number' ? q.high[i] : closesRaw[i]);
-      lows.push(typeof q.low[i] === 'number' ? q.low[i] : closesRaw[i]);
-      volumes.push(typeof q.volume[i] === 'number' ? q.volume[i] : 0);
-      if (r.timestamp && r.timestamp[i]) {
-        dates.push(new Date(r.timestamp[i] * 1000).toISOString().slice(0, 10));
-      } else {
-        dates.push(new Date().toISOString().slice(0, 10));
-      }
+      highs.push(Number.isFinite(q.high && q.high[i]) ? q.high[i] : closesRaw[i]);
+      lows.push(Number.isFinite(q.low && q.low[i]) ? q.low[i] : closesRaw[i]);
+      volumes.push(Number.isFinite(q.volume && q.volume[i]) ? q.volume[i] : 0);
+      const parts = Object.fromEntries(dateFormatter.formatToParts(instant).map((part) => [part.type, part.value]));
+      dates.push(`${parts.year}-${parts.month}-${parts.day}`);
+      sourceTimestamps.push(instant.toISOString());
+      rangeVerified.push(Number.isFinite(q.high && q.high[i]) && Number.isFinite(q.low && q.low[i]));
     }
   }
   const last = meta.regularMarketPrice != null ? meta.regularMarketPrice : (closes.length ? closes[closes.length - 1] : null);
@@ -52,7 +65,9 @@ async function fetchSeries(symbol) {
     high52: meta.fiftyTwoWeekHigh != null ? meta.fiftyTwoWeekHigh : null,
     low52: meta.fiftyTwoWeekLow != null ? meta.fiftyTwoWeekLow : null,
     volume: meta.regularMarketVolume != null ? meta.regularMarketVolume : null,
-    series: { dates, closes, highs, lows, volumes },
+    series: { dates, closes, highs, lows, volumes, sourceTimestamps, rangeVerified,
+      dateBasis: dateFormatter ? 'exchange_timezone' : 'unverified', timeZone,
+      ...(dateFormatter ? {} : { dateIssue: 'exchange_timezone_unavailable' }) },
   };
 }
 
@@ -62,4 +77,4 @@ async function fetchManySeries(symbols, toYahoo) {
   );
 }
 
-module.exports = { fetchSeries, fetchManySeries };
+module.exports = { fetchSeries, fetchManySeries, normalizeSeries };

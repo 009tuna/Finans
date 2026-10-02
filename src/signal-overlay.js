@@ -1,6 +1,6 @@
 'use strict';
 
-const { buildPredictionScorecard, normalizeJournal } = require('./decision-journal');
+const { normalizeJournal } = require('./decision-journal');
 const { buildLearningSummary, scoreBucket } = require('./decision-auditor');
 
 const MAX_ADJUSTMENT = 8;
@@ -192,62 +192,15 @@ function thesisComponent(asset, journal, nowIso) {
   return component('thesisStatus', -1, 'Tez status eksik; pozisyon aksiyonu zayif kanitli', 'journal:notes', nowIso, 0.55);
 }
 
-function calibrationComponent(journal, nowIso) {
-  const card = buildPredictionScorecard(journal);
-  const system = card.bySource && card.bySource.system;
-  if (!system || system.closed < 5) return null;
-  if (system.winRate < 45) {
-    return component('predictionCalibration', -2, 'Sistem tahmin kalibrasyonu zayif: ' + system.winRate + '% isabet', 'journal:predictions', nowIso, 0.75);
-  }
-  if (system.winRate > 60) {
-    return component('predictionCalibration', 1, 'Sistem tahmin kalibrasyonu guclu: ' + system.winRate + '% isabet', 'journal:predictions', nowIso, 0.7);
-  }
+function calibrationComponent() {
+  // A pooled historical win rate is not chronological calibration. No approved
+  // validation/activation workflow exists yet, so it cannot alter readiness.
   return null;
 }
 
-function normalizeLearningLabel(label) {
-  return String(label || '').trim().toUpperCase().replace(/\s+/g, '_');
-}
-
-function learningSpecificity(rule) {
-  const scope = rule && rule.scope ? rule.scope : {};
-  return (scope.market ? 1 : 0) + (scope.label ? 1 : 0) + (scope.scoreBucket ? 1 : 0);
-}
-
-function learningComponents(asset, learningRules, nowIso) {
-  const rules = Array.isArray(learningRules) ? learningRules : [];
-  if (!rules.length || !asset || !asset.analysis) return [];
-  const market = normalizeMarket(asset.market);
-  const symbol = String(asset.symbol || '').toUpperCase();
-  const label = normalizeLearningLabel(asset.analysis.label);
-  const bucket = scoreBucket(asset.analysis.score);
-  const matches = rules.filter((rule) => {
-    if (!rule || isExpired(rule, nowIso)) return false;
-    const scope = rule.scope || {};
-    if (scope.market && normalizeMarket(scope.market) !== market) return false;
-    if (scope.label && normalizeLearningLabel(scope.label) !== label) return false;
-    if (scope.scoreBucket && scope.scoreBucket !== bucket) return false;
-    return Number(rule.adjustment) !== 0;
-  }).sort((a, b) => learningSpecificity(b) - learningSpecificity(a) || b.sampleSize - a.sampleSize);
-
-  const rule = matches[0];
-  if (!rule) return [];
-  return [Object.assign(component(
-    'learningCalibration',
-    rule.adjustment,
-    rule.reason || 'Gecmis karar kapanislari bu skor araligini kalibre ediyor',
-    'journal:decisionLearning',
-    rule.asOf || nowIso,
-    rule.confidence
-  ), {
-    market,
-    symbol,
-    ruleId: rule.id,
-    sampleSize: rule.sampleSize,
-    winRate: rule.winRate,
-    asOf: rule.asOf || nowIso,
-    expiresAt: rule.expiresAt || addHours(nowIso, DEFAULT_TTL_HOURS),
-  })];
+function learningComponents() {
+  // Proposals remain inactive until a validated activation workflow exists.
+  return [];
 }
 
 function bankingComponents(asset, snapshot, nowIso) {

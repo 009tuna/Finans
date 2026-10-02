@@ -2,6 +2,8 @@
   "version": 2,
   "rewrites": [
     { "source": "/api/research", "destination": "/api/report?resource=research" },
+    { "source": "/api/macro", "destination": "/api/report?resource=macro" },
+    { "source": "/api/market-news", "destination": "/api/report?resource=market-news" },
     { "source": "/api/forecast/montecarlo", "destination": "/api/forecast/montecarlo" },
     { "source": "/api/forecast/correlation", "destination": "/api/forecast/correlation" },
     { "source": "/api/forecast/dcf",         "destination": "/api/forecast/dcf" },
