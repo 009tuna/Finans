@@ -19,7 +19,7 @@
   ].map(([label, value]) => '<div><dt>' + esc(label) + '</dt><dd>' + esc(timestamp(value)) + '</dd></div>').join('');
   function sourcePublicationText(value) {
     if (typeof value !== 'string' || !value.trim() || !Number.isFinite(Date.parse(value))) return 'Yayın zamanı bilinmiyor';
-    return 'Yayın: ' + timestamp(value);
+    return 'Yayın: ' + new Intl.DateTimeFormat('tr-TR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' }).format(new Date(value));
   }
   function reportIntegrityHtml({ integrity = {}, hasResearch = false, partial = false, loadError = false } = {}) {
     const sameSnapshot = integrity.baseStatus === 'current';
@@ -119,9 +119,9 @@
     const known = typeof value === 'string' && Number.isFinite(Date.parse(value));
     const time = known ? '<time datetime="' + esc(value) + '">' + esc(timestamp(value)) + '</time>' : esc(timestamp(null));
     const previous = integrity && integrity.researchStatus === 'previous-analysis';
-    return '<div class="model-context"><span>Model yorumu · Oluşturuldu: ' + time + '</span>' +
-      (previous ? '<span>Sonraki kaynak güncellemeleri bu metne işlenmedi.</span>' : '') +
-      (openWorkspace ? '<button class="btn btn-secondary" type="button" data-open-model-workspace>Güncel beklentileri aç</button>' : '') + '</div>';
+    return '<div class="model-context"><span class="model-context-meta">Model yorumu · Oluşturuldu: ' + time + '</span>' +
+      (previous ? '<span class="model-context-note">Sonraki kaynak güncellemeleri bu metne işlenmedi.</span>' : '') +
+      (openWorkspace ? '<span class="model-context-actions"><button class="btn btn-secondary" type="button" data-open-model-workspace>Güncel beklentileri aç</button></span>' : '') + '</div>';
   }
   function researchHtml(r) {
     if (!r) return '';
