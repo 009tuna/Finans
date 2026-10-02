@@ -37,3 +37,11 @@ Kaynakların açılması, önceki altı ayın içeriğini doğrulamış olmaz. �
 `public/research.js` artık yalnız açık `human-reviewed` kaydını insan denetimi olarak adlandırır. BLS ilk açıklama kaydı, sağlayıcıda ilk gözlem, eksik sürüm ve bilinmeyen doğrulama yöntemi ayrı gösterilir. Model kaynak atfının bağımsız içerik doğrulaması olmadığı açıkça yazılır. Eksik olasılık `—% (öznel)` şeklinde gösterilmez; tahmin tarihleri İstanbul saat dilimiyle okunur.
 
 Finansal hesaplar, model seçimi, otomasyon takvimi, araştırma metni ve kayıtlı tahmin/sonuçlar bu düzeltmede değişmedi. Hedefli render testleri ve `npm test` kapsamındaki 72 test dosyasının tamamı geçti. Yerel 5196 kabul ekranı için tarayıcı aracı kayıtlı kullanıcı ret kararı bildirdi. Kullanıcının yeniden verdiği erişim onayından sonra da araç kayıtlı engelin sürdüğünü bildirdi; görsel doğrulama bu nedenle açık, tamamlandı olarak işaretlenmedi.
+
+## Kullanıcının ekran görüntüsüyle bulunan sunum sorunu
+
+Kullanıcının `codex-clipboard-33442619-c7a0-433e-9087-1322a56a04be.png` görüntüsü raporun üstünü gösteriyor. Görünüm genişliği ve tarayıcı yakınlaştırması bağımsız doğrulanamadı. Veri uyarısı ve bölüm gezinmesi ana içeriği aşağı itiyor; kaynak sütunuyla okuma sütunu arasında gereğinden fazla boşluk var. Alt bölümdeki sonuç doğrulama etiketleri görüntüde yok.
+
+Sunum düzeltmesi: Eşleşme durumu, araştırmanın önceki kesite ait oluşu, eksik kapsam ve yenileme hatası üstte daima görünür kalır. Üç zaman ve tam açıklama yerel, klavyeyle açılabilir `details` alanına taşınır. Gezinme 44 px hedefleri koruyarak sıkılaştırılır; kaynak sütunu sabit 32 px aralıkla okuma akışını izler. Kaynak zamanı yayın zamanı olarak etiketlenir; eksik tarih “Yayın zamanı bilinmiyor” der. Alt başlıktaki “doğrulanmış analiz” yerine “model araştırması” kullanılır.
+
+Bu görüntü önceki görünümü incelemeye yeterlidir; yeni görünümün veya etkileşimlerin kabul kanıtı değildir. Güncellenmiş ekranın manuel görüntüsü ve etkileşimli tarayıcı kontrolü hâlâ gereklidir.

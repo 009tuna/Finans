@@ -327,7 +327,7 @@ const VIEW_META = {
   screener: ['Teknik Tarayıcı', 'Kritik indikatör sinyalleri ve alarmlar', 'view-screener'],
   backtest: ['Strateji Testi', 'Geçmiş fiyat verileriyle teknik puan stratejisi testi', 'view-backtest'],
   forecast: ['Finansal Projeksiyon', 'Olasılıksal portföy simülasyonu, stres testleri ve DCF analizleri', 'view-forecast'],
-  report: ['Günlük Rapor', 'Teknik rapor, kaynak kapsamı ve doğrulanmış analiz durumu', 'view-report'],
+  report: ['Günlük Rapor', 'Teknik rapor, model araştırması ve kaynak kapsamı', 'view-report'],
   literacy: ['Finansal Okuryazarlık', 'İndikatör ve risk rehberi', 'view-literacy'],
 };
 function routeHash(view, market, symbol) {
@@ -633,16 +633,7 @@ async function renderReport() {
   const aiBadge = ai ? '<span class="ai-badge">Model araştırması</span>' : '';
 
   let h = '';
-  const sameSnapshot = integrity.baseStatus === 'current';
-  h += '<div class="card report-integrity"><strong>' +
-    (sameSnapshot ? 'Rapor ve fiyat verisi eşleşiyor' : 'Rapor güncel fiyat verisiyle eşleşmiyor') + '</strong>' +
-    '<p>Fiyat ve analiz farklı zamanlarda üretilebilir; her içerik kendi kesitiyle etiketlenir.</p>' +
-    '<dl class="report-time-labels">' + FinansResearch.reportTimeLabels(integrity) + '</dl>' +
-    (!sameSnapshot ? '<p>Aşağıdaki puanlar raporun veri kesitine aittir; güncel piyasa tablosundan farklı olabilir.</p>' : '') +
-    (ai && integrity.researchStatus === 'previous-analysis' ? '<p class="report-previous-analysis">' + esc(FinansResearch.researchStatusMessage(integrity)) + '</p>' :
-      !ai ? '<p>' + esc(FinansResearch.researchStatusMessage(integrity) || 'Bu rapor kesiti için okunabilir araştırma yok; model yorumları gizlendi.') + '</p>' : '') +
-    (base.quality && base.quality.status === 'partial' ? '<p>Veri kapsamı eksik. Kaynak durumlarını aşağıdaki takvimde kontrol edin.</p>' : '') +
-    (loadError ? '<p class="report-load-error" role="status">Rapor yenilenemedi; son başarılı rapor gösteriliyor.</p>' : '') + '</div>' +
+  h += FinansResearch.reportIntegrityHtml({ integrity, hasResearch: !!ai, partial: !!(base.quality && base.quality.status === 'partial'), loadError }) +
     FinansResearch.automationHtml(data.automation);
   // Başlık
   h += '<nav class="report-toc" aria-label="Rapor bölümleri"><a href="#report-summary">Özet</a><a href="#report-developments">Gelişmeler</a><a href="#report-impact">Piyasa etkileri</a><a href="#report-calendar">Takvim</a><a href="#researchEvaluation">Tahmin sonuçları</a></nav>';
@@ -782,7 +773,7 @@ async function renderReport() {
   h += '<details class="report-extras"><summary>Ek analizler</summary><div class="card"><p class="muted">Üretim: ' + (ai ? 'kural-tabanlı teknik + yapay zeka makro/haber katmanı' : 'kural-tabanlı teknik (yapay zeka katmanı bekleniyor)') + ' · ' + relTime(base.generatedAt) + '. <b>Yatırım tavsiyesi değildir.</b></p></div></details>';
 
   const sourceRecords = ai && ai.research && Array.isArray(ai.research.sources) ? ai.research.sources : [];
-  const sourceRail = '<aside class="report-source-rail" aria-label="Rapor kaynakları"><h3>Kaynak defteri</h3><p class="muted">' + (sourceRecords.length ? sourceRecords.length + ' kayıt · kaynak ayrıntıları ilgili gelişmede de bulunur.' : 'Bu raporla eşleşen doğrulanmış araştırma kaynağı yok.') + '</p><ul>' + sourceRecords.map((source) => { let url; try { url = new URL(source.url); } catch (_) { return '<li>' + esc(source.title || 'Kaynak') + '</li>'; } return ['https:', 'http:'].includes(url.protocol) ? '<li><a href="' + esc(url.href).replace(/"/g, '&quot;') + '" target="_blank" rel="noopener noreferrer">' + esc(source.title || url.hostname) + '</a><span>' + esc(fullTimestamp(source.publishedAt)) + '</span></li>' : '<li>' + esc(source.title || 'Kaynak') + '</li>'; }).join('') + '</ul></aside>';
+  const sourceRail = '<aside class="report-source-rail" aria-label="Rapor kaynakları"><h3>Kaynak defteri</h3><p class="muted">' + (sourceRecords.length ? sourceRecords.length + ' kayıt · kaynak ayrıntıları ilgili gelişmede de bulunur.' : 'Bu raporla eşleşen doğrulanmış araştırma kaynağı yok.') + '</p><ul>' + sourceRecords.map((source) => { let url; try { url = new URL(source.url); } catch (_) { return '<li>' + esc(source.title || 'Kaynak') + '</li>'; } return ['https:', 'http:'].includes(url.protocol) ? '<li><a href="' + esc(url.href).replace(/"/g, '&quot;') + '" target="_blank" rel="noopener noreferrer">' + esc(source.title || url.hostname) + '</a><span>' + esc(FinansResearch.sourcePublicationText(source.publishedAt)) + '</span></li>' : '<li>' + esc(source.title || 'Kaynak') + '</li>'; }).join('') + '</ul></aside>';
   el.innerHTML = '<div class="report-layout"><article class="report-reading-flow">' + h + '</article>' + sourceRail + '</div>';
   el.querySelectorAll('[data-open-model-workspace]').forEach((button) => button.addEventListener('click', () => { setView('overview'); activateOverviewTask('forecasts', true); }));
   if (window.FinansMacro && typeof window.FinansMacro.refresh === 'function') window.FinansMacro.refresh();

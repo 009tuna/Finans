@@ -17,6 +17,26 @@
     ['Analiz kesiti', integrity && integrity.analysisAsOf],
     ['Araştırma', integrity && integrity.researchAsOf],
   ].map(([label, value]) => '<div><dt>' + esc(label) + '</dt><dd>' + esc(timestamp(value)) + '</dd></div>').join('');
+  function sourcePublicationText(value) {
+    if (typeof value !== 'string' || !value.trim() || !Number.isFinite(Date.parse(value))) return 'Yayın zamanı bilinmiyor';
+    return 'Yayın: ' + timestamp(value);
+  }
+  function reportIntegrityHtml({ integrity = {}, hasResearch = false, partial = false, loadError = false } = {}) {
+    const sameSnapshot = integrity.baseStatus === 'current';
+    const message = !hasResearch || integrity.researchStatus !== 'current'
+      ? researchStatusMessage(integrity) || 'Bu rapor kesiti için okunabilir araştırma yok; model yorumları gizlendi.'
+      : sameSnapshot ? 'Fiyat ve analiz aynı veri kesitine ait.' : 'Puanlar raporun veri kesitine ait; güncel fiyatlarla farklı olabilir.';
+    return '<section class="report-integrity" aria-label="Rapor veri durumu"><strong>' +
+      (sameSnapshot ? 'Rapor ve fiyat verisi eşleşiyor' : 'Rapor güncel fiyat verisiyle eşleşmiyor') + '</strong>' +
+      '<p class="report-integrity-context">' + esc(message) + '</p>' +
+      (partial ? '<p class="report-integrity-warning">Veri kapsamı eksik. Kaynak durumlarını Takvim bölümünde kontrol edin.</p>' : '') +
+      (loadError ? '<p class="report-load-error" role="status">Rapor yenilenemedi; son başarılı rapor gösteriliyor.</p>' : '') +
+      '<details class="report-integrity-details"><summary>Veri zamanları ve eşleşme ayrıntıları</summary>' +
+      '<dl class="report-time-labels">' + reportTimeLabels(integrity) + '</dl>' +
+      '<p>Fiyat ve analiz farklı zamanlarda üretilebilir; her içerik kendi kesitiyle etiketlenir.</p>' +
+      (!sameSnapshot ? '<p>Aşağıdaki puanlar raporun veri kesitine aittir; güncel piyasa tablosundan farklı olabilir.</p>' : '') +
+      '</details></section>';
+  }
   const automationStatusText = (status) => ({ idle: 'Beklemede', running: 'Çalışıyor', completed: 'Tamamlandı', failed: 'Başarısız', interrupted: 'Kesildi', unavailable: 'Durum alınamadı' }[status] || 'Durum bilinmiyor');
   function automationStatusSummary(automation) {
     if (!automation || typeof automation !== 'object') return '';
@@ -145,6 +165,6 @@
       if (el && el.isConnected) el.innerHTML = evaluationHtml(data);
     } catch (_) { if (el && el.isConnected) el.innerHTML = '<h2>Tahmin ölçümü</h2><p>Ölçüm günlüğüne erişilemedi. Başarı oranı gösterilemiyor.</p>'; }
   }
-  root.FinansResearch = { researchHtml, evaluationHtml, loadEvaluation, reportTimeLabels, automationHtml, automationStatusSummary, researchStatusMessage, timestamp, canUseReportOverlay, restoreStrippedResearchMetadata, proseHtml, modelContextHtml };
+  root.FinansResearch = { researchHtml, evaluationHtml, loadEvaluation, reportTimeLabels, reportIntegrityHtml, sourcePublicationText, automationHtml, automationStatusSummary, researchStatusMessage, timestamp, canUseReportOverlay, restoreStrippedResearchMetadata, proseHtml, modelContextHtml };
   if (typeof module === 'object' && module.exports) module.exports = root.FinansResearch;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

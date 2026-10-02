@@ -31,6 +31,29 @@ assert.match(times, /Analiz kesiti/);
 assert.match(times, /Araştırma/);
 assert.equal((times.match(/Europe\/Istanbul/g) || []).length, 3);
 
+// Critical data warnings stay visible when the optional date details are closed.
+const integrityBand = research.reportIntegrityHtml({
+  integrity: { baseStatus: 'snapshot-mismatch', researchStatus: 'previous-analysis', pricesAsOf: '2026-10-02T09:00:00Z', analysisAsOf: '2026-10-02T08:00:00Z', researchAsOf: '2026-10-02T08:05:00Z' },
+  hasResearch: true, partial: true, loadError: true,
+});
+const visibleIntegrity = integrityBand.split('<details')[0];
+assert.match(visibleIntegrity, /Rapor güncel fiyat verisiyle eşleşmiyor/);
+assert.match(visibleIntegrity, /Önceki analiz kesitine dayanıyor/);
+assert.match(visibleIntegrity, /Veri kapsamı eksik/);
+assert.match(visibleIntegrity, /role="status">Rapor yenilenemedi/);
+assert.doesNotMatch(integrityBand, /<details[^>]*\bopen\b/);
+assert.match(integrityBand, /Fiyat verisi/);
+assert.match(integrityBand, /Analiz kesiti/);
+assert.equal((integrityBand.match(/Europe\/Istanbul/g) || []).length, 3);
+const currentBand = research.reportIntegrityHtml({ integrity: { baseStatus: 'current', researchStatus: 'current' }, hasResearch: true });
+assert.match(currentBand, /Rapor ve fiyat verisi eşleşiyor/);
+assert.doesNotMatch(currentBand, /Veri kapsamı eksik|Rapor yenilenemedi|model yorumları gizlendi/);
+for (const status of ['missing', 'stale', 'context-mismatch', 'unverified']) {
+  assert.match(research.reportIntegrityHtml({ integrity: { researchStatus: status } }).split('<details')[0], new RegExp(research.researchStatusMessage({ researchStatus: status }).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+}
+for (const unknown of [undefined, null, '', 'bad', 0]) assert.equal(research.sourcePublicationText(unknown), 'Yayın zamanı bilinmiyor');
+assert.match(research.sourcePublicationText('2026-10-02T08:00:00Z'), /^Yayın: .*11:00.*Europe\/Istanbul/);
+
 const previous = { researchStatus: 'previous-analysis' };
 assert.match(research.researchStatusMessage(previous), /Önceki analiz kesitine dayanıyor/);
 assert.match(research.researchStatusMessage(previous), /uygulanmadı/);
