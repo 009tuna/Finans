@@ -261,9 +261,15 @@ const spkHtml = '<a href="https://spk.gov.tr/data/abc/2026-66.pdf">Bülten No : 
   assert.equal((await handleIntelligence({ method: 'POST' }, { database: db })).status, 405);
   const handler = require('../api/report');
   const liveDb = require('../src/db'); const originalRead = liveDb.getCache;
+  const OriginalDate = global.Date;
   let routeStatus, routeBody;
   const response = { setHeader() {}, status(value) { routeStatus = value; return this; }, json(value) { routeBody = value; return this; } };
   try {
+    // The route reads the current clock; keep it inside the fixture's pre-release window.
+    global.Date = class extends OriginalDate {
+      constructor(...args) { super(...(args.length ? args : [NOW])); }
+      static now() { return OriginalDate.parse(NOW); }
+    };
     liveDb.getCache = async (key) => key === 'macro_event_ledger_v1' ? scheduleDb.getCache(key) : key === 'market_sources_v1' ? db.getCache(key) : null;
     await handler({ method: 'GET', url: '/api/report?resource=macro' }, response);
     assert.equal(routeStatus, 200); assert.equal(routeBody.nextEvent.period, '2026-09');
@@ -272,7 +278,7 @@ const spkHtml = '<a href="https://spk.gov.tr/data/abc/2026-66.pdf">Bülten No : 
     await handler({ method: 'POST', url: '/api/report?resource=macro' }, response);
     assert.equal(routeStatus, 405);
     for (const resource of ['macro', 'market-news']) assert.ok(require('../vercel.json').rewrites.some((x) => x.source === '/api/' + resource && x.destination === '/api/report?resource=' + resource));
-  } finally { liveDb.getCache = originalRead; }
+  } finally { liveDb.getCache = originalRead; global.Date = OriginalDate; }
   const unavailable = await handleIntelligence({ method: 'GET' }, { database: { getCache: async () => { throw new Error('offline'); } } }); assert.equal(unavailable.status, 503);
   const silent = database(); silent.drop();
   await assert.rejects(() => updateStore('test', { schemaVersion: 1, n: 0 }, (current) => ({ ...current, n: 1 }), silent), /verified/);

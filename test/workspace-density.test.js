@@ -50,7 +50,7 @@ assert.equal((html.match(/href="\/macro\.css"/g) || []).length, 1, 'macro styles
 assert.equal((html.match(/src="\/macro\.js"/g) || []).length, 1, 'macro module is loaded once');
 
 assert.match(css, /html \{ font-size: 14px; \}/, 'desktop UI uses the requested dense base type size');
-assert.match(css, /grid-template-columns: 152px minmax\(0, 1fr\)/, 'desktop navigation gives the primary workspace the requested width');
+assert.match(css, /grid-template-columns: 176px minmax\(0, 1fr\)/, 'desktop navigation balances full labels with a wide primary workspace');
 assert.match(css, /grid-template-columns: minmax\(0, 1fr\) minmax\(240px, 260px\)/, 'context rail stays compact beside a flexible decision column');
 assert.match(css, /\.overview-workspace \{ grid-template-columns: minmax\(0, 1fr\); \}/, 'overview columns collapse based on available container width');
 assert.match(css, /#content input, #content select, #content textarea \{ font-size: 16px; \}/, 'mobile input text prevents browser zoom');

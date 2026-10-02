@@ -633,18 +633,15 @@ async function renderReport() {
   const aiBadge = ai ? '<span class="ai-badge">Model araştırması</span>' : '';
 
   let h = '';
-  h += FinansResearch.reportIntegrityHtml({ integrity, hasResearch: !!ai, partial: !!(base.quality && base.quality.status === 'partial'), loadError }) +
+  const reportTimestamp = integrity.analysisAsOf || base.generatedAt;
+  h += '<header class="report-masthead"><div><h2>Rapor kesiti</h2><div class="report-meta"><span>' + esc(fullTimestamp(reportTimestamp)) + '</span><span>' + esc(String(s.total == null ? '–' : s.total)) + ' varlık</span><span>' + esc(String(s.buys == null ? '–' : s.buys)) + ' AL sinyali</span><span>' + esc(String(s.gainers == null ? '–' : s.gainers)) + ' yükselen</span></div></div><div class="report-badges">' + aiBadge + '<span class="sent-pill ' + sc + '">' + esc(s.label || 'Duyarlılık bilinmiyor') + ' · ' + esc(String(s.avg == null ? '–' : s.avg)) + '/100</span></div></header>' +
+    FinansResearch.reportIntegrityHtml({ integrity, hasResearch: !!ai, partial: !!(base.quality && base.quality.status === 'partial'), loadError }) +
     FinansResearch.automationHtml(data.automation);
-  // Başlık
   h += '<nav class="report-toc" aria-label="Rapor bölümleri"><a href="#report-summary">Özet</a><a href="#report-developments">Gelişmeler</a><a href="#report-impact">Piyasa etkileri</a><a href="#report-calendar">Takvim</a><a href="#researchEvaluation">Tahmin sonuçları</a></nav>';
-  h += '<section class="report-section" id="report-summary"><div class="card"><div class="report-head"><div>' +
-    '<h2>Günlük Piyasa Raporu</h2><div class="report-date">' + esc(fullTimestamp(integrity.analysisAsOf || base.generatedAt)) + ' · ' + esc(String(s.total == null ? '–' : s.total)) + ' varlık · ' + esc(String(s.buys == null ? '–' : s.buys)) + ' AL sinyali · ' + esc(String(s.gainers == null ? '–' : s.gainers)) + ' yükselen</div></div>' +
-    '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">' + aiBadge + '<span class="sent-pill ' + sc + '">' + esc(s.label || 'Duyarlılık bilinmiyor') + ' · ' + esc(String(s.avg == null ? '–' : s.avg)) + '/100</span></div></div></div>';
-
-  h += '<div class="card report-reader-card"><div class="card-head"><h2>Özet</h2><span class="card-sub">Model yorumu ayrı okunur</span></div>' + (ai ? FinansResearch.modelContextHtml(integrity, true) : '') + '<p>' + FinansResearch.proseHtml(ai && ai.todayFocus ? ai.todayFocus : 'Teknik skor, piyasa genişliği ve takvimi birlikte değerlendirin.') + '</p></div>';
+  h += '<section class="report-section" id="report-summary"><div class="report-reader-card"><div class="card-head"><h2>Özet</h2><span class="card-sub">Model yorumu ayrı okunur</span></div>' + (ai ? FinansResearch.modelContextHtml(integrity, true) : '') + '<p>' + FinansResearch.proseHtml(ai && ai.todayFocus ? ai.todayFocus : 'Teknik skor, piyasa genişliği ve takvimi birlikte değerlendirin.') + '</p></div>';
   h += '</section><section class="report-section" id="report-developments"><h2>Gelişmeler</h2>' +
     '<div id="marketNewsWorkspace" class="market-news-report" role="region" aria-label="Kaynaklı piyasa haberleri">Haber akışı yükleniyor…</div>';
-  if (ai && ai.macroSummary) h += '<div class="card report-reader-card"><div class="card-head"><h2>Makro görünüm</h2><span class="ai-badge">Yapay zeka yorumu</span></div><p class="rep-macro">' + FinansResearch.proseHtml(ai.macroSummary) + '</p></div>';
+  if (ai && ai.macroSummary) h += '<div class="report-reader-card"><div class="card-head"><h2>Makro görünüm</h2><span class="ai-badge">Yapay zeka yorumu</span></div><p class="rep-macro">' + FinansResearch.proseHtml(ai.macroSummary) + '</p></div>';
   h += FinansResearch.researchHtml(ai && ai.research) || '<div class="card"><p class="muted">Doğrulanmış araştırma gelişmesi henüz yok.</p></div>';
   h += '</section><section class="report-section" id="report-impact"><h2>Piyasa etkileri</h2>' + reportSignalOverlayHtml(base, integrity);
 
@@ -666,7 +663,7 @@ async function renderReport() {
 
   // Haftalık Retro
   if (ai && ai.weeklyRetro) {
-    h += '<div class="card reveal"><div class="card-head"><h2>Geçen Hafta Ne Dedik? (Haftalık Geri Bakış)</h2><span class="ai-badge">✦ Yapay zeka</span></div>' +
+    h += '<div class="card reveal"><div class="card-head"><h2>Geçen Hafta Ne Dedik? (Haftalık Geri Bakış)</h2><span class="ai-badge">Yapay zeka</span></div>' +
       '<p class="rep-macro">' + esc(ai.weeklyRetro) + '</p></div>';
   }
 
@@ -715,7 +712,7 @@ async function renderReport() {
   // Günün odağı özet bölümünde bir kez gösterilir; okuryazarlık ipucu bağımsız kalır.
   if (ai && ai.literacyTip) {
     h += '<div class="card reveal">';
-    if (ai.literacyTip) h += '<div class="tip-card" style="margin-top:14px"><h4>' + esc(ai.literacyTip.title || 'Günün dersi') + '</h4><p>' + esc(ai.literacyTip.body || '') + '</p></div>';
+    if (ai.literacyTip) h += '<div class="tip-card report-tip"><h4>' + esc(ai.literacyTip.title || 'Günün dersi') + '</h4><p>' + esc(ai.literacyTip.body || '') + '</p></div>';
     h += '</div>';
   }
 
@@ -727,13 +724,13 @@ async function renderReport() {
     const streak = parseInt(localStorage.getItem('finans-quiz-streak') || '0', 10);
     const hasPlayedToday = lastPlayed === quizDate;
     
-    h += '<div class="card reveal" id="quiz-card" style="margin-top: 14px;">';
+    h += '<div class="card reveal report-quiz" id="quiz-card">';
     h += '<div class="card-head"><h2>Günün Finansal Akıl Yürütme Sorusu</h2><span class="ai-badge">Günlük Soru</span></div>';
     h += '<p style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">' + esc(ai.quiz.question) + '</p>';
     
     if (hasPlayedToday) {
       const selectedIndex = parseInt(localStorage.getItem('finans-quiz-last-selected') || '0', 10);
-      h += '<div style="display: flex; flex-direction: column; gap: 8px;">';
+      h += '<div class="quiz-options">';
       ai.quiz.options.forEach((opt, idx) => {
         const isCorrect = idx === correctIndex;
         const isSelected = idx === selectedIndex;
@@ -752,18 +749,18 @@ async function renderReport() {
         h += '<div style="padding: 10px 14px; border-radius: 6px; font-size: 13px; ' + borderStyle + ' ' + bgStyle + '">' + icon + esc(opt) + '</div>';
       });
       h += '</div>';
-      h += '<div style="margin-top: 14px; padding: 12px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;">';
-      h += '<b style="color: ' + (selectedIndex === correctIndex ? 'var(--green)' : 'var(--red)') + ';">' + (selectedIndex === correctIndex ? 'Tebrikler! Doğru cevap.' : 'Yanlış cevap.') + '</b>';
-      h += '<p style="margin: 6px 0 0 0; font-size: 12.5px; color: var(--muted);">' + esc(ai.quiz.explanation) + '</p>';
+      h += '<div class="quiz-result">';
+      h += '<b class="' + (selectedIndex === correctIndex ? 'quiz-correct' : 'quiz-incorrect') + '">' + (selectedIndex === correctIndex ? 'Tebrikler! Doğru cevap.' : 'Yanlış cevap.') + '</b>';
+      h += '<p>' + esc(ai.quiz.explanation) + '</p>';
       h += '</div>';
-      h += '<div style="margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--accent);">🔥 Mevcut seri skoru: ' + streak + ' gün</div>';
+      h += '<div class="quiz-streak">Mevcut seri skoru: ' + streak + ' gün</div>';
     } else {
-      h += '<div style="display: flex; flex-direction: column; gap: 8px;" id="quiz-options-container">';
+      h += '<div class="quiz-options" id="quiz-options-container">';
       ai.quiz.options.forEach((opt, idx) => {
-        h += '<button class="btn" style="text-align: left; padding: 10px 14px; background: var(--bg-2); border: 1px solid var(--border); font-size: 13px; width: 100%; cursor: pointer;" onclick="submitQuizAnswer(' + idx + ', ' + ai.quiz.correctIndex + ', \'' + quizDate + '\')">' + esc(opt) + '</button>';
+        h += '<button class="btn quiz-option" type="button" onclick="submitQuizAnswer(' + idx + ', ' + ai.quiz.correctIndex + ', \'' + quizDate + '\')">' + esc(opt) + '</button>';
       });
       h += '</div>';
-      h += '<div id="quiz-streak-display" style="margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--accent);">🔥 Seri Skoru: ' + streak + ' gün</div>';
+      h += '<div id="quiz-streak-display" class="quiz-streak">Seri skoru: ' + streak + ' gün</div>';
     }
     h += '</div>';
   }
@@ -773,7 +770,20 @@ async function renderReport() {
   h += '<details class="report-extras"><summary>Ek analizler</summary><div class="card"><p class="muted">Üretim: ' + (ai ? 'kural-tabanlı teknik + yapay zeka makro/haber katmanı' : 'kural-tabanlı teknik (yapay zeka katmanı bekleniyor)') + ' · ' + relTime(base.generatedAt) + '. <b>Yatırım tavsiyesi değildir.</b></p></div></details>';
 
   const sourceRecords = ai && ai.research && Array.isArray(ai.research.sources) ? ai.research.sources : [];
-  const sourceRail = '<aside class="report-source-rail" aria-label="Rapor kaynakları"><h3>Kaynak defteri</h3><p class="muted">' + (sourceRecords.length ? sourceRecords.length + ' kayıt · Yayın saatleri İstanbul (UTC+3).' : 'Bu raporla eşleşen doğrulanmış araştırma kaynağı yok.') + '</p><ul>' + sourceRecords.map((source) => { let url; try { url = new URL(source.url); } catch (_) { return '<li>' + esc(source.title || 'Kaynak') + '</li>'; } return ['https:', 'http:'].includes(url.protocol) ? '<li><a href="' + esc(url.href).replace(/"/g, '&quot;') + '" target="_blank" rel="noopener noreferrer">' + esc(source.title || url.hostname) + '</a><span>' + esc(FinansResearch.sourcePublicationText(source.publishedAt)) + '</span></li>' : '<li>' + esc(source.title || 'Kaynak') + '</li>'; }).join('') + '</ul></aside>';
+  const sourceRows = sourceRecords.map((source) => {
+    const title = source && source.title ? String(source.title) : 'Kaynak';
+    const published = FinansResearch.sourcePublicationText(source && source.publishedAt);
+    let titleHtml = esc(title);
+    try {
+      const url = new URL(source && source.url);
+      if (['https:', 'http:'].includes(url.protocol)) {
+        titleHtml = '<a href="' + esc(url.href).replace(/"/g, '&quot;') + '" target="_blank" rel="noopener noreferrer">' + esc(title) + '</a>';
+      }
+    } catch (_) { /* keep the title and truthful unknown publication state */ }
+    return '<li><span class="source-ledger-title">' + titleHtml + '</span><span>' + esc(published) + '</span></li>';
+  }).join('');
+  const sourceLedgerMessage = sourceRecords.length ? '' : '<p class="muted">Bu raporla eşleşen doğrulanmış araştırma kaynağı yok.</p>';
+  const sourceRail = '<aside class="report-source-rail" aria-label="Rapor kaynakları"><details class="source-ledger" open><summary>Kaynak defteri <span class="source-ledger-count">' + sourceRecords.length + ' kayıt</span></summary><p class="source-ledger-footnote">Yayın saatleri İstanbul (UTC+3).</p>' + sourceLedgerMessage + (sourceRecords.length ? '<ul>' + sourceRows + '</ul>' : '') + '</details></aside>';
   el.innerHTML = '<div class="report-layout"><article class="report-reading-flow">' + h + '</article>' + sourceRail + '</div>';
   el.querySelectorAll('[data-open-model-workspace]').forEach((button) => button.addEventListener('click', () => { setView('overview'); activateOverviewTask('forecasts', true); }));
   if (window.FinansMacro && typeof window.FinansMacro.refresh === 'function') window.FinansMacro.refresh();
@@ -821,7 +831,7 @@ function weeklyHtml(base, ai) {
   const news = cal.companyNews || [];
   if (!wo && !econ.length && !earn.length && !news.length && !cal.coverage) return '';
 
-  let h = '<div class="card reveal"><div class="card-head"><h2>Bu Hafta: Veri &amp; Katalizör Takvimi</h2>' + (wo ? '<span class="ai-badge">✦ Yapay zeka · finans direktörü senaryosu</span>' : '') + '</div>';
+  let h = '<div class="card reveal"><div class="card-head"><h2>Bu Hafta: Veri &amp; Katalizör Takvimi</h2>' + (wo ? '<span class="ai-badge">Yapay zeka · finans direktörü senaryosu</span>' : '') + '</div>';
   if (cal.coverage) {
     const labels = { economic: 'Ekonomik takvim', earnings: 'Bilançolar', companyNews: 'Şirket haberleri' };
     const states = { available: 'Alındı', partial: 'Kısmi veri', unavailable: 'Kaynağa erişilemedi', empty: 'Kaynak döndü, olay bulunamadı' };
@@ -831,7 +841,7 @@ function weeklyHtml(base, ai) {
     }).join('') + '</div>';
   }
 
-  if (wo && wo.cfoSummary) h += '<div class="tip-card" style="margin-bottom:16px"><h4>Finans Direktörü Bakışı: Haftanın Sentezi</h4><p>' + esc(wo.cfoSummary) + '</p></div>';
+  if (wo && wo.cfoSummary) h += '<div class="tip-card report-tip"><h4>Finans Direktörü Bakışı: Haftanın Sentezi</h4><p>' + esc(wo.cfoSummary) + '</p></div>';
 
   // Senaryo kartları
   if (wo && Array.isArray(wo.events) && wo.events.length) {
@@ -872,9 +882,9 @@ function weeklyHtml(base, ai) {
   if (earn.length) {
     const wlEarn = earn.filter((e) => e.watch);
     h += '<div class="rep-section"><h3>Bilanço takvimi</h3>';
-    if (wlEarn.length) h += '<p class="muted" style="margin:0 0 8px">⭐ Takip listenizden: ' + wlEarn.map((e) => '<b>' + esc(e.symbol) + '</b> (' + esc(e.date) + ')').join(', ') + '</p>';
-    else h += '<p class="muted" style="margin:0 0 8px">Bu hafta takip listenizden bilanço açıklayan yok.</p>';
-    if (wo && wo.earningsFocus) h += '<p class="rep-macro" style="font-size:13px;margin-bottom:10px">' + esc(wo.earningsFocus) + '</p>';
+    if (wlEarn.length) h += '<p class="muted report-calendar-note">⭐ Takip listenizden: ' + wlEarn.map((e) => '<b>' + esc(e.symbol) + '</b> (' + esc(e.date) + ')').join(', ') + '</p>';
+    else h += '<p class="muted report-calendar-note">Bu hafta takip listenizden bilanço açıklayan yok.</p>';
+    if (wo && wo.earningsFocus) h += '<p class="rep-macro report-calendar-note">' + esc(wo.earningsFocus) + '</p>';
     const earningsRows = (items) => items.map((e) => '<span class="chip' + (e.watch ? ' chip-watch' : '') + '">' + esc(e.symbol) + ' · ' + esc(fullDate(e.date)) + (e.epsEstimate != null ? ' · HBK ' + esc(String(e.epsEstimate)) : '') + '</span>').join('');
     h += '<div class="chips">' + earningsRows(earn.slice(0,14)) + '</div>' + (earn.length > 14 ? '<details><summary>Diğer ' + (earn.length - 14) + ' bilanço kaydını göster</summary><div class="chips">' + earningsRows(earn.slice(14)) + '</div></details>' : '') + '</div>';
   }
@@ -887,7 +897,7 @@ function weeklyHtml(base, ai) {
     }).join('') + '</div>';
   }
 
-  if (wo && wo.positioning) h += '<div class="tip-card" style="margin-top:14px"><h4>Pozisyon Disiplini</h4><p>' + esc(wo.positioning) + '</p></div>';
+  if (wo && wo.positioning) h += '<div class="tip-card report-tip"><h4>Pozisyon Disiplini</h4><p>' + esc(wo.positioning) + '</p></div>';
 
   h += '</div>';
   return h;

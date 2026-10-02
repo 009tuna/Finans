@@ -239,6 +239,57 @@ async function testStaleReportGuard() {
   assert.equal(report.innerHTML, '', 'a superseded report request cannot paint stale content');
 }
 
+async function testReportContentSurvivesLayoutChange() {
+  const report = element();
+  report.querySelectorAll = () => [];
+  const research = require('../public/research.js');
+  const sources = Array.from({ length: 12 }, (_, index) => ({
+    id: 'source-' + index, title: 'Kaynak ' + index,
+    url: 'https://example.com/evidence/' + index, publishedAt: '2026-10-02T08:00:00Z',
+  }));
+  sources.push({ id: 'unsafe', title: '<img onerror=bad>', url: 'javascript:alert(1)' });
+  const data = {
+    base: { generatedAt: '2026-10-02T08:00:00Z', date: '2026-10-02',
+      quality: { status: 'partial' }, sentiment: { total: 133, buys: 26, gainers: 105, avg: 39, label: 'Temkinli' },
+      opportunities: [{ symbol: 'TEST', market: 'us', summary: 'Teknik aday kaydı', label: 'AL', score: 71 }],
+      signals: { oversold: ['OVERSOLD_TEST'], overbought: ['OVERBOUGHT_TEST'], goldenCross: ['GOLDEN_TEST'],
+        deathCross: ['DEATH_TEST'], volumeSpike: ['VOLUME_TEST'], strongMomentum: ['MOMENTUM_TEST'] },
+      risks: [{ market: 'us', symbol: 'TEST', reason: 'Risk gerekçesi' }],
+    },
+    ai: { todayFocus: 'Model odağı <img src=x>', macroSummary: 'Makro gerekçe', weeklyRetro: 'Haftalık kayıt',
+      worldNews: [{ title: 'Dünya kaydı', impact: 'olumsuz' }], commentary: { us: 'ABD yorumu', bist: 'BIST yorumu', crypto: 'Kripto yorumu' },
+      literacyTip: { title: 'Eğitim kaydı', body: 'Öğrenme açıklaması' },
+      quiz: { question: 'Quiz kaydı', options: ['A', 'B'], correctIndex: 0 },
+      research: { sources, events: [{ title: 'Araştırma kaydı', market: 'us', whatChanged: 'Kanıt açıklaması', sourceIds: ['source-0'] }] },
+    },
+    integrity: { usableResearch: true, baseStatus: 'snapshot-mismatch', researchStatus: 'previous-analysis', analysisAsOf: '2026-10-02T08:00:00Z' },
+    automation: { status: 'completed', stages: [] },
+  };
+  const ctx = context({ activeView: 'report', reportRequest: 0, loadReportCache: async () => data,
+    FinansResearch: { ...research, loadEvaluation() {} }, URL,
+    esc: (value) => String(value == null ? '' : value).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])),
+    fullTimestamp: research.timestamp, relTime: () => 'önce',
+    reportSignalOverlayHtml: () => '', weeklyHtml: () => '<h2>Takvim kaydı</h2>', triggerRevealAnimations() {}, reduceMotion: true,
+  }, { '#reportContent': report });
+  const start = appSource.indexOf('async function renderReport()');
+  evaluate(appSource.slice(start, appSource.indexOf('\nfunction esc(', start)), ctx);
+  await ctx.renderReport();
+  const rendered = report.innerHTML;
+  for (const marker of ['Model odağı', 'Makro gerekçe', 'Haftalık kayıt', 'Dünya kaydı', 'Teknik aday kaydı', 'OVERSOLD_TEST',
+    'OVERBOUGHT_TEST', 'GOLDEN_TEST', 'DEATH_TEST', 'VOLUME_TEST', 'MOMENTUM_TEST',
+    'Risk gerekçesi', 'ABD yorumu', 'BIST yorumu', 'Kripto yorumu', 'Eğitim kaydı', 'Quiz kaydı', 'Araştırma kaydı', 'Takvim kaydı']) {
+    assert.ok(rendered.includes(marker), `report retains ${marker}`);
+  }
+  for (let index = 0; index < 12; index++) assert.ok(rendered.includes('https://example.com/evidence/' + index), 'every source remains reachable');
+  assert.doesNotMatch(rendered, /href="javascript:|<img/);
+  assert.match(rendered, /Rapor güncel fiyat verisiyle eşleşmiyor/);
+  assert.match(rendered, /Veri kapsamı eksik/);
+  const sectionIds = ['report-summary', 'report-developments', 'report-impact', 'report-calendar', 'report-evaluation'];
+  for (let index = 1; index < sectionIds.length; index++) {
+    assert.ok(rendered.indexOf('id="' + sectionIds[index - 1] + '"') < rendered.indexOf('id="' + sectionIds[index] + '"'), 'report reading order is preserved');
+  }
+}
+
 async function testOverviewBriefingReportSuccessAndFailure() {
   const briefing = element();
   const status = element();
@@ -326,6 +377,7 @@ async function testStaleChartGuard() {
   await testRefreshDoesNotStealMovedFocus();
   testModifiedHomePreservesBrowserBehavior();
   await testStaleReportGuard();
+  await testReportContentSurvivesLayoutChange();
   await testOverviewBriefingReportSuccessAndFailure();
   await testStaleChartGuard();
   console.log('ui-ux behavioral tests passed');

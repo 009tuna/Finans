@@ -1,5 +1,7 @@
 # Finans — yoğun çalışma alanı düzeltmesi
 
+Bu ilk sıkılaştırma taslağı son görsel yön değildir. Kullanıcının yeniden tasarım isteğiyle [çalışma alanını yeniden kuran paket](2026-10-02-workspace-rebuild.md) tarafından geçersiz kılınmıştır. Aşağıdaki ölçüler ve test kaydı yalnız bu eski taslağa aittir.
+
 Kullanıcı son ekranı büyük yazı, gereksiz boşluk, geniş sol menü ve dar ana içerik nedeniyle reddetti. Önceki görsel kabul geri çekildi. Esas hedef ekranda daha fazla işlev ve veri görmektir.
 
 ## Güncel uygulama kararı
