@@ -19,6 +19,7 @@ const { isAuthorized } = require('./src/admin-auth');
 const { handleJournal } = require('./src/journal-api');
 const { getReportPayload } = require('./src/report-api');
 const { handleResearch } = require('./src/research-api');
+const { handleIntelligence } = require('./src/intelligence-api');
 
 const ROOT = __dirname;
 
@@ -64,6 +65,13 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', 'http://localhost');
   let p = decodeURIComponent(url.pathname);
   try {
+    if (p === '/api/macro' || p === '/api/market-news'
+      || (p === '/api/report' && ['macro', 'market-news'].includes(url.searchParams.get('resource')))) {
+      const resource = p === '/api/report' ? url.searchParams.get('resource') : p.slice('/api/'.length);
+      const result = await handleIntelligence(req, { resource });
+      res.writeHead(result.status, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
+      return res.end(JSON.stringify(result.body));
+    }
     if (p === '/api/data') {
       const data = await getLatestSnapshot();
       res.writeHead(200, { 'Content-Type': MIME['.json'] });
@@ -199,11 +207,11 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify({ error: (e && e.message) || 'Değerleme hatası' }));
       }
     }
-    if (p === '/api/forecast/scenarios' && req.method === 'GET') {
+    if (p === '/api/forecast/scenarios' && ['GET', 'POST'].includes(req.method)) {
       try {
-        const [portfolio, latestData] = await Promise.all([getPortfolio(), getLatestSnapshot()]);
-        const usdtry = latestData && latestData.fx && latestData.fx.usdtry;
-        const result = runStressTest(portfolio, latestData, usdtry);
+        const params = req.method === 'POST' ? JSON.parse(await readBody(req)) : null;
+        const [portfolio, latestData] = req.method === 'POST' ? [params?.portfolio, params?.data] : await Promise.all([getPortfolio(), getLatestSnapshot()]);
+        const result = runStressTest(portfolio, latestData);
         res.writeHead(200, { 'Content-Type': MIME['.json'] });
         return res.end(JSON.stringify(result));
       } catch (e) {
@@ -243,7 +251,7 @@ server.listen(PORT, () => {
 
 // Sunucu acikken her sabah 09:00'da otomatik tazeleme (dakika basi kontrol).
 let lastAuto = '';
-setInterval(async () => {
+if (process.env.FINANS_DISABLE_AUTO_REFRESH !== '1') setInterval(async () => {
   const now = new Date();
   const stamp = now.toISOString().slice(0, 10);
   if (now.getHours() === 9 && now.getMinutes() === 0 && lastAuto !== stamp) {
