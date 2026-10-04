@@ -24,7 +24,7 @@ function harness() {
     },
   };
   const context = {
-    document, console: { error() {} }, window: {}, DATA: {}, portfolioData: null,
+    document, console: { error() {} }, window: {}, DATA: {}, portfolioData: null, activeView: 'us',
     esc: (value) => String(value),
     authedFetch: (url, options) => new Promise((resolve, reject) => {
       requests.push({ url, body: JSON.parse(options.body), resolve, reject });
@@ -116,14 +116,14 @@ function harness() {
   await saved;
   assert.equal(h.inspect().JOURNAL.notes['us:AAPL'].thesis, 'first thesis');
   assert.equal(h.inspect().noteDrafts['us:AAPL'].thesis, 'new thesis while pending');
-  assert.match(note.status.textContent, /Önceki not kaydedildi/);
+  assert.match(note.status.textContent, /AAPL notu kaydedildi.*Yeni değişiklikler taslak/);
   assert.match(h.context.noteCard({ market: 'us', symbol: 'AAPL' }), /new thesis while pending/);
   const nextSave = h.submit(note);
   h.finish();
   await nextSave;
   assert.equal(h.inspect().noteDrafts['us:AAPL'], undefined);
   assert.equal(h.inspect().JOURNAL.notes['us:AAPL'].thesis, 'new thesis while pending');
-  assert.match(note.status.textContent, /Kaydedildi/);
+  assert.match(note.status.textContent, /AAPL tez ve takip notu kaydedildi/);
 
   // A failed note POST restores saved data and preserves the most recent input for retry.
   h.input(note, 'invalidation', 'new stop');

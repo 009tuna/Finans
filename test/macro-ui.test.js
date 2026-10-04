@@ -39,7 +39,7 @@ assert.equal(macro.exactOutcome(validMacro, event), null, 'missing actual remain
 const panel = macro.renderMacro(validMacro, '', now);
 assert.match(panel, /75 bin kişi/, 'first-release observation and its matched method estimate are visible');
 assert.doesNotMatch(panel, /900 bin kişi|999 bin kişi/, 'revision and mismatched forecast are excluded');
-assert.match(panel, /Doğrulanmış konsensüs yok/, 'no sourced consensus is invented');
+assert.match(panel, /Bu dönem için konsensüs doğrulanamadı/, 'no sourced consensus is invented');
 assert.doesNotMatch(panel, />0 bin kişi</, 'null values never render as numeric zero');
 assert.match(panel, /n=0/, 'insufficient sample is explicit');
 assert.match(panel, /&lt;unsafe&gt;/, 'model rationale is escaped');
@@ -69,8 +69,8 @@ assert.match(calibrationPanel({ eligibleN: 0, excludedN: '3' }), /geçerli sonu�
 assert.doesNotMatch(calibrationPanel({ eligibleN: 0, excludedN: '3' }), / · hariç 3/, 'string exclusion counts cannot be coerced into measured results');
 assert.match(calibrationPanel({ eligibleN: 7, excludedN: 3 }), /geçerli sonuç 7\/15 · hariç 3/);
 const incompleteSource = { ...validMacro, modelForecasts: [{ eventId: event.eventId, metric: METRIC, unit: UNIT, period: event.period, pointEstimate: 88, consensus: 90, consensusSourceId: 'a', createdAt: '2099-01-01T12:00:00Z', sourceEvidence: [{ id: 'b', url: 'https://example.com/source', publishedAt: '2099-01-01T11:00:00Z' }] }] };
-assert.match(macro.renderMacro(incompleteSource, '', now), /Doğrulanmış konsensüs yok/, 'unmatched evidence cannot verify a consensus');
-const sourceBacked = { ...incompleteSource, modelForecasts: [{ ...incompleteSource.modelForecasts[0], consensusSourceId: 'a', sourceEvidence: [{ id: 'a', url: 'https://example.com/source', publishedAt: '2099-01-01T11:00:00Z', title: 'Survey', evidence: 'Reported estimate' }] }] };
+assert.match(macro.renderMacro(incompleteSource, '', now), /Bu dönem için konsensüs doğrulanamadı/, 'unmatched evidence cannot verify a consensus');
+const sourceBacked = { ...incompleteSource, modelForecasts: [{ ...incompleteSource.modelForecasts[0], scheduledAt: event.scheduledAt, createdAt: '2098-12-31T23:30:00Z', recordedAt: '2098-12-31T23:30:00Z', knowledgeCutoff: '2098-12-31T23:00:00Z', consensusSourceId: 'a', sourceEvidence: [{ id: 'a', url: 'https://example.com/source', publishedAt: '2098-12-31T22:00:00Z', title: 'Survey', evidence: 'Reported estimate' }] }] };
 assert.match(macro.renderMacro(sourceBacked, '', now), /90 bin kişi/, 'consensus requires the matching source published before the model cutoff');
 const independentConsensus = { ...sourceBacked, consensus: { eventId: event.eventId, metric: METRIC, unit: UNIT, period: event.period, value: 101, vintage: 'pre_release_consensus',
   publishedAt: '2098-12-31T22:50:00Z', observedAt: '2098-12-31T23:00:00Z', scheduledAt: '2099-02-05T16:30:00+03:00',
@@ -88,19 +88,19 @@ assert.match(independentPanel, /Earlier survey/);
 assert.doesNotMatch(independentPanel, /Wrong event/);
 assert.doesNotMatch(independentPanel, /Doğrulanmış konsensüs<\/span><b>90 bin kişi/, 'old frozen model consensus does not replace the independent observation');
 const futureConsensus = { ...independentConsensus, consensus: { ...independentConsensus.consensus, observedAt: '2099-01-01T00:01:00Z' } };
-assert.match(macro.renderMacro(futureConsensus, '', Date.parse('2099-01-01T00:00:00Z')), /Doğrulanmış konsensüs yok/);
+assert.match(macro.renderMacro(futureConsensus, '', Date.parse('2099-01-01T00:00:00Z')), /Bu dönem için konsensüs doğrulanamadı/);
 const postReleaseConsensus = { ...independentConsensus, consensus: { ...independentConsensus.consensus, observedAt: event.scheduledAt } };
-assert.match(macro.renderMacro(postReleaseConsensus, '', Date.parse('2099-01-01T00:00:00Z')), /Doğrulanmış konsensüs yok/);
+assert.match(macro.renderMacro(postReleaseConsensus, '', Date.parse('2099-01-01T00:00:00Z')), /Bu dönem için konsensüs doğrulanamadı/);
 const mismatchedConsensus = { ...independentConsensus, consensus: { ...independentConsensus.consensus, eventId: 'other-event' } };
-assert.match(macro.renderMacro(mismatchedConsensus, '', Date.parse('2099-01-01T00:00:00Z')), /Doğrulanmış konsensüs yok/);
-assert.match(macro.renderMacro({ ...independentConsensus, consensus: { ...independentConsensus.consensus, scheduledAt: '2099-02-05T16:31:00+03:00' } }, '', Date.parse('2099-01-01T00:00:00Z')), /Doğrulanmış konsensüs yok/, 'consensus for a different release time is rejected');
-assert.match(macro.renderMacro({ ...independentConsensus, consensus: { ...independentConsensus.consensus, scheduleConflict: true } }, '', Date.parse('2099-01-01T00:00:00Z')), /Doğrulanmış konsensüs yok/, 'a consensus record marked with schedule conflict is rejected');
-assert.match(macro.renderMacro({ ...independentConsensus, consensus: { ...independentConsensus.consensus, vintage: 'post_release_actual' } }, '', Date.parse('2099-01-01T00:00:00Z')), /Doğrulanmış konsensüs yok/, 'only explicit pre-release consensus vintage is eligible');
-assert.match(macro.renderMacro({ ...independentConsensus, event: undefined, events: [{ ...event, scheduleConflict: true }] }, '', Date.parse('2099-01-01T00:00:00Z')), /Doğrulanmış konsensüs yok/, 'a conflicting event schedule disqualifies consensus');
+assert.match(macro.renderMacro(mismatchedConsensus, '', Date.parse('2099-01-01T00:00:00Z')), /Bu dönem için konsensüs doğrulanamadı/);
+assert.match(macro.renderMacro({ ...independentConsensus, consensus: { ...independentConsensus.consensus, scheduledAt: '2099-02-05T16:31:00+03:00' } }, '', Date.parse('2099-01-01T00:00:00Z')), /Bu dönem için konsensüs doğrulanamadı/, 'consensus for a different release time is rejected');
+assert.match(macro.renderMacro({ ...independentConsensus, consensus: { ...independentConsensus.consensus, scheduleConflict: true } }, '', Date.parse('2099-01-01T00:00:00Z')), /Bu dönem için konsensüs doğrulanamadı/, 'a consensus record marked with schedule conflict is rejected');
+assert.match(macro.renderMacro({ ...independentConsensus, consensus: { ...independentConsensus.consensus, vintage: 'post_release_actual' } }, '', Date.parse('2099-01-01T00:00:00Z')), /Bu dönem için konsensüs doğrulanamadı/, 'only explicit pre-release consensus vintage is eligible');
+assert.match(macro.renderMacro({ ...independentConsensus, event: undefined, events: [{ ...event, scheduleConflict: true }] }, '', Date.parse('2099-01-01T00:00:00Z')), /Bu dönem için konsensüs doğrulanamadı/, 'a conflicting event schedule disqualifies consensus');
 const explicitNoConsensus = { ...sourceBacked, consensus: null, consensusStatus: { status: 'unavailable' } };
-assert.match(macro.renderMacro(explicitNoConsensus, '', now), /Doğrulanmış konsensüs yok/, 'explicit no-consensus status cannot fall back to a model forecast consensus');
-const lateModelSource = { ...sourceBacked, modelForecasts: [{ ...sourceBacked.modelForecasts[0], knowledgeCutoff: '2099-01-01T10:00:00Z', knowledgeCutoffBasis: 'research_analysis_as_of', recordedAt: '2099-01-01T12:00:00Z' }] };
-assert.match(macro.renderMacro(lateModelSource, '', now), /Doğrulanmış konsensüs yok/, 'publication after the knowledge cutoff is rejected even if it predates recording');
+assert.match(macro.renderMacro(explicitNoConsensus, '', now), /Bu dönem için konsensüs doğrulanamadı/, 'explicit no-consensus status cannot fall back to a model forecast consensus');
+const lateModelSource = { ...sourceBacked, modelForecasts: [{ ...sourceBacked.modelForecasts[0], knowledgeCutoff: '2098-12-31T21:00:00Z', knowledgeCutoffBasis: 'research_analysis_as_of' }] };
+assert.match(macro.renderMacro(lateModelSource, '', now), /Bu dönem için konsensüs doğrulanamadı/, 'publication after the knowledge cutoff is rejected even if it predates recording');
 assert.match(macro.renderMacro(sourceBacked, '', now), /Model tahmini/, 'model point estimate remains visible in the first-screen summary');
 const completed = { ...validMacro, events: [], outcomes: [{ eventId: 'us_nonfarm_payroll_change:2098-11', period: '2098-11', actual: 123, publishedAt: '2098-12-01T13:30:00Z', sourceUrl: 'https://www.bls.gov/actual', vintage: 'first_release' }], forecasts: [{ eventId: 'us_nonfarm_payroll_change:2098-11', metric: METRIC, unit: UNIT, methodId: 'macro:last-observation:v1', estimate: 120 }] };
 assert.match(macro.renderMacro(completed, '', now), /Son açıklanan sonuçlar/, 'completed event outcomes remain reachable after nextEvent moves forward');
@@ -147,11 +147,11 @@ const abstentionPanel = macro.renderMacro({ ...validMacro, methodAbstentions: [{
 assert.match(abstentionPanel, /Yöntem kıyası \(2 kayıt\)/);
 assert.match(abstentionPanel, /denemesi:<\/b> 1\.01\.2099 14:15/, 'attempt timestamps remain available in the shared source and time disclosure');
 const twoModelViews = { ...validMacro,
-  modelForecasts: [{ id: 'forecast-100', eventId: event.eventId, metric: METRIC, unit: UNIT, period: event.period, pointEstimate: 100, model: 'frozen-v1', createdAt: '2099-01-01T10:00:00Z', recordedAt: '2099-01-01T10:15:00Z', knowledgeCutoff: '2099-01-01T09:00:00Z', knowledgeCutoffBasis: 'research_generated_at', rationale: 'Frozen rationale stays reviewable.' }],
+  modelForecasts: [{ id: 'forecast-100', eventId: event.eventId, metric: METRIC, unit: UNIT, period: event.period, scheduledAt: event.scheduledAt, pointEstimate: 100, model: 'frozen-v1', createdAt: '2099-01-01T10:00:00Z', recordedAt: '2099-01-01T10:15:00Z', knowledgeCutoff: '2099-01-01T09:00:00Z', knowledgeCutoffBasis: 'research_generated_at', rationale: 'Frozen rationale stays reviewable.', sourceEvidence: [{ id: 'first-source', url: 'https://example.com/first-source', publishedAt: '2098-12-31T12:00:00Z' }] }],
   modelForecastReviews: [{ originalForecastId: 'forecast-100', eventId: event.eventId, metric: METRIC, unit: UNIT, period: event.period, pointEstimate: 89,
-    originalPointEstimate: 100, runId: 'run-89', recordedAt: '2099-01-01T10:30:00Z', createdAt: '2099-01-01T10:30:00Z', model: 'current-v1', rationale: 'Older review remains in evidence.', reviewOnly: true,
+    originalPointEstimate: 100, runId: 'run-89', scheduledAt: event.scheduledAt, knowledgeCutoff: '2099-01-01T10:30:00Z', recordedAt: '2099-01-01T10:30:00Z', createdAt: '2099-01-01T10:30:00Z', model: 'current-v1', rationale: 'Older review remains in evidence.', reviewOnly: true,
     sourceEvidence: [{ title: 'Older source', url: 'https://example.com/old-review', publishedAt: '2099-01-01T10:20:00Z' }] }, { originalForecastId: 'forecast-100', eventId: event.eventId, metric: METRIC, unit: UNIT, period: event.period, pointEstimate: 90,
-    originalPointEstimate: 100, runId: 'run-90', recordedAt: '2099-01-01T11:00:00Z', createdAt: '2099-01-01T11:00:00Z', model: 'current-v2', rationale: 'Current research view.', reviewOnly: true,
+    originalPointEstimate: 100, runId: 'run-90', scheduledAt: event.scheduledAt, knowledgeCutoff: '2099-01-01T11:00:00Z', recordedAt: '2099-01-01T11:00:00Z', createdAt: '2099-01-01T11:00:00Z', model: 'current-v2', rationale: 'Current research view.', reviewOnly: true,
     sourceEvidence: [{ title: 'Review source', url: 'https://example.com/review', publishedAt: '2099-01-01T10:30:00Z', evidence: 'Supporting text.' }] }],
   modelScenarios: [{ eventId: event.eventId, period: event.period, referenceEstimate: 90, referenceKind: 'current_model_opinion', condition: 'If hiring slows', impact: 'Risk appetite may weaken.', invalidation: 'Next release accelerates.', market: 'us', horizon: 'Short term' }],
 };

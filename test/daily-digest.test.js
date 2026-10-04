@@ -10,7 +10,7 @@ const renderSource = app.slice(app.indexOf('function renderDailyDigest()'), app.
 const asset = (symbol, confidence, score = 60) => ({ market: 'us', symbol, analysis: { score, label: 'TUT', tone: 'hold' }, decision: { confidence } });
 const render = (data) => {
   const el = { innerHTML: '' };
-  const context = vm.createContext({ $: () => el, window: { FinansActionLayer: ActionLayer }, DATA: data, esc: (value) => String(value == null ? '' : value) });
+  const context = vm.createContext({ $: () => el, window: { FinansActionLayer: ActionLayer }, DATA: data, esc: (value) => String(value == null ? '' : value), technicalSignalLabel: require('../public/insights').technicalSignalLabel });
   vm.runInContext(renderSource, context);
   context.renderDailyDigest();
   return el.innerHTML;

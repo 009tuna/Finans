@@ -19,7 +19,7 @@ function harness() {
   const context = {
     console: { error() {} },
     window: { FinansActionLayer: { buildAlertRules: () => [{ trigger: 'stop', action: 'review' }] } },
-    DATA: {}, portfolioData: null, esc: (value) => String(value),
+    DATA: {}, portfolioData: null, activeView: 'us', esc: (value) => String(value),
     fetch: () => new Promise((resolve, reject) => reads.push({ resolve, reject })),
     authedFetch: (url, options) => new Promise((resolve, reject) => writes.push({ resolve, reject, body: JSON.parse(options.body) })),
     document: {

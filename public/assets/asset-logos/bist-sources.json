@@ -1,0 +1,802 @@
+[
+  {
+    "symbol": "AEFES",
+    "name": "ANADOLU EFES BİRACILIK VE MALT SANAYİİ A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/anadolu-efes.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-AEFES/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "AGHOL",
+    "name": "AG ANADOLU GRUBU HOLDİNG A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/anadolu-grubu-holding.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-AGHOL/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "AKSA",
+    "name": "AKSA AKRİLİK KİMYA SANAYİİ A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/aksa-akrilik.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-AKSA/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "AKSEN",
+    "name": "AKSA ENERJİ ÜRETİM A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/aksa-enerji.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-AKSEN/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "ALARK",
+    "name": "ALARKO HOLDİNG A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/alarko-holding.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-ALARK/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "ALTNY",
+    "name": "Altinay Savunma Teknolojileri A.S.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/altinay-savunma.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-ALTNY/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "ANSGR",
+    "name": "ANADOLU ANONİM TÜRK SİGORTA ŞİRKETİ",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/anadolu-sigorta.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-ANSGR/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "ARCLK",
+    "name": "ARÇELİK A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/arcelik.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-ARCLK/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "ASELS",
+    "name": "ASELSAN ELEKTRONİK SANAYİ VE TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/aselsan.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-ASELS/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "ASTOR",
+    "name": "ASTOR ENERJİ A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/astor-enerji.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-ASTOR/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "BALSU",
+    "name": "Balsu Gida Sanayi ve Ticaret Anonim Sirketi",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/balsu-gida.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-BALSU/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "BERA",
+    "name": "BERA HOLDİNG A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/bera-holding.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-BERA/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "BIMAS",
+    "name": "BİM BİRLEŞİK MAĞAZALAR A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/magazalar.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-BIMAS/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "BRSAN",
+    "name": "BORUSAN MANNESMANN BORU SANAYİ VE TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/borusan-mannesmann.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-BRSAN/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "BRYAT",
+    "name": "BORUSAN YATIRIM VE PAZARLAMA A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/borusan-yat-paz.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-BRYAT/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "BSOKE",
+    "name": "BATISÖKE SÖKE ÇİMENTO SANAYİİ T.A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/batisoke-cimento.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-BSOKE/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "BTCIM",
+    "name": "BATIÇİM BATI ANADOLU ÇİMENTO SANAYİİ A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/bati-cimento.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-BTCIM/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "CANTE",
+    "name": "ÇAN2 TERMİK A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/can2-termik.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-CANTE/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "CCOLA",
+    "name": "COCA-COLA İÇECEK A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/coca-cola.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-CCOLA/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "CIMSA",
+    "name": "ÇİMSA ÇİMENTO SANAYİ VE TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/cimsa-cimento.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-CIMSA/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "CVKMD",
+    "name": "CVK MADEN İŞLETMELERİ SANAYİ VE TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/cvk-maden.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-CVKMD/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "CWENE",
+    "name": "CW ENERJİ MÜHENDİSLİK TİCARET VE SANAYİ A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/cw-enerji.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-CWENE/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "DAPGM",
+    "name": "DAP GAYRİMENKUL GELİŞTİRME A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/dap-gayrimenkul.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-DAPGM/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "DOAS",
+    "name": "DOĞUŞ OTOMOTİV SERVİS VE TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/dogus-otomotiv.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-DOAS/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "DOHOL",
+    "name": "DOĞAN ŞİRKETLER GRUBU HOLDİNG A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/dogan-holding.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-DOHOL/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "DSTKF",
+    "name": "DESTEK FAKTORİNG A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/destek-finans-faktoring.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-DSTKF/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "ECILC",
+    "name": "EİS ECZACIBAŞI İLAÇ SINAİ VE FİNANSAL YATIRIMLAR SANAYİ VE TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/eczacibasi-ilac.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-ECILC/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "EFOR",
+    "name": "Efor Yatirim Sanayi Ticaret A.S.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/efor-cay-sanayi.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-EFOR/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "EKGYO",
+    "name": "EMLAK KONUT GAYRİMENKUL YATIRIM ORTAKLIĞI A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/emlak-konut-gmyo.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-EKGYO/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "ENERY",
+    "name": "Enerya Enerji A.S.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/enerya-enerji.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-ENERY/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "ENJSA",
+    "name": "ENERJİSA ENERJİ A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/enerjisa-enerji.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-ENJSA/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "ENKAI",
+    "name": "ENKA İNŞAAT VE SANAYİ A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/enka-insaat.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-ENKAI/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "EREGL",
+    "name": "EREĞLİ DEMİR VE ÇELİK FABRİKALARI T.A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/eregli-demir.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-EREGL/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "EUPWR",
+    "name": "EUROPOWER ENERJİ VE OTOMASYON TEKNOLOJİLERİ SANAYİ TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/europower-enerji.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-EUPWR/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "EUREN",
+    "name": "EUROPEN ENDÜSTRİ İNŞAAT SANAYİ VE TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/europen-endustri.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-EUREN/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "FENER",
+    "name": "FENERBAHÇE FUTBOL A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/fenerbahce-futbol.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-FENER/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "FROTO",
+    "name": "FORD OTOMOTİV SANAYİ A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/ford-otosan.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-FROTO/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "GARAN",
+    "name": "TÜRKİYE GARANTİ BANKASI A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/garanti.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-GARAN/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "GENIL",
+    "name": "GEN İLAÇ VE SAĞLIK ÜRÜNLERİ SANAYİ VE TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/gen-ilac.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-GENIL/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "GESAN",
+    "name": "GİRİŞİM ELEKTRİK SANAYİ TAAHHÜT VE TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/girisim-elektrik.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-GESAN/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "GLRMK",
+    "name": "Gulermak Agir Sanayi Insaat Ve Taahhut A.S.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/gulermak-agir-sanayi.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-GLRMK/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "GRSEL",
+    "name": "GÜR-SEL TURİZM TAŞIMACILIK VE SERVİS TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/gur-sel-turizm-tasimacilik.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-GRSEL/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "GRTHO",
+    "name": "Grainturk Holding A.S.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/grainturk.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-GRTHO/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "GSRAY",
+    "name": "GALATASARAY SPORTİF SINAİ VE TİCARİ YATIRIMLAR A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/galatasaray-sportif.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-GSRAY/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "GUBRF",
+    "name": "GÜBRE FABRİKALARI T.A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/gubre-fabrik.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-GUBRF/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "HALKB",
+    "name": "TÜRKİYE HALK BANKASI A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/t-halk-bankasi.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-HALKB/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "HEKTS",
+    "name": "HEKTAŞ TİCARET T.A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/hektas.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-HEKTS/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "ISCTR",
+    "name": "TÜRKİYE İŞ BANKASI A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/is-bankasi.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-ISCTR/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "ISMEN",
+    "name": "İŞ YATIRIM MENKUL DEĞERLER A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/is-y-men-deg.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-ISMEN/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "IZENR",
+    "name": "Izdemir Enerji Elektrik Uretim A.S.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/izdemir-enerji.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-IZENR/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "KCHOL",
+    "name": "KOÇ HOLDİNG A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/koc.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-KCHOL/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "KLRHO",
+    "name": "KİLER HOLDİNG A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/kiler.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-KLRHO/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "KRDMD",
+    "name": "KARDEMİR KARABÜK DEMİR ÇELİK SANAYİ VE TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/kardemir.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-KRDMD/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "KTLEV",
+    "name": "KATILIMEVIM TASARRUF FINANSMAN A.S.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/katilimevim-tas-fin.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-KTLEV/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "KUYAS",
+    "name": "KUYAŞ YATIRIM A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/kuyas-yatirim.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-KUYAS/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "MAGEN",
+    "name": "MARGÜN ENERJİ ÜRETİM SANAYİ VE TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/margun-enerji.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-MAGEN/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "MAVI",
+    "name": "MAVİ GİYİM SANAYİ VE TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/mavi-giyim.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-MAVI/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "MGROS",
+    "name": "MİGROS TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/migros-ticaret.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-MGROS/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "MIATK",
+    "name": "MİA TEKNOLOJİ A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/mia-teknoloji.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-MIATK/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "MPARK",
+    "name": "MLP SAĞLIK HİZMETLERİ A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/mlp-saglik.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-MPARK/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "OBAMS",
+    "name": "Oba Makarnacilik Sanayi Ve Ticaret A. S.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/oba-makarnacilik.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-OBAMS/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "ODAS",
+    "name": "ODAŞ ELEKTRİK ÜRETİM SANAYİ TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/odas.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-ODAS/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "OTKAR",
+    "name": "OTOKAR OTOMOTİV VE SAVUNMA SANAYİ A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/otokar.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-OTKAR/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "OYAKC",
+    "name": "OYAK ÇİMENTO FABRİKALARI A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/oyak-cimento.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-OYAKC/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "PAHOL",
+    "name": "PASIFIK HOLDING A.S",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/pasifik-as.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-PAHOL/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "PASEU",
+    "name": "Pasifik Eurasia Lojistik dis Ticaret AS",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/pasifik-eurasia-lojistik.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-PASEU/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "PATEK",
+    "name": "Pasifik Teknoloji AS",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/pasifik-teknoloji.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-PATEK/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "PETKM",
+    "name": "PETKİM PETROKİMYA HOLDİNG A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/petkim.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-PETKM/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "PGSUS",
+    "name": "PEGASUS HAVA TAŞIMACILIĞI A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/pegasus.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-PGSUS/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "PSGYO",
+    "name": "PASİFİK GAYRİMENKUL YATIRIM ORTAKLIĞI A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/pasifik-gmyo.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-PSGYO/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "QUAGR",
+    "name": "QUA GRANITE HAYAL YAPI VE ÜRÜNLERİ SANAYİ TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/qua-granite.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-QUAGR/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "RALYH",
+    "name": "RAL YATIRIM HOLDİNG A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/ral-yatirim-holding.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-RALYH/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "REEDR",
+    "name": "Reeder Teknoloji Sanayi ve Ticaret A.S.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/reeder-teknoloji.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-REEDR/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "SAHOL",
+    "name": "HACI ÖMER SABANCI HOLDİNG A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/sabanci-holding.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-SAHOL/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "SARKY",
+    "name": "SARKUYSAN ELEKTROLİTİK BAKIR SANAYİ VE TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/sarkuysan.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-SARKY/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "SASA",
+    "name": "SASA POLYESTER SANAYİ A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/sasa-polyester.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-SASA/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "SISE",
+    "name": "TÜRKİYE ŞİŞE VE CAM FABRİKALARI A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/sisecam.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-SISE/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "SKBNK",
+    "name": "ŞEKERBANK T.A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/sekerbank.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-SKBNK/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "SOKM",
+    "name": "ŞOK MARKETLER TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/sok-marketler-ticaret.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-SOKM/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "TABGD",
+    "name": "TAB Gida Sanayi ve Ticaret A.S.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/tab-gida.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-TABGD/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "TAVHL",
+    "name": "TAV HAVALİMANLARI HOLDİNG A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/tav-havalimanlari.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-TAVHL/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "TCELL",
+    "name": "TURKCELL İLETİŞİM HİZMETLERİ A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/turkcell.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-TCELL/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "TERA",
+    "name": "TERA YATIRIM MENKUL DEĞERLER A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/tera-yatirim-menkul-degerler.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-TERA/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "THYAO",
+    "name": "TÜRK HAVA YOLLARI A.O.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/turk-hava-yollari.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-THYAO/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "TKFEN",
+    "name": "TEKFEN HOLDİNG A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/tekfen.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-TKFEN/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "TOASO",
+    "name": "TOFAŞ TÜRK OTOMOBİL FABRİKASI A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/tofas-oto-fab.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-TOASO/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "TRALT",
+    "name": "Turk Altin Isletmeleri A.S.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/koza-altin.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-TRALT/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "TRENJ",
+    "name": "TR Dogal Enerji Kaynaklari Arastirma ve Uretim Anonim Sirketi",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/ipek-dogal-enerji.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-TRENJ/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "TRMET",
+    "name": "TR Anadolu Metal Madencilik Isletmeleri Anonim Sirketi",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/koza-madencilik.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-TRMET/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "TSKB",
+    "name": "TÜRKİYE SINAİ KALKINMA BANKASI A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/t-s-k-b.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-TSKB/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "TTKOM",
+    "name": "TÜRK TELEKOMÜNİKASYON A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/turk-telekom.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-TTKOM/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "TUKAS",
+    "name": "TUKAŞ GIDA SANAYİ VE TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/tukas-gida.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-TUKAS/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "TUPRS",
+    "name": "TÜPRAŞ-TÜRKİYE PETROL RAFİNERİLERİ A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/tupras.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-TUPRS/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "TUREX",
+    "name": "TUREKS TURİZM TAŞIMACILIK A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/tureks-turizm-tasimacilik.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-TUREX/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "TURSG",
+    "name": "TÜRKİYE SİGORTA A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/turkiye-sigorta.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-TURSG/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "ULKER",
+    "name": "ÜLKER BİSKÜVİ SANAYİ A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/ulker-biskuvi.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-ULKER/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "VAKBN",
+    "name": "TÜRKİYE VAKIFLAR BANKASI T.A.O.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/vakiflar-bankasi.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-VAKBN/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "VESTL",
+    "name": "VESTEL ELEKTRONİK SANAYİ VE TİCARET A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/vestel.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-VESTL/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "YKBNK",
+    "name": "YAPI VE KREDİ BANKASI A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/yapi-ve-kredi.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-YKBNK/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  },
+  {
+    "symbol": "ZOREN",
+    "name": "ZORLU ENERJİ ELEKTRİK ÜRETİM A.Ş.",
+    "logoUrl": "https://s3-symbol-logo.tradingview.com/zorlu-enerji.svg",
+    "sourcePage": "https://tr.tradingview.com/symbols/BIST-ZOREN/",
+    "checkedAt": "2026-10-04T17:26:36.459Z",
+    "status": "verified"
+  }
+]

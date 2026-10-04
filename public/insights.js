@@ -25,13 +25,38 @@
     return String(text).split(' — ')[0].split(' (')[0].trim();
   }
 
+  // Display wording describes the measured technical signal, never an order.
+  const SIGNAL_LABELS = {
+    'strong-buy': 'Güçlü olumlu',
+    'buy': 'Olumlu',
+    'hold': 'Karışık',
+    'reduce': 'Zayıflıyor',
+    'sell': 'Olumsuz',
+  };
+  const RAW_SIGNAL_TONES = { 'GUCLU AL': 'strong-buy', 'GÜÇLÜ AL': 'strong-buy', 'AL': 'buy', 'TUT': 'hold', 'AZALT': 'reduce', 'SAT': 'sell' };
+
+  function technicalSignalLabel(value) {
+    const analysis = value && typeof value === 'object' ? (value.analysis || value) : null;
+    if (analysis && Object.prototype.hasOwnProperty.call(analysis, 'score') &&
+      (typeof analysis.score !== 'number' || !Number.isFinite(analysis.score) || analysis.score < 0 || analysis.score > 100)) return 'Ölçülemedi';
+    const tone = analysis ? analysis.tone : value;
+    if (SIGNAL_LABELS[tone]) return SIGNAL_LABELS[tone];
+    const raw = String(analysis ? (analysis.label || '') : (value || '')).trim().replace(/\s+/g, ' ').toUpperCase();
+    return SIGNAL_LABELS[RAW_SIGNAL_TONES[raw]] || 'Ölçülemedi';
+  }
+
+  function controlStatusLabel(status) {
+    // A high control score can coexist with a freshness warning or contradiction.
+    return { clean: 'Kontrol puanı yüksek', caution: 'Kontrol uyarıları var', blocked: 'Kontrol engeli var' }[status] || 'Kontrol durumu bilinmiyor';
+  }
+
   // ---- VERDICT (tone → sade başlık öbeği) ----
   const VERDICT_PHRASE = {
-    'strong-buy': 'Güçlü alım sinyali',
-    'buy': 'Alım sinyali',
-    'hold': 'Bekle / izle',
-    'reduce': 'Azaltma sinyali',
-    'sell': 'Satış sinyali',
+    'strong-buy': 'Teknik sinyal güçlü olumlu',
+    'buy': 'Teknik sinyal olumlu',
+    'hold': 'Teknik sinyal karışık',
+    'reduce': 'Teknik sinyal zayıflıyor',
+    'sell': 'Teknik sinyal olumsuz',
   };
 
   // Round-trip işlem maliyeti (oran) — src/costs.js ile SENKRON tutulmalı.
@@ -68,7 +93,7 @@
 
     // ---- Başlık (Katman 1: Sonuç) ----
     const verdict = a.label;
-    const phrase = VERDICT_PHRASE[a.tone] || a.label;
+    const phrase = VERDICT_PHRASE[a.tone] || 'Teknik sinyal: ' + technicalSignalLabel(a);
     let headline;
     const strongTxt = strongest ? strongest[0].toLowerCase() + ' güçlü (' + strongest[1] + '/100)' : null;
     const weakTxt = weakest ? weakest[0].toLowerCase() + ' zayıf (' + weakest[1] + '/100)' : null;
@@ -100,12 +125,12 @@
     const qBits = [];
     if (d.freshness && d.freshness.label) qBits.push(d.freshness.label);
     if (d.confidence && d.confidence.label) qBits.push(d.confidence.label);
-    const STATUS_LABEL = { clean: 'sağlam', caution: 'dikkatli', blocked: 'riskli' };
     const quality = {
       status: d.status || null, // clean | caution | blocked
-      statusLabel: d.status ? (STATUS_LABEL[d.status] || d.status) : null,
+      statusLabel: d.status ? controlStatusLabel(d.status) : null,
       score: typeof d.score === 'number' && Number.isFinite(d.score) && d.score >= 0 && d.score <= 100 ? d.score : null,
-      note: qBits.join(' · ') || 'Karar kalitesi verisi yok',
+      note: qBits.join(' · ') || 'Veri ve sinyal kontrolü kaydı yok',
+      scope: 'Fiyat zamanı, sinyal kararlılığı ve gösterge çelişkilerini ölçer; yatırım riskinin tamamını veya başarı olasılığını ölçmez.',
     };
 
     // ---- Rejim & uygunluk (raporların ana dersi) ----
@@ -278,7 +303,7 @@
     finalActions.push(honesty);
 
     const headline = (riskLevel.label === 'Belirsiz' ? 'Makro veya veri kapsamı eksik; toplam risk düşük olarak sınıflandırılamıyor' : 'Piyasa ortamı ' + riskLevel.label.toLowerCase() + ' riskli')
-      + (avgQuality != null ? ' · ortalama karar kalitesi ' + avgQuality + '/100' : '')
+      + (avgQuality != null ? ' · ortalama veri ve sinyal kontrolü ' + avgQuality + '/100' : '')
       + (environment.length ? '. ' + environment.slice(0, 3).join(' · ') + '.' : '.');
 
     return {
@@ -291,5 +316,5 @@
     };
   }
 
-  return { explainDecision: explainDecision, explainBacktest: explainBacktest, buildExecutiveSummary: buildExecutiveSummary };
+  return { technicalSignalLabel: technicalSignalLabel, controlStatusLabel: controlStatusLabel, explainDecision: explainDecision, explainBacktest: explainBacktest, buildExecutiveSummary: buildExecutiveSummary };
 });

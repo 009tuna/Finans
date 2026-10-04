@@ -34,7 +34,16 @@ const document = {
   querySelectorAll(selector) { return selector === '.overview-task-tab' ? center.tabs : selector === '[data-overview-context-tab]' ? contextTabs.tabs : []; },
   getElementById(id) { return center.panels.get(id) || contextTabs.panels.get(id) || null; },
 };
-const sandbox = { document, sessionStorage: store };
+const candidateMotion = { reveals: [], cancellations: 0 };
+const cockpit = {};
+const sandbox = {
+  document, sessionStorage: store, reduceMotion: false,
+  $(selector) { return selector === '#cfoDecisionCockpit' ? cockpit : null; },
+  window: { FinansExperience: {
+    cancelCandidateMotion() { candidateMotion.cancellations += 1; },
+    revealCandidateCards(container, options) { candidateMotion.reveals.push({ container, reducedMotion: options.reducedMotion }); },
+  } },
+};
 vm.runInNewContext(app.slice(start, end), sandbox);
 sandbox.overviewTaskSelection = 'invalid';
 sandbox.overviewContextSelection = 'invalid';
@@ -45,6 +54,7 @@ assert.equal(center.panels.get('overview-panel-decisions').hidden, false);
 assert.equal(center.panels.get('overview-panel-forecasts').hidden, true);
 assert.equal(contextTabs.tabs[0].attributes['aria-selected'], 'true', 'invalid context selection falls back to markets');
 assert.equal(saved.get('finans-overview-task'), 'decisions');
+assert.equal(candidateMotion.reveals.length, 0, 'initial tab restoration does not animate candidate content');
 
 let prevented = false;
 center.tabs[0].listeners.keydown({ key: 'ArrowRight', preventDefault() { prevented = true; } });
@@ -57,6 +67,11 @@ center.tabs[1].listeners.keydown({ key: 'End', preventDefault() {} });
 assert.equal(center.tabs[2].attributes.tabindex, '0', 'End selects last tab using roving tabindex');
 center.tabs[2].listeners.keydown({ key: 'Home', preventDefault() {} });
 assert.equal(center.tabs[0].attributes['aria-selected'], 'true', 'Home selects first task');
+assert.equal(candidateMotion.reveals.length, 1, 'manual return to candidates reveals the cards once');
+assert.equal(candidateMotion.reveals[0].container, cockpit, 'motion stays scoped to candidate cards');
+assert.equal(candidateMotion.reveals[0].reducedMotion, false);
+center.tabs[0].listeners.click();
+assert.equal(candidateMotion.reveals.length, 1, 'clicking the selected candidates tab does not replay motion');
 center.tabs[1].listeners.click();
 for (const modifier of ['ctrlKey', 'metaKey', 'altKey']) {
   let modifiedPrevented = false;
@@ -75,4 +90,9 @@ for (const modifier of ['ctrlKey', 'metaKey', 'altKey']) {
 }
 sandbox.activateOverviewTask('forecasts');
 assert.equal(saved.get('finans-overview-task'), 'forecasts', 'returning task selection remains persisted');
+assert.equal(candidateMotion.reveals.length, 1, 'programmatic selection does not replay motion');
+sandbox.reduceMotion = true;
+sandbox.activateOverviewTask('decisions', true);
+assert.equal(candidateMotion.reveals.at(-1).reducedMotion, true, 'reduced-motion preference reaches the motion helper');
+assert.ok(candidateMotion.cancellations >= 5, 'manual tab changes cancel outstanding candidate motion');
 console.log('overview task tab keyboard, focus, fallback and session-memory tests passed');

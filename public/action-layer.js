@@ -1,13 +1,27 @@
 // Action layer: deterministic dashboard action surfaces for browser and Node tests.
 (function (root, factory) {
   var evidence = root && root.FinansPredictionEvidence;
+  var insights = root && root.FinansInsights;
   if (typeof module === 'object' && module.exports) {
     try { evidence = require('./prediction-evidence'); } catch (_) { evidence = null; }
+    try { insights = require('./insights'); } catch (_) { insights = null; }
   }
-  if (typeof module === 'object' && module.exports) module.exports = factory(evidence);
-  else root.FinansActionLayer = factory(evidence);
-})(typeof self !== 'undefined' ? self : this, function (predictionEvidence) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(evidence, insights);
+  else root.FinansActionLayer = factory(evidence, insights);
+})(typeof self !== 'undefined' ? self : this, function (predictionEvidence, insights) {
   'use strict';
+
+  function technicalSignalLabel(value) {
+    return insights && insights.technicalSignalLabel ? insights.technicalSignalLabel(value) : 'Ölçülemedi';
+  }
+
+  function controlStatusLabel(status) {
+    return insights && insights.controlStatusLabel ? insights.controlStatusLabel(status) : 'Kontrol durumu bilinmiyor';
+  }
+
+  function hasNoteText(value) {
+    return typeof value === 'string' && value.trim().length > 0;
+  }
 
   function pct(v) {
     if (v == null || isNaN(v)) return '-';
@@ -214,7 +228,7 @@
           kind: 'reduce',
           symbol: r.symbol,
           tone: 'neg',
-          text: r.symbol + ': teknik puan ' + r.score + ', etiket ' + r.label + '. Azaltma veya yeni eklemeyi durdurma planını incele.',
+          text: r.symbol + ': teknik puan ' + r.score + ', teknik sinyal ' + technicalSignalLabel(r.label).toLowerCase() + '. Ağırlık ve stop planını yeniden incele.',
         });
       } else if (r.weightPct > 35) {
         actions.push({
@@ -275,16 +289,15 @@
 
   function buildAssetThesis(asset, reportBase) {
     if (!asset || !asset.analysis) return null;
-    const label = asset.analysis.label || 'IZLE';
     const tone = asset.analysis.tone || 'hold';
     const trade = activeLongPlan(asset);
     const pos = firstReason(asset, 'pos');
     const neg = firstReason(asset, 'neg');
-    const verb = tone === 'strong-buy' || tone === 'buy' ? 'Alım yönlü teknik taslak' : tone === 'hold' ? 'Bekle tezi' : 'Risk azaltma taslağı';
+    const verb = tone === 'strong-buy' || tone === 'buy' ? 'Olumlu teknik görünüm taslağı' : tone === 'hold' ? 'Karışık teknik görünüm taslağı' : 'Zayıf teknik görünüm taslağı';
     const thesis = verb + ': ' + (asset.symbol || '') + ' için ana dayanak ' + (pos || asset.analysis.summary || 'teknik skor') + '.';
     const invalidation = trade && trade.stop != null
       ? 'Teknik planın stop seviyesi ' + money(trade.stop, asset.currency) + '; bu eşik ihlal edilirse görüş yeniden incelenmeli.'
-      : 'Aktif AL sinyali yok; giriş ve bozulma eşiği henüz tanımlı değil.';
+      : 'Aktif teknik giriş planı yok; giriş ve geçersiz kılma eşiği henüz tanımlı değil.';
     const catalysts = [];
     const news = reportBase && reportBase.calendar && reportBase.calendar.companyNews;
     (news || []).forEach(function (n) {
@@ -327,7 +340,7 @@
     const alerts = [];
     const trade = activeLongPlan(asset);
     if (trade && trade.stop != null) {
-      alerts.push({ tone: 'neg', trigger: asset.symbol + ' stop ' + money(trade.stop, asset.currency) + ' altina inerse', action: 'Eşiğin ihlalini fiyat kaynağından doğrula; kayıtlı bozulma koşulunu ve pozisyon riskini yeniden incele.' });
+      alerts.push({ tone: 'neg', trigger: asset.symbol + ' stop ' + money(trade.stop, asset.currency) + ' altina inerse', action: 'Eşiğin ihlalini fiyat kaynağından doğrula; tezi geçersiz kılan kayıtlı koşulu ve pozisyon riskini yeniden incele.' });
     }
     const rsi = asset.ind && asset.ind.rsi;
     if (rsi != null) {
@@ -573,8 +586,8 @@
       empty: false,
       summary: modern ? 'Örüntü önerileri ayrı bir ileri dönem örnekleminde doğrulanmadan puanı değiştirmez.' : 'Bu rapor eski öğrenme yöntemini kullanıyor. Çıkarımları arşiv bağlamıdır; etkin kural veya ölçülmüş başarı sayılmaz.',
       metrics: [
-        { label: 'İncelenen kayıt', value: learning.totalAudits || 0 },
-        { label: 'Ölçüme uygun sistem kaydı', value: modern ? learning.systemAudits || 0 : 'Doğrulanmadı' },
+        { label: 'İncelenen kayıt', value: Number.isSafeInteger(learning.totalAudits) && learning.totalAudits >= 0 ? learning.totalAudits : 'Doğrulanmadı' },
+        { label: 'Ölçüme uygun sistem kaydı', value: modern && Number.isSafeInteger(learning.systemAudits) && learning.systemAudits >= 0 ? learning.systemAudits : 'Doğrulanmadı' },
         { label: 'Örüntü önerisi', value: proposals.length },
         { label: 'Aktif kural', value: 0 },
       ],
@@ -644,7 +657,7 @@
     const status = decisionStatus(asset);
     const note = journal && journal.notes ? journal.notes[journalKey(asset)] : null;
     const openPrediction = hasOpenPrediction(journal, asset);
-    const hasThesis = !!(note && (note.thesis || note.invalidation));
+    const hasThesis = !!(note && (hasNoteText(note.thesis) || hasNoteText(note.invalidation)));
     const topRisk = asset.ind && asset.ind.pos52 != null && asset.ind.pos52 >= 0.9 && asset.ind.macd && asset.ind.macd.histogram < 0;
 
     if (score < 35 || tone === 'sell') {
@@ -657,7 +670,7 @@
     if (score >= 62 && !topRisk && status !== 'blocked') {
       return {
         bucket: 'advance',
-        reason: 'Skor ve karar kalitesi daha derin calisma icin yeterli; yine de nihai tavsiye degil.',
+        reason: 'Teknik puan ve veri/sinyal kontrolü daha derin araştırmayı destekliyor; araştırmanın tamamlandığını göstermez.',
         nextWorkflow: hasThesis ? 'thesis tracker -> catalyst calendar' : 'thesis tracker -> company tearsheet',
       };
     }
@@ -830,7 +843,7 @@
       reason = compact(analysis.summary, 220);
     } else {
       reason = 'Teknik puan ' + analysis.score + '/100';
-      if (typeof analysis.label === 'string' && analysis.label.trim()) reason += '; ' + analysis.label.trim() + ' sinyali';
+      if (analysis.tone || (typeof analysis.label === 'string' && analysis.label.trim())) reason += '; teknik sinyal ' + technicalSignalLabel(analysis).toLowerCase();
       reason += '.';
       if (trade) reason += ' Aktif işlem sinyali mevcut.';
     }
@@ -843,15 +856,15 @@
   function cockpitNextAction(asset, status, trade, note, snapshot) {
     const decision = asset.decision || {};
     const freshness = decision.freshness || {};
-    if (freshness.status === 'stale' || freshness.status === 'delayed') return 'Önce fiyat verisini yenile; teknik sinyali yeniden kontrol et.';
+    if (freshness.status === 'stale' || freshness.status === 'delayed') return 'Fiyat kaydının zamanını ve kaynağını incele; yeni bir fiyat geldiğinde teknik sinyali yeniden kontrol et.';
     if (freshness.status === 'unknown' || !snapshot || !snapshot.generatedAt) return 'Önce fiyatın zamanını doğrula; teknik sinyali yeniden kontrol et.';
-    if (decision.status === 'blocked') return 'Karar kontrolündeki uyarıları incele; yeni işlem için planı yeniden doğrula.';
-    if (status === 'blocked') return 'Yeni alım yerine sinyalin toparlanmasını izle; pozisyonun varsa çıkış koşullarını incele.';
+    if (decision.status === 'blocked') return 'Veri ve sinyal kontrolündeki uyarıları incele; teknik planın dayandığı veriyi doğrula.';
+    if (status === 'blocked') return 'Teknik sinyal zayıf; pozisyonun varsa çıkış koşullarını incele.';
     if (status === 'ready') return 'Giriş, stop ve hedefi portföy risk limitlerinle birlikte kontrol et.';
     const research = asset.market === 'crypto' ? 'Protokol, likidite ve arzı araştır' : 'Şirketi, kârı ve nakit akışını araştır';
     if (status === 'watch') return research + '; teknik sinyali izlemeye devam et.';
     if (!trade) return 'Aktif giriş/stop/hedef sinyalini bekle; ' + research.toLowerCase() + '.';
-    if (!note || !note.thesis || !note.invalidation) return research + '; tezini ve bozulma koşulunu tamamla.';
+    if (!note || !hasNoteText(note.thesis) || !hasNoteText(note.invalidation)) return research + '; tezini ve tezi geçersiz kılan koşulu tamamla.';
     return research + '; eksik kanıtları tamamla.';
   }
 
@@ -865,6 +878,41 @@
     return null;
   }
 
+  /** Direct each candidate to its actual next unresolved task, keeping saved facts separate from UI visits. */
+  function buildCandidateTask(row) {
+    const candidate = row || {};
+    let task;
+    if (candidate.sourceGate || candidate.snapshotTimeMissing) {
+      task = { kind: 'price', label: 'Fiyat zamanını incele', panel: 'overview', target: 'freshness', field: null,
+        reason: candidate.sourceGate || 'Veri kesitinin zamanı doğrulanmadı.' };
+    } else if (candidate.controlBlocked) {
+      task = { kind: 'control', label: 'Kontrol uyarılarını incele', panel: 'overview', target: 'control', field: null,
+        reason: 'Veri ve sinyal kontrolü teknik planı engelliyor.' };
+    } else if (candidate.status === 'blocked') {
+      task = { kind: 'technical', label: 'Karşı sinyali incele', panel: 'technical', target: 'evidence', field: null,
+        reason: candidate.bindingReason || 'Teknik sinyal yeni pozisyon incelemesi için zayıf.' };
+    } else if (candidate.hasThesis === false) {
+      task = { kind: 'thesis', label: 'Tez notunu yaz', panel: 'notes', target: 'thesis', field: 'thesis',
+        reason: 'Bu varlık için kaydedilmiş bir tez notu yok.' };
+    } else if (candidate.hasInvalidation === false) {
+      task = { kind: 'invalidation', label: 'Geçersiz kılma koşulunu ekle', panel: 'notes', target: 'invalidation', field: 'invalidation',
+        reason: 'Tezi geçersiz kılan koşul henüz kaydedilmedi.' };
+    } else if (candidate.hasActivePlan === false) {
+      task = { kind: 'technical', label: 'Teknik planı incele', panel: 'technical', target: 'trade', field: null,
+        reason: 'Aktif giriş, stop ve hedef planı yok.' };
+    } else if ((candidate.researchGaps || []).length) {
+      task = { kind: 'research', label: 'Araştırma kanıtını incele', panel: 'research', target: 'evidence', field: null,
+        reason: candidate.researchGaps[0] };
+    } else if (candidate.status === 'ready') {
+      task = { kind: 'risk', label: 'Pozisyon riskini incele', panel: 'overview', target: 'risk', field: null,
+        reason: 'Tez ve teknik plan kayıtlı; pozisyon boyutu ayrı bir kontroldür.' };
+    } else {
+      task = { kind: 'research', label: 'Araştırma kaynaklarını incele', panel: 'research', target: 'evidence', field: null,
+        reason: 'Teknik puan ve notlar araştırmanın tamamlandığını göstermez.' };
+    }
+    return Object.assign(task, { market: candidate.market || null, symbol: candidate.symbol || null });
+  }
+
   function buildCfoDecisionCockpit(snapshot, journal, reportBase) {
     const rows = [];
     assetsByMarket(snapshot).forEach(function (asset) {
@@ -875,8 +923,10 @@
       const overlay = getOverlayForAsset(asset, reportBase || {});
       const gaps = overlayGaps(overlay);
       const missing = [];
-      if (!note || !note.thesis) missing.push('tez notu yok');
-      if (!note || !note.invalidation) missing.push('tez bozulma koşulu yok');
+      const hasThesis = !!note && hasNoteText(note.thesis);
+      const hasInvalidation = !!note && hasNoteText(note.invalidation);
+      if (!hasThesis) missing.push('tez notu yok');
+      if (!hasInvalidation) missing.push('tezi geçersiz kılan koşul yok');
       gaps.forEach(function (g) {
         if (missing.indexOf(g) < 0) missing.push(g);
       });
@@ -884,17 +934,17 @@
       if (!snapshot || !snapshot.generatedAt) missing.push('veri tarihi eksik');
       const sourceGate = cockpitSourceGate(asset);
       const decisionBlocked = asset.decision && asset.decision.status === 'blocked';
-      const gatingReason = decisionBlocked ? 'Karar kontrolü işlemi engelliyor.' : sourceGate;
+      const gatingReason = decisionBlocked ? 'Veri ve sinyal kontrolü teknik planı engelliyor.' : sourceGate;
       if (sourceGate) missing.unshift(sourceGate);
-      if (decisionBlocked) missing.unshift('Karar kontrolü işlemi engelliyor.');
+      if (decisionBlocked) missing.unshift('Veri ve sinyal kontrolü teknik planı engelliyor.');
 
       let status = 'watch';
       if (score < 35 || tone === 'sell' || decisionBlocked) status = 'blocked';
       else if (score >= 62 && !missing.length) status = 'ready';
       else if (score >= 60 || (overlay && overlay.totalAdjustment < 0)) status = 'gated';
 
-      const bindingReason = decisionBlocked ? 'Karar kontrolü işlemi engelliyor.' : status === 'blocked'
-        ? (score < 35 ? 'teknik skor karar için zayıf' : 'satış sinyali yeni pozisyona uygun değil')
+      const bindingReason = decisionBlocked ? 'Veri ve sinyal kontrolü teknik planı engelliyor.' : status === 'blocked'
+        ? (score < 35 ? 'teknik puan yeni pozisyon incelemesi için zayıf' : 'teknik sinyal olumsuz')
         : missing[0] || 'sinyal izlenebilir, bağlayıcı eksik yok';
       const decisionAsk = status === 'ready'
         ? 'ekle / tut kararı'
@@ -904,7 +954,7 @@
             ? 'uzak dur / çıkışı incele'
             : 'izleme listesi';
 
-      rows.push({
+      const row = {
         market: asset.market,
         marketLabel: marketName(asset.market),
         symbol: asset.symbol,
@@ -929,7 +979,18 @@
               ? 'sermaye ayırmadan önce sinyali onar'
               : 'tez takibi',
         adjustedScore: overlay && overlay.adjustedScore != null ? overlay.adjustedScore : score,
-      });
+        hasMacroOverlay: !!overlay,
+        macroEffectAvailable: !!overlay && Number.isFinite(overlay.adjustedScore) && overlay.adjustedScore >= 0 && overlay.adjustedScore <= 100 && Number.isFinite(overlay.totalAdjustment),
+        sourceGate: sourceGate,
+        snapshotTimeMissing: !snapshot || !snapshot.generatedAt,
+        controlBlocked: !!decisionBlocked,
+        hasThesis: hasThesis,
+        hasInvalidation: hasInvalidation,
+        hasActivePlan: !!trade,
+        researchGaps: gaps.slice(),
+      };
+      row.task = buildCandidateTask(row);
+      rows.push(row);
     });
 
     const rank = { ready: 0, gated: 1, watch: 2, blocked: 3 };
@@ -963,7 +1024,7 @@
     });
     return {
       summary: rows.length
-        ? (counts.ready || 0) + ' aday hazır, ' + (counts.gated || 0) + ' aday kanıt bekliyor, ' + (counts.watch || 0) + ' aday izleniyor, ' + (counts.blocked || 0) + ' aday işlem için uygun değil.'
+        ? (counts.ready || 0) + ' adayın tez ve teknik planı kayıtlı, ' + (counts.gated || 0) + ' aday kanıt bekliyor, ' + (counts.watch || 0) + ' aday izleniyor, ' + (counts.blocked || 0) + ' aday teknik kontrolde engelleniyor.'
         : 'Karar oluşturmak için piyasa verisi bekleniyor.',
       counts: counts,
       rows: rows.slice(0, 8),
@@ -1067,16 +1128,16 @@
     const decision = asset.decision || {};
     const metrics = [
       { label: 'Fiyat', value: money(asset.price, asset.currency) },
-      { label: 'Teknik skor', value: asset.analysis ? asset.analysis.score + ' / 100' : '-' },
-      { label: 'Karar kalitesi', value: decision.score != null ? decision.score + ' / 100' : '-' },
+      { label: 'Teknik puan', value: asset.analysis ? asset.analysis.score + ' / 100' : '-' },
+      { label: 'Veri ve sinyal kontrolü', value: decision.score != null ? decision.score + ' / 100' : '-' },
       { label: 'RSI', value: asset.ind && asset.ind.rsi != null ? asset.ind.rsi : '-' },
       { label: 'ATR %', value: asset.ind && asset.ind.atrPct != null ? asset.ind.atrPct + '%' : '-' },
     ];
-    const thesis = note && note.thesis ? note.thesis : (asset.analysis && asset.analysis.summary) || 'Henüz tez notu yok.';
+    const thesis = note && hasNoteText(note.thesis) ? note.thesis : (asset.analysis && asset.analysis.summary) || 'Henüz tez notu yok.';
     const gaps = [];
     if (asset.market === 'crypto') gaps.push('Protokol, likidite ve arz araştırması bu teknik veri paketinde yok.');
     else if (!asset.fundamentals && !asset.fund) gaps.push('Kaynaklı temel finansallar ve finansal tahmin verisi eksik.');
-    if (!note || !note.invalidation) gaps.push('Kayıtlı tez bozulma koşulu eksik.');
+    if (!note || !hasNoteText(note.invalidation)) gaps.push('Tezi geçersiz kılan kayıtlı koşul eksik.');
     if (!snapshot || !snapshot.generatedAt) gaps.push('Veri kesitinin zamanı eksik.');
     return {
       symbol: asset.symbol,
@@ -1127,7 +1188,7 @@
       .concat(tear.gaps || [])
       .concat(overlayGaps(overlay));
     const sourceGate = cockpitSourceGate(asset);
-    if (!note || !note.thesis) gaps.unshift('Kayıtlı tez notu eksik.');
+    if (!note || !hasNoteText(note.thesis)) gaps.unshift('Kayıtlı tez notu eksik.');
     if (!trade) gaps.unshift('Aktif giriş, stop ve hedef planı eksik.');
     if (!snapshot || !snapshot.generatedAt) gaps.unshift('Veri kesitinin zamanı eksik.');
     if (sourceGate) gaps.unshift(sourceGate);
@@ -1136,7 +1197,7 @@
     let verdict = 'screen-grade';
     if (sourceGate || (asset.decision && asset.decision.status === 'blocked') || score == null || !Number.isFinite(score) || score < 35 || score > 100) verdict = 'blocked';
     else if (!trade || !snapshot || !snapshot.generatedAt) verdict = 'blocked';
-    else if (note && note.thesis && note.invalidation && score >= 60 && !overlayGaps(overlay).length) verdict = 'senior-review-ready';
+    else if (note && hasNoteText(note.thesis) && hasNoteText(note.invalidation) && score >= 60 && !overlayGaps(overlay).length) verdict = 'senior-review-ready';
 
     const decisionAsk = verdict === 'blocked'
       ? 'Önce fiyat kaydını ve aktif teknik planı doğrula.'
@@ -1145,16 +1206,16 @@
         : 'Bu teknik tarama notunu ilerletmeden önce tez ve kanıt eksiklerini tamamla.';
 
     const whatWeBelieve = [
-      (asset.symbol || 'Varlık') + ' teknik skoru ' + (score == null ? '-' : score) + '/100; etiketi ' + ((asset.analysis && asset.analysis.label) || '-'),
-      (note && note.thesis ? 'Kayıtlı tez: ' + note.thesis : 'Teknik özet: ' + tear.thesis),
+      (asset.symbol || 'Varlık') + ' teknik puanı ' + (score == null ? '-' : score) + '/100; teknik sinyal ' + technicalSignalLabel(asset).toLowerCase(),
+      (note && hasNoteText(note.thesis) ? 'Kayıtlı tez: ' + note.thesis : 'Teknik özet: ' + tear.thesis),
       comps.readThrough,
     ];
     const riskTransmission = [
-      note && note.invalidation ? 'Kayıtlı bozulma koşulu: ' + note.invalidation : 'Kişisel tez için bozulma koşulu henüz kaydedilmedi.',
+      note && hasNoteText(note.invalidation) ? 'Tezi geçersiz kılan kayıtlı koşul: ' + note.invalidation : 'Kişisel tezi geçersiz kılan koşul henüz kaydedilmedi.',
       trade ? 'Stop ve hedef teknik plana ait eşiklerdir; gerçekleşen işlem fiyatını garanti etmez.' : 'Aktif giriş planı olmadığı için stop mesafesine göre boyutlama yapılamıyor.',
     ];
     if (overlay && overlay.totalAdjustment < 0) {
-      riskTransmission.push('Makro katmanı ayarlanmış skoru ' + Math.abs(overlay.totalAdjustment) + ' puan azaltıyor.');
+      riskTransmission.push('Makro etkisi ayarlanmış puanı ' + Math.abs(overlay.totalAdjustment) + ' puan azaltıyor.');
     }
 
     return {
@@ -1174,7 +1235,7 @@
         riskTransmission: riskTransmission,
         nextActions: [
           'Pozisyon boyutunu risk bütçesiyle hesapla.',
-          'Tez ve bozulma koşulunu kaydet veya güncelle.',
+          'Tezi ve tezi geçersiz kılan koşulu kaydet veya güncelle.',
           'Gündem veya teknik puan değiştiğinde görüşü yeniden incele.',
         ],
       },
@@ -1182,6 +1243,9 @@
   }
 
   return {
+    technicalSignalLabel: technicalSignalLabel,
+    controlStatusLabel: controlStatusLabel,
+    buildCandidateTask: buildCandidateTask,
     buildDailyChangeDigest: buildDailyChangeDigest,
     buildPortfolioValuation: buildPortfolioValuation,
     buildPortfolioActions: buildPortfolioActions,

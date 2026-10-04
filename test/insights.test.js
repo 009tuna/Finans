@@ -31,13 +31,13 @@ const buyAsset = {
 const dec = explainDecision(buyAsset);
 assert.equal(dec.verdict, 'GUCLU AL');
 assert.equal(dec.tone, 'strong-buy');
-assert.ok(/Güçlü alım sinyali/.test(dec.headline), 'başlık verdict öbeği içermeli');
+assert.ok(/Teknik sinyal güçlü olumlu/.test(dec.headline), 'başlık teknik sinyalin ölçülen yönünü içermeli');
 assert.ok(/momentum/i.test(dec.headline), 'en güçlü alan başlıkta geçmeli');
 assert.ok(dec.pros.length >= 2, 'en az 2 lehte madde');
 assert.ok(dec.cons.length >= 1, 'en az 1 dikkat maddesi');
 assert.ok(/stop/i.test(dec.plan) && /Risk\/Ödül/.test(dec.plan), 'plan stop ve R:R içermeli');
 assert.equal(dec.quality.status, 'clean');
-assert.equal(dec.quality.statusLabel, 'sağlam');
+assert.equal(dec.quality.statusLabel, 'Kontrol puanı yüksek');
 assert.ok(/Trend \(yukarı\)/.test(dec.regime) && /ADX 32/.test(dec.regime), 'rejim etiketi gelmeli: ' + dec.regime);
 assert.ok(/trend yönünde/i.test(dec.suitability), 'uygunluk metni rejimle uyumlu olmalı');
 assert.equal(dec.costGate.pass, true, 'hedef %10 >> US maliyeti → kapı geçer');

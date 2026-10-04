@@ -76,6 +76,68 @@ let journalSaving = false;
 const assetDetailTabs = Object.create(null);
 const marketScroll = Object.create(null);
 let routeApplying = false;
+let candidateOrigin = null;
+let technicalHistory = null;
+let technicalHistoryRequest = null;
+let comparisonMode = 'risk';
+let calculatorIsExample = false;
+let readingProgress = null;
+function experienceProgress() {
+  if (!readingProgress && window.FinansExperience) {
+    let storage; try { storage = localStorage; } catch (_) { storage = null; }
+    readingProgress = window.FinansExperience.createProgressStore(storage);
+  }
+  return readingProgress;
+}
+function assetReviewHtml(asset) {
+  const helper = window.FinansExperience, progress = experienceProgress();
+  if (!helper || !progress) return '';
+  const key = asset.market + ':' + asset.symbol;
+  const revision = helper.revisionKey({at: DATA.generatedAt, quoteTime:asset.quoteTime, analysis:asset.analysis, decision:asset.decision});
+  const review = progress.getReview(key, revision);
+  return helper.reviewHtml(key, revision, review.reviewed) + (review.changed ? '<p class="muted compact">Veri kesiti değişti; önceki inceleme bu yeni kaydı kapsamıyor.</p>' : '');
+}
+async function loadTechnicalHistory() {
+  if (technicalHistory) return technicalHistory;
+  if (!technicalHistoryRequest) technicalHistoryRequest = fetch('/api/history', {cache:'no-store'}).then((r) => { if (!r.ok) throw new Error('history'); return r.json(); }).then((rows) => {
+    technicalHistory = Array.isArray(rows) ? rows.filter((row) => row && row.scores && typeof row.scores === 'object' && Number.isFinite(Date.parse(row.t))) : [];
+    return technicalHistory;
+  }).catch(() => []).finally(() => { technicalHistoryRequest = null; });
+  return technicalHistoryRequest;
+}
+function candidateTraceHtml(row, compact = true) {
+  if (!window.FinansExperience || !technicalHistory) return '';
+  const prefix = {us:'US:',bist:'BIST:',crypto:'CRYPTO:'}[row.market];
+  return window.FinansExperience.historyTraceHtml(technicalHistory.map((record) => ({at:record.t,score:record.scores[prefix + row.symbol]})), {label:row.symbol + ' · kayıtlı teknik puan geçmişi', id:row.market + '-' + row.symbol, compact, asOf: DATA.generatedAt});
+}
+function safeCockpitBase(base) {
+  return window.FinansResearch && window.FinansResearch.canUseReportOverlay(REPORT_CACHE && REPORT_CACHE.integrity) ? base || {} : {...base, signalOverlay:null};
+}
+function workBriefHtml(base, research) {
+  const experience = window.FinansExperience, actions = window.FinansActionLayer;
+  if (!experience || !actions || !DATA) return '';
+  const macro = window.FinansMacro && window.FinansMacro.getState().macro;
+  const events = macro && window.FinansResearch ? window.FinansResearch.storedExpectations(macro) : [];
+  return experience.dailyBriefHtml(experience.buildDailyBrief({snapshot:DATA, digest:actions.buildDailyChangeDigest(DATA), cockpit:actions.buildCfoDecisionCockpit(DATA,JOURNAL,safeCockpitBase(base)), research, events}));
+}
+function renderWorkBrief(el, base, research) { if (el) el.innerHTML = workBriefHtml(base, research); }
+function bindReportReading(el, base) {
+  const experience = window.FinansExperience, progress = experienceProgress();
+  if (!experience || !progress) return;
+  const reportId = 'report:' + (base.date || base.generatedAt), revision = experience.revisionKey({base, research:REPORT_CACHE && REPORT_CACHE.ai && REPORT_CACHE.ai.research});
+  const resume = $('#reportReadingResume');
+  if (resume) resume.innerHTML = experience.resumeHtml(progress.getResume(reportId, revision));
+  el.querySelectorAll('.report-toc a').forEach((link) => link.addEventListener('click', () => { progress.saveResume(reportId, revision, link.getAttribute('href').slice(1), link.textContent); }));
+  el.querySelectorAll('[data-resume-section]').forEach((button) => button.addEventListener('click', () => {
+    const section = document.getElementById(button.dataset.resumeSection);
+    if (section && el.contains(section)) { section.tabIndex = -1; section.scrollIntoView({block:'start',behavior:'instant'}); section.focus({preventScroll:true}); }
+  }));
+  el.querySelectorAll('[data-open-report-learning]').forEach((button) => button.addEventListener('click', () => {
+    const section = $('#reportLearning'); if (!section) return;
+    section.open = true; section.tabIndex = -1; section.scrollIntoView({block:'start',behavior:'instant'}); section.focus({preventScroll:true});
+    progress.saveResume(reportId, revision, 'reportLearning', 'Öğrenme notu');
+  }));
+}
 let backtestResult = null;
 let backtestRequest = 0;
 let mcRequest = 0;
@@ -88,7 +150,10 @@ let screenerState = { query: '', market: 'all', category: 'all', sort: 'score', 
 const $ = (s) => document.querySelector(s);
 const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 let reduceMotion = motionQuery.matches;
-motionQuery.addEventListener('change', (event) => { reduceMotion = event.matches; });
+motionQuery.addEventListener('change', (event) => {
+  reduceMotion = event.matches;
+  if (reduceMotion && window.FinansExperience && window.FinansExperience.cancelCandidateMotion) window.FinansExperience.cancelCandidateMotion();
+});
 
 /* ---------- Biçimlendirme ---------- */
 function fmtQty(n) { return (typeof n === 'number' || (typeof n === 'string' && n.trim() !== '')) && Number.isFinite(Number(n)) ? Number(n).toLocaleString('tr-TR', { maximumFractionDigits: 8 }) : '–'; }
@@ -121,12 +186,19 @@ function decisionTone(d) {
   return d && d.status ? d.status : 'unknown';
 }
 function decisionLabel(d) {
-  if (!d) return 'Karar yok';
-  if (d.status === 'clean') return 'Temiz';
-  if (d.status === 'caution') return 'Dikkat';
-  if (d.status === 'blocked') return 'Riskli';
+  if (!d) return 'Kontrol kaydı yok';
+  if (d.status === 'clean') return 'Kontrol puanı yüksek';
+  if (d.status === 'caution') return 'Kontrol uyarısı var';
+  if (d.status === 'blocked') return 'Kontrol engeli var';
   return 'Belirsiz';
 }
+function technicalSignalLabel(value) {
+  return window.FinansInsights && window.FinansInsights.technicalSignalLabel ? window.FinansInsights.technicalSignalLabel(value) : typeof value === 'string' ? value : 'Teknik sinyal bilinmiyor';
+}
+function technicalSummaryText(text) {
+  return String(text || '').replace(/(?:GUCLU|GÜÇLÜ) AL/g, 'güçlü olumlu').replace(/(→\s*)(AL|TUT|AZALT|SAT)(?=[.\s]|$)/g, (_, prefix, label) => prefix + technicalSignalLabel(label).toLocaleLowerCase('tr-TR'));
+}
+function contextHelp(topic, options) { return window.FinansExperience ? window.FinansExperience.contextHelpHtml(topic, options) : ''; }
 function findPickAsset(p) {
   const market = p.market === 'ABD' ? 'us' : p.market === 'BIST' ? 'bist' : 'crypto';
   const list = DATA && DATA[market] ? DATA[market] : [];
@@ -134,7 +206,7 @@ function findPickAsset(p) {
 }
 function decisionMini(d) {
   if (!d) return '';
-  return '<span class="decision-mini decision-' + decisionTone(d) + '" title="Karar kalitesi: ' + decisionLabel(d) + '">' + d.score + '</span>';
+  return '<span class="decision-mini decision-' + decisionTone(d) + '" title="Veri ve sinyal kontrolü: ' + d.score + '/100 · ' + decisionLabel(d) + '">' + d.score + '</span>';
 }
 
 const TR_DAYS = ['Pazar', 'Pazartesi', 'Sali', 'Carsamba', 'Persembe', 'Cuma', 'Cumartesi'];
@@ -463,7 +535,7 @@ function maybeAutoRefresh() {
 function updateFreshness() {
   const ageMin = (Date.now() - new Date(DATA.generatedAt).getTime()) / 60000;
   const cls = ageMin < 15 ? '' : 'stale';
-  $('#updated').innerHTML = '<span class="fresh ' + cls + '"><span class="dot"></span>Veri: ' + relTime(DATA.generatedAt) + '</span>';
+  $('#updated').innerHTML = '<span class="fresh ' + cls + '"><span class="dot"></span>Veri kesiti: ' + esc(fullTimestamp(DATA.generatedAt)) + '</span>';
 }
 
 /* ---------- Görünüm yönetimi ---------- */
@@ -518,7 +590,7 @@ function readRoute() {
   const validMarket = ['us', 'bist', 'crypto'].includes(market);
   const view = rawView === 'market' ? (validMarket ? market : 'overview') : rawView;
   const valid = Object.prototype.hasOwnProperty.call(VIEW_META, view) ? view : 'overview';
-  return { view: valid, market, symbol, invalidMarket: rawView === 'market' && !validMarket };
+  return { view: valid, market, symbol, topic: p.get('topic'), invalidMarket: rawView === 'market' && !validMarket };
 }
 function applyRoute() {
   const route = readRoute();
@@ -537,10 +609,12 @@ function applyRoute() {
   }
   setView(route.view, { fromRoute: true });
   routeApplying = false;
+  if (route.view === 'literacy' && route.topic) focusLearningTopic(route.topic);
 }
 function activateOverviewTask(task, moveFocus = false) {
   const tabs = Array.from(document.querySelectorAll('.overview-task-tab'));
   if (!tabs.length) return false;
+  const previousTask = overviewTaskSelection;
   const tab = tabs.find((item) => item.dataset.overviewTab === task) || tabs.find((item) => item.dataset.overviewTab === 'decisions') || tabs[0];
   overviewTaskSelection = tab.dataset.overviewTab;
   tabs.forEach((item) => {
@@ -551,6 +625,10 @@ function activateOverviewTask(task, moveFocus = false) {
     if (panel) panel.hidden = !active;
   });
   try { if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('finans-overview-task', overviewTaskSelection); } catch (_) { /* memory state remains available */ }
+  if (moveFocus && window.FinansExperience && window.FinansExperience.revealCandidateCards) {
+    window.FinansExperience.cancelCandidateMotion();
+    if (previousTask !== overviewTaskSelection && overviewTaskSelection === 'decisions') window.FinansExperience.revealCandidateCards($('#cfoDecisionCockpit'), { reducedMotion: reduceMotion });
+  }
   if (moveFocus && tab.focus) tab.focus();
   return true;
 }
@@ -606,6 +684,7 @@ function initOverviewContextTabs() {
 }
 function setView(view, options = {}) {
   if (!VIEW_META[view]) view = 'overview';
+  const previousView = activeView;
   if (['us', 'bist', 'crypto'].includes(activeView)) {
     const table = $('#tableWrap');
     if (table && table.scrollTop != null) marketScroll[activeView] = table.scrollTop;
@@ -646,6 +725,7 @@ function setView(view, options = {}) {
     if (heading) { heading.tabIndex = -1; heading.focus(); }
   }
   renderView();
+  if (previousView !== view && !options.fromRoute) { const content = $('#content'); if (content) content.scrollTop = 0; }
 }
 function fullTimestamp(iso) {
   if (/^\d{10,13}$/.test(String(iso))) iso = Number(iso);
@@ -674,7 +754,7 @@ function renderView() {
     triggerRevealAnimations($('#view-overview'));
   }
   else if (activeView === 'us' || activeView === 'bist' || activeView === 'crypto') {
-    $('#marketChartTitle').textContent = VIEW_META[activeView][0] + ' — Yatırım Puanları';
+    $('#marketChartTitle').textContent = VIEW_META[activeView][0] + ' — Teknik puan karşılaştırması';
     const marketWorkspaceTitle = $('#marketWorkspaceTitle');
     if (marketWorkspaceTitle) marketWorkspaceTitle.textContent = VIEW_META[activeView][0] + ' seçimi ve varlık detayı';
     const state = marketUi[activeView];
@@ -739,7 +819,7 @@ function reportExecutiveReadingHtml(base, ai) {
       '<section class="reader-block reader-main"><h3>Makro degisim</h3><p>' + esc(macro) + '</p><ul>' + (marketLines || '<li><span>Pazar yorumu bekleniyor.</span></li>') + '</ul></section>' +
       '<section class="reader-block"><h3>Mikro ve haber akisi</h3><ul>' + worldHtml + companyHtml + '</ul></section>' +
       '<section class="reader-block"><h3>Bana etkisi</h3><p>' + esc(today) + '</p><div class="reader-impact">' +
-        '<span>AL sinyali <b>' + esc(String(s.buys == null ? '-' : s.buys)) + '</b></span>' +
+        '<span>Olumlu teknik sinyal <b>' + esc(String(s.buys == null ? '-' : s.buys)) + '</b></span>' +
         '<span>Yukselen <b>' + esc(String(s.gainers == null ? '-' : s.gainers)) + '</b></span>' +
         '<span>Makro baski <b>' + (overlaySummary.withEvidence > 0 ? esc(String(overlaySummary.reduced || 0)) : 'Kanıt yok') + '</b></span>' +
       '</div><p>' + esc(positioning) + '</p></section>' +
@@ -790,13 +870,13 @@ async function renderReport() {
   const sc = s.label === 'Pozitif' ? 'sent-pos' : s.label === 'Nötr' ? 'sent-neu' : 'sent-cau';
   const aiBadge = ai ? '<span class="ai-badge">Model araştırması</span>' : '';
 
-  let h = '';
+  let h = workBriefHtml(base, ai && ai.research);
   const reportTimestamp = integrity.analysisAsOf || base.generatedAt;
-  h += '<header class="report-masthead"><div><h2>Günün araştırma notu</h2><div class="report-meta"><span>' + esc(fullTimestamp(reportTimestamp)) + '</span><span>' + esc(String(s.total == null ? '–' : s.total)) + ' varlık</span><span>' + esc(String(s.buys == null ? '–' : s.buys)) + ' teknik AL sinyali</span><span>' + esc(String(s.gainers == null ? '–' : s.gainers)) + ' yükselen</span></div></div><div class="report-badges">' + aiBadge + '<span class="sent-pill ' + sc + '">' + esc(s.label || 'Duyarlılık bilinmiyor') + ' · ' + esc(String(s.avg == null ? '–' : s.avg)) + '/100</span></div></header>' +
+  h += '<header class="report-masthead"><div><h2>Günün araştırma notu</h2><div class="report-meta"><span>' + esc(fullTimestamp(reportTimestamp)) + '</span><span>' + esc(String(s.total == null ? '–' : s.total)) + ' varlık</span><span>' + esc(String(s.buys == null ? '–' : s.buys)) + ' olumlu teknik sinyal</span><span>' + esc(String(s.gainers == null ? '–' : s.gainers)) + ' yükselen</span></div></div><div class="report-badges">' + aiBadge + '<span class="sent-pill ' + sc + '">' + esc(s.label || 'Duyarlılık bilinmiyor') + ' · ' + esc(String(s.avg == null ? '–' : s.avg)) + '/100</span></div></header>' +
     FinansResearch.reportIntegrityHtml({ integrity, hasResearch: !!ai, partial: !!(base.quality && base.quality.status === 'partial'), loadError }) +
     FinansResearch.automationHtml(data.automation);
   h += '<nav class="report-toc" aria-label="Rapor bölümleri"><a href="#report-summary">Özet</a><a href="#report-expectations">Veri beklentileri</a><a href="#report-developments">Gelişmeler</a><a href="#report-impact">Piyasa etkileri</a><a href="#report-calendar">Takvim</a><a href="#researchEvaluation">Tahmin sonuçları</a></nav>';
-  h += '<section class="report-section" id="report-summary"><div class="report-reader-card"><div class="card-head"><h2>Özet</h2><span class="card-sub">Model yorumu ayrı okunur</span></div>' + (ai ? FinansResearch.modelContextHtml(integrity, true) : '') + '<p>' + FinansResearch.proseHtml(ai && ai.todayFocus ? ai.todayFocus : 'Teknik skor, piyasa genişliği ve takvimi birlikte değerlendirin.') + '</p></div>';
+  h += '<div id="reportReadingResume"></div><section class="report-section" id="report-summary"><div class="report-reader-card"><div class="card-head"><h2>Özet</h2><span class="card-sub">Model yorumu ayrı okunur</span></div><p>' + FinansResearch.proseHtml(ai && ai.todayFocus ? ai.todayFocus : 'Teknik skor, piyasa genişliği ve takvimi birlikte değerlendirin.') + '</p>' + (ai ? FinansResearch.modelContextHtml(integrity, true) : '') + (ai && (ai.literacyTip || ai.quiz) ? '<button type="button" class="btn btn-secondary" data-open-report-learning>Bu raporun öğrenme notunu' + (ai.quiz ? ' ve sorusunu' : '') + ' aç</button>' : '') + '</div>';
   h += '</section><section class="report-section" id="report-expectations">' + FinansResearch.expectationsHtml(ai && ai.research, { storedOpinions }) + '</section><section class="report-section" id="report-developments"><h2>Gelişmeler</h2>' +
     '<div id="marketNewsWorkspace" class="market-news-report" role="region" aria-label="Kaynaklı piyasa haberleri">Haber akışı yükleniyor…</div>';
   if (ai && ai.macroSummary) h += '<div class="report-reader-card"><div class="card-head"><h2>Makro görünüm</h2><span class="ai-badge">Yapay zeka yorumu</span></div><p class="rep-macro">' + FinansResearch.proseHtml(ai.macroSummary) + '</p></div>';
@@ -834,7 +914,7 @@ async function renderReport() {
   if (base.opportunities && base.opportunities.length) {
     h += '<div class="card reveal"><div class="card-head"><h2>Teknik puanda öne çıkanlar</h2><span class="card-sub">Puan sıralaması</span></div>' +
       base.opportunities.map((o, i) =>
-        '<div class="opp-row"><span class="rank">' + (i + 1) + '</span><div class="opp-meta"><div class="psym">' + esc(o.symbol) + ' <span class="pmkt">· ' + esc(o.market) + '</span></div><div class="opp-sum">' + esc(o.summary || '') + '</div></div><span class="badge tone-buy">' + esc(o.label) + ' · ' + esc(String(o.score == null ? '–' : o.score)) + '</span></div>'
+        '<div class="opp-row"><span class="rank">' + (i + 1) + '</span><div class="opp-meta"><div class="psym">' + esc(o.symbol) + ' <span class="pmkt">· ' + esc(o.market) + '</span></div><div class="opp-sum">' + esc(o.summary || '') + '</div></div><span class="badge tone-buy">' + esc(technicalSignalLabel(o.tone || o.label)) + ' · ' + esc(String(o.score == null ? '–' : o.score)) + '</span></div>'
       ).join('') + '</div>';
   }
 
@@ -857,7 +937,7 @@ async function renderReport() {
   h += '</details>';
   if (ai && ai.commentary) {
     const c = ai.commentary;
-    h += '<div class="card reveal"><div class="card-head"><h2>Piyasa bazında yorum</h2><span class="ai-badge">Model görüşü</span></div>' + FinansResearch.modelContextHtml(integrity) + '<div class="commentary">' +
+    h += '<div class="card reveal"><div class="card-head"><h2>Piyasa bazında yorum</h2><span class="ai-badge">Model görüşü</span></div><div class="commentary">' +
       (c.us ? '<div class="comm"><h4>ABD</h4><p>' + FinansResearch.proseHtml(c.us) + '</p></div>' : '') +
       (c.bist ? '<div class="comm"><h4>BIST</h4><p>' + FinansResearch.proseHtml(c.bist) + '</p></div>' : '') +
       (c.crypto ? '<div class="comm"><h4>Kripto</h4><p>' + FinansResearch.proseHtml(c.crypto) + '</p></div>' : '') +
@@ -871,7 +951,7 @@ async function renderReport() {
   }
 
   // Günün odağı özet bölümünde bir kez gösterilir; okuryazarlık ipucu bağımsız kalır.
-  if (ai && (ai.literacyTip || ai.quiz)) h += '<details class="report-secondary"><summary>Günün öğrenme notu ve sorusu</summary>';
+  if (ai && (ai.literacyTip || ai.quiz)) h += '<details class="report-secondary" id="reportLearning"><summary>Bu raporun öğrenme notu' + (ai.quiz ? ' ve sorusu' : '') + '</summary>';
   if (ai && ai.literacyTip) {
     h += '<div class="card reveal">';
     if (ai.literacyTip) h += '<div class="tip-card report-tip"><h4>' + esc(ai.literacyTip.title || 'Günün dersi') + '</h4><p>' + esc(ai.literacyTip.body || '') + '</p></div>';
@@ -915,14 +995,14 @@ async function renderReport() {
       h += '<b class="' + (selectedIndex === correctIndex ? 'quiz-correct' : 'quiz-incorrect') + '">' + (selectedIndex === correctIndex ? 'Tebrikler! Doğru cevap.' : 'Yanlış cevap.') + '</b>';
       h += '<p>' + esc(ai.quiz.explanation) + '</p>';
       h += '</div>';
-      h += '<div class="quiz-streak">Mevcut seri skoru: ' + streak + ' gün</div>';
+      h += '<div class="quiz-streak">Ardışık doğru yanıt: ' + streak + '</div>';
     } else {
       h += '<div class="quiz-options" id="quiz-options-container">';
       ai.quiz.options.forEach((opt, idx) => {
         h += '<button class="btn quiz-option" type="button" onclick="submitQuizAnswer(' + idx + ', ' + ai.quiz.correctIndex + ', \'' + quizDate + '\')">' + esc(opt) + '</button>';
       });
       h += '</div>';
-      h += '<div id="quiz-streak-display" class="quiz-streak">Seri skoru: ' + streak + ' gün</div>';
+      h += '<div id="quiz-streak-display" class="quiz-streak">Ardışık doğru yanıt: ' + streak + '</div>';
     }
     h += '</div>';
   }
@@ -948,6 +1028,7 @@ async function renderReport() {
   const sourceLedgerMessage = sourceRecords.length ? '' : '<p class="muted">Bu raporla eşleşen doğrulanmış araştırma kaynağı yok.</p>';
   const sourceRail = '<aside class="report-source-rail" aria-label="Rapor kaynakları"><details class="source-ledger" open><summary>Kaynak defteri <span class="source-ledger-count">' + sourceRecords.length + ' kayıt</span></summary><p class="source-ledger-footnote">Yayın saatleri İstanbul (UTC+3).</p>' + sourceLedgerMessage + (sourceRecords.length ? '<ul>' + sourceRows + '</ul>' : '') + '</details></aside>';
   el.innerHTML = '<div class="report-layout"><article class="report-reading-flow">' + h + '</article>' + sourceRail + '</div>';
+  bindReportReading(el, base);
   el.querySelectorAll('[data-open-model-workspace]').forEach((button) => button.addEventListener('click', () => { setView('overview'); activateOverviewTask('forecasts', true); }));
   if (window.FinansMacro && typeof window.FinansMacro.refresh === 'function') window.FinansMacro.refresh();
   el.querySelectorAll('.report-toc a').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); const target = el.querySelector(link.getAttribute('href')); if (target) { target.tabIndex = -1; target.scrollIntoView({ behavior: reduceMotion ? 'instant' : 'smooth', block: 'start' }); target.focus({ preventScroll: true }); } }));
@@ -1175,7 +1256,7 @@ function renderKpis() {
   const el = $('#kpis'); if (!el) return;
   el.innerHTML = overviewMarketStats(DATA).map((m) => '<section class="market-stat-section" aria-labelledby="market-stat-' + m.market + '"><header><h3 id="market-stat-' + m.market + '">' + m.name + '</h3><button class="market-stat-open" type="button" onclick="setView(\'' + m.market + '\')" aria-label="' + m.name + ' piyasasını aç">↗</button></header>' +
     (!m.total ? '<p class="market-stat-empty">Piyasa verisi yok. Kaynak durumunu piyasa ekranında kontrol edin.</p>' :
-      '<dl><div><dt>Ort. teknik puan</dt><dd>' + (m.avg == null ? 'Veri yok' : m.avg + '<small> / 100</small>') + '</dd></div><div><dt>Yükselen</dt><dd>' + (m.changeCount ? m.gainers + '<small> / ' + m.changeCount + '</small>' : 'Değişim verisi yok') + '</dd></div><div><dt>AL etiketli</dt><dd>' + (m.scored ? m.buys + '<small> / ' + m.scored + '</small>' : 'Puan verisi yok') + '</dd></div></dl>' +
+      '<dl><div><dt>Ort. teknik puan</dt><dd>' + (m.avg == null ? 'Veri yok' : m.avg + '<small> / 100</small>') + '</dd></div><div><dt>Yükselen</dt><dd>' + (m.changeCount ? m.gainers + '<small> / ' + m.changeCount + '</small>' : 'Değişim verisi yok') + '</dd></div><div><dt>Olumlu teknik sinyal</dt><dd>' + (m.scored ? m.buys + '<small> / ' + m.scored + '</small>' : 'Puan verisi yok') + '</dd></div></dl>' +
       '<p class="market-stat-coverage">' + m.scored + '/' + m.total + ' varlık puanlandı' + (m.failed ? ' · ' + m.failed + ' kaynak sorunu' : '') + (m.changeCount < m.total ? ' · ' + (m.total - m.changeCount) + ' değişim verisi eksik' : '') + '</p>') + '</section>').join('') +
     '<details class="market-stat-help"><summary>Bu göstergeler ne anlatır?</summary><p>Her piyasa kendi takip listesiyle hesaplanır; bütün piyasayı temsil etmez. Yükselen oranı yalnız günlük değişimi bilinen varlıkları kullanır. AL etiketi teknik puana aittir; işlem hazırlığı ve başarı olasılığı değildir.</p></details>';
 }
@@ -1244,7 +1325,7 @@ function renderPicks() {
         return '<div class="pick"><div class="rank">' + (i + 1) + '</div>' +
         '<div class="pmeta"><div class="psym">' + p.symbol + ' <span class="pmkt">· ' + p.market + '</span></div>' +
         '<div class="pname">' + (p.name || '') + ' — ' + fmtPrice(p.price, p.currency) + '</div></div>' +
-        mini + '<span class="badge tone-' + p.tone + '">' + p.label + ' · ' + p.score + '</span></div>';
+        mini + '<span class="badge tone-' + p.tone + '">' + esc(technicalSignalLabel(p.tone || p.label)) + ' · ' + p.score + '</span></div>';
       })
       .join('') || '<p class="muted">Henüz veri yok.</p>';
 }
@@ -1361,7 +1442,7 @@ function renderMovers() {
     data: { labels: all.map((x) => x.symbol), datasets: [{ data: all.map((x) => x.analysis.score), backgroundColor: all.map((x) => CHART.toneColor(x.analysis.tone)), hoverBackgroundColor: CHART.accent, borderRadius: 6 }] },
     options: {
       responsive: true, maintainAspectRatio: false, animation: { duration: reduceMotion ? 0 : 750, easing: 'easeOutQuart' },
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (x) => { const a = all[x.dataIndex]; return a.market + ' · puan ' + x.raw + ' — ' + a.analysis.label; } } } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (x) => { const a = all[x.dataIndex]; return a.market + ' · teknik puan ' + x.raw + ' — ' + technicalSignalLabel(a); } } } },
       scales: { y: { beginAtZero: true, max: 100, grid: { color: CHART.grid }, ticks: { color: chartLabelColor(), font: { size: 12, family: 'Plus Jakarta Sans' } } }, x: { grid: { display: false }, ticks: { color: chartLabelColor(), font: { size: 12, family: 'Plus Jakarta Sans' } } } },
     },
   });
@@ -1460,7 +1541,7 @@ function renderScoreChart() {
     data: { labels: list.map((x) => x.symbol), datasets: [{ data: list.map((x) => x.analysis.score), backgroundColor: list.map((x) => CHART.toneColor(x.analysis.tone)), hoverBackgroundColor: CHART.accent, borderRadius: 6 }] },
     options: {
       responsive: true, maintainAspectRatio: false, animation: { duration: reduceMotion ? 0 : 700, easing: 'easeOutQuart' },
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (x) => 'Puan ' + x.raw + ' — ' + list[x.dataIndex].analysis.label } } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (x) => 'Teknik puan ' + x.raw + ' — ' + technicalSignalLabel(list[x.dataIndex]) } } },
       scales: { y: { beginAtZero: true, max: 100, grid: { color: CHART.grid }, ticks: { color: chartLabelColor(), font: { size: 12, family: 'Plus Jakarta Sans' } } }, x: { grid: { display: false }, ticks: { color: chartLabelColor(), font: { size: 12, family: 'Plus Jakarta Sans' } } } },
     },
   });
@@ -1947,7 +2028,7 @@ async function renderAssetDesk(asset) {
     });
   }
   syncDeskControls(market, assetDeskState.interval);
-  title.textContent = asset.symbol + ' · ' + (asset.analysis ? asset.analysis.label : 'Grafik');
+  title.textContent = asset.symbol + ' · ' + (asset.analysis ? technicalSignalLabel(asset) : 'Grafik');
   meta.textContent = (asset.name || asset.symbol) + ' · ' + fmtPrice(asset.price, asset.currency) + ' · ' + fmtPct(asset.changePct);
   chartBox.innerHTML = '<div class="chart-loading">Grafik yükleniyor...</div>';
   ['ind-rsi-val', 'ind-macd-val', 'ind-sma20-val', 'ind-sma50-val'].forEach((id) => { const value = $('#' + id); if (value) { value.textContent = '–'; value.style.color = 'var(--text)'; } });
@@ -1982,9 +2063,9 @@ function renderSelectedAssetDetail(asset) {
   const key = asset.market + ':' + asset.symbol;
   const selectedTab = assetDetailTabs[key] || 'overview';
   const bodies = {
-    overview: technicalDataNotice(asset) + decisionInsightCard(asset) + '<div class="dsummary">' + esc(a.summary || '') + '</div>' + decisionPanel(asset),
-    technical: technicalDataNotice(asset) + indGrid(asset) + subBars(a.sub || {}) + reasonList(a.reasons || []) + '<button type="button" class="btn btn-secondary" data-open-guide>Göstergeleri nasıl okuyabilirim?</button>',
-    research: assetResearchCard(asset) + assetSignalOverlayCard(asset) + assetLearningCard(asset),
+    overview: technicalDataNotice(asset) + decisionInsightCard(asset) + '<div class="dsummary">' + esc(technicalSummaryText(a.summary)) + '</div>' + decisionPanel(asset) + assetReviewHtml(asset),
+    technical: technicalDataNotice(asset) + contextHelp('rsi', {value: asset.ind && asset.ind.rsi}) + '<div data-task-target="trade">' + indGrid(asset) + subBars(a.sub || {}) + reasonList(a.reasons || []) + '</div><button type="button" class="btn btn-secondary" data-learning-topic="rsi">Göstergeleri nasıl okuyabilirim?</button>',
+    research: '<div data-task-target="evidence">' + assetResearchCard(asset) + assetSignalOverlayCard(asset) + '</div>' + assetLearningCard(asset),
     notes: assetThesisCard(asset) + alertRulesCard(asset)
   };
   if (!el.dataset.guideBound) { el.dataset.guideBound = 'true'; el.addEventListener('click', (event) => { if (event.target.closest('[data-open-guide]')) setView('literacy'); }); }
@@ -1992,6 +2073,8 @@ function renderSelectedAssetDetail(asset) {
     ['overview', 'technical', 'research'].forEach((name) => { const section = el.querySelector('[data-asset-panel="' + name + '"]'); if (section) section.innerHTML = bodies[name]; });
     refreshAssetNotesPanel(el, asset);
     const metadata = el.querySelector('.card-head .card-sub'); if (metadata) metadata.textContent = 'Seçili varlık · ' + fullTimestamp(DATA.generatedAt);
+    const tab = el.querySelector('[data-asset-tab="' + selectedTab + '"]');
+    if (tab && tab.getAttribute('aria-selected') !== 'true') tab.click();
     return;
   }
   el.dataset.assetKey = key;
@@ -2103,7 +2186,8 @@ function decisionPanel(x) {
   const d = x.decision;
   if (!d) return '';
   const trade = d.trade || {};
-  const contradictions = d.contradictions || [];
+  const contradictionsKnown = Array.isArray(d.contradictions);
+  const contradictions = contradictionsKnown ? d.contradictions : [];
   const capitalBase = Number.isFinite(trade.capitalBase) && trade.capitalBase > 0 ? trade.capitalBase : 100000;
   const unitsWithinCapital = Number.isFinite(trade.unitsPer100k) && trade.unitsPer100k >= 0 && Number.isFinite(trade.entry) && trade.entry > 0
     && trade.unitsPer100k * trade.entry <= capitalBase + 1e-8;
@@ -2120,16 +2204,16 @@ function decisionPanel(x) {
     : '<p class="decision-muted">' + esc(trade.reason || 'Örnek risk hesabı için veri eksik') + '</p>';
   const contradictionHtml = contradictions.length
     ? '<div class="decision-alerts">' + contradictions.map((c) => '<div class="decision-alert"><b>' + esc(c.label) + '</b><span>' + esc(c.detail) + '</span></div>').join('') + '</div>'
-    : '<p class="decision-muted">Belirgin skor çelişkisi yok.</p>';
+    : '<p class="decision-muted">' + (contradictionsKnown ? 'Gösterge çelişkisi saptanmadı.' : 'Çelişki kontrolü kaydı yok.') + '</p>';
 
-  return '<div class="decision-panel">' +
-    '<div class="decision-head"><h4>Karar kalitesi</h4><span class="decision-score decision-' + decisionTone(d) + '">' + decisionLabel(d) + ' · ' + (Number.isFinite(d.score) && d.score >= 0 && d.score <= 100 ? fmtNum(d.score, 0) : '–') + '</span></div>' +
+  return '<div class="decision-panel" data-task-target="control">' +
+    '<div class="decision-head"><h4>Veri ve sinyal kontrolü</h4><span class="decision-score decision-' + decisionTone(d) + '">' + (Number.isFinite(d.score) && d.score >= 0 && d.score <= 100 ? fmtNum(d.score, 0) + '/100' : '–') + ' · ' + decisionLabel(d) + '</span></div>' + contextHelp('control', {value:d.score}) +
     '<div class="decision-grid">' +
-    '<div><span>Tazelik</span><b>' + esc(freshnessText(d.freshness)) + '</b></div>' +
+    '<div data-task-target="freshness"><span>Fiyat zamanı</span><b>' + esc(freshnessText(d.freshness)) + '</b><span>' + esc(fullTimestamp(x.quoteTime)) + '</span></div>' +
     '<div><span>Sinyal değişimi</span><b>' + esc(confidenceText(d.confidence)) + '</b></div>' +
-    '<div><span>Çelişki</span><b>' + (contradictions.length ? contradictions.length + ' uyarı' : 'Temiz') + '</b></div>' +
+    '<div><span>Çelişki</span><b>' + (contradictions.length ? contradictions.length + ' uyarı' : contradictionsKnown ? 'Gösterge çelişkisi saptanmadı' : 'Çelişki kontrolü kaydı yok') + '</b></div>' +
     '</div>' +
-    '<div class="decision-split"><div><h4>Örnek risk hesabı</h4>' + tradeHtml + '</div><div><h4>Uyarılar</h4>' + contradictionHtml + '</div></div>' +
+    '<div class="decision-split"><div data-task-target="risk"><h4>Örnek risk hesabı</h4>' + tradeHtml + '</div><div><h4>Uyarılar</h4>' + contradictionHtml + '</div></div>' +
     '</div>';
 }
 
@@ -2141,7 +2225,7 @@ function decisionInsightCard(x) {
   if (!ins) return '';
   const li = (arr) => '<ul>' + arr.map((t) => '<li>' + esc(t) + '</li>').join('') + '</ul>';
   const prosHtml = ins.pros.length ? li(ins.pros) : '<p class="ins-empty">Belirgin olumlu sinyal yok</p>';
-  const consHtml = ins.cons.length ? li(ins.cons) : '<p class="ins-empty">Belirgin risk yok</p>';
+  const consHtml = ins.cons.length ? li(ins.cons) : '<p class="ins-empty">Bu teknik göstergelerde ek karşı sinyal saptanmadı.</p>';
   const q = ins.quality;
   const qTone = q.status === 'clean' ? 'pos' : q.status === 'caution' ? 'warn' : q.status === 'blocked' ? 'neg' : 'muted';
   const regimeHtml = ins.regime ? '<span class="ins-regime">📊 ' + esc(ins.regime) + '</span>' : '';
@@ -2153,8 +2237,8 @@ function decisionInsightCard(x) {
   const suitHtml = ins.suitability ? '<p class="insight-suit">' + esc(ins.suitability) + '</p>' : '';
   return '<div class="insight-card itone-' + esc(ins.tone) + '">' +
     '<div class="insight-head">' +
-      '<span class="badge tone-' + esc(ins.tone) + '">' + esc(ins.verdict) + '</span>' +
-      '<span class="insight-quality q-' + qTone + '">Karar kalitesi ' + (q.score != null ? q.score : '–') + (q.statusLabel ? ' · ' + esc(q.statusLabel) : '') + '</span>' +
+      '<span class="badge tone-' + esc(ins.tone) + '">Teknik sinyal: ' + esc(technicalSignalLabel(x)) + '</span>' +
+      '<span class="insight-quality q-' + qTone + '">Veri ve sinyal kontrolü: ' + (q.score != null ? q.score + '/100' : '–') + (q.statusLabel ? ' · ' + esc(q.statusLabel) : '') + '</span>' +
     '</div>' +
     metaHtml +
     '<p class="insight-headline">' + esc(ins.headline) + '</p>' +
@@ -2181,9 +2265,9 @@ function assetThesisSummaryHtml(x) {
   const thesisDraft = draft.thesis != null && draft.thesis !== savedNote.thesis;
   const invalidationDraft = draft.invalidation != null && draft.invalidation !== savedNote.invalidation;
   const thesisHeading = thesisDraft ? 'Tez taslağınız' : note.thesis ? 'Kayıtlı tez' : 'Teknik tez taslağı';
-  const invalidationHeading = invalidationDraft ? 'Bozulma taslağınız' : note.invalidation ? 'Kayıtlı bozulma koşulu' : 'Teknik bozulma koşulu';
+  const invalidationHeading = invalidationDraft ? 'Tezi geçersiz kılan koşul · taslak' : note.invalidation ? 'Tezi geçersiz kılan koşul · kayıtlı' : 'Tezi geçersiz kılan koşul · teknik taslak';
   const thesisText = thesisDraft ? note.thesis.trim() || (savedNote.thesis ? 'Tez taslağınız boş; kayıtlı not henüz silinmedi.' : 'Tez taslağınız boş.') : note.thesis || suggested.thesis || 'Tez yok.';
-  const invalidationText = invalidationDraft ? note.invalidation.trim() || (savedNote.invalidation ? 'Bozulma taslağınız boş; kayıtlı not henüz silinmedi.' : 'Bozulma taslağınız boş.') : note.invalidation || suggested.invalidation || 'Bozulma koşulu yok.';
+  const invalidationText = invalidationDraft ? note.invalidation.trim() || (savedNote.invalidation ? 'Koşul taslağınız boş; kayıtlı not henüz silinmedi.' : 'Koşul taslağınız boş.') : note.invalidation || suggested.invalidation || 'Tezi geçersiz kılan koşul kaydedilmedi.';
 
   const catalystsHtml = (suggested.catalysts || []).map(c => '<li>' + esc(c) + '</li>').join('');
 
@@ -2214,7 +2298,7 @@ function assetThesisCard(x) {
         '<label>Tez Notu' +
           '<textarea name="thesis" placeholder="Örn: 50g hareketli ortalama üstünde kalırsa alım yönlü izlenecek.">' + esc(thesisVal) + '</textarea>' +
         '</label>' +
-        '<label>Bozulma Notu' +
+        '<label>Tezi geçersiz kılan koşul' +
           '<textarea name="invalidation" placeholder="Örn: Stop seviyesinin altında veya 50g ortalamanın altında kapanışlarda tez bozulur.">' + esc(invalidationVal) + '</textarea>' +
         '</label>' +
       '</div>' +
@@ -2404,9 +2488,9 @@ function committeeMemoCard(x) {
     '<p class="memo-ask">' + esc(memo.decisionAsk) + '</p>' +
     '<div class="memo-snapshot">' +
       '<div><span>Fiyat</span><b>' + esc(memo.snapshot.price) + '</b></div>' +
-      '<div><span>Skor</span><b>' + esc(memo.snapshot.score) + '</b></div>' +
-      '<div><span>Ayarlanmış skor</span><b>' + esc(memo.snapshot.adjustedScore) + '</b></div>' +
-      '<div><span>Etiket</span><b>' + esc(memo.snapshot.label) + '</b></div>' +
+      '<div><span>Teknik puan</span><b>' + esc(memo.snapshot.score) + '</b></div>' +
+      '<div><span>Makro etkisi sonrası puan</span><b>' + esc(memo.snapshot.adjustedScore) + '</b></div>' +
+      '<div><span>Teknik sinyal</span><b>' + esc(technicalSignalLabel(memo.snapshot.label)) + '</b></div>' +
     '</div>' +
     '<div class="memo-grid">' +
       '<div><h5>Görüşün dayanakları</h5><ul>' + list(memo.sections.whatWeBelieve) + '</ul></div>' +
@@ -2504,7 +2588,7 @@ function renderTable() {
     tsEl.textContent = 'Teknik skor anlık görüntüsü: ' + fullTimestamp(DATA.generatedAt) + ' · fiyat, grafik güncelleme zamanından farklı olabilir';
   }
 
-  let html = '<table><thead><tr><th>Sembol</th><th>Fiyat</th><th>Gün %</th><th>RSI</th><th>MACD</th><th>50g %</th><th>Vol</th><th>Puan</th><th>Öneri</th></tr></thead><tbody>';
+  let html = '<table><thead><tr><th>Sembol</th><th>Fiyat</th><th>Gün %</th><th>RSI</th><th>MACD</th><th>50g %</th><th>Vol</th><th>Teknik puan</th><th>Teknik sinyal</th></tr></thead><tbody>';
   list.forEach((x, idx) => {
     const a = x.analysis || { score: null, label: 'VERİ YOK', tone: 'hold' }, i = x.ind || {}, s = i.signals || {};
     const chCls = (x.changePct || 0) >= 0 ? 'pos' : 'neg';
@@ -2528,7 +2612,7 @@ function renderTable() {
       '<td class="' + ((dist || 0) >= 0 ? 'pos' : 'neg') + '">' + (dist != null ? fmtPct(dist) : '–') + '</td>' +
       '<td>' + (i.atrPct != null ? '%' + i.atrPct : '–') + '</td>' +
       '<td>' + (Number.isFinite(a.score) ? '<span class="scorecell"><span class="scorebar"><i style="width:' + a.score + '%;background:' + toneColor(a.tone) + '"></i></span>' + a.score + deltaHtml + '</span>' : '<span class="muted">' + (Number.isFinite(a.lastKnownScore) ? a.lastKnownScore + ' (eski)' : '–') + '</span>') + '</td>' +
-      '<td><span class="badge tone-' + a.tone + '">' + esc(a.label) + '</span></td>' +
+      '<td><span class="badge tone-' + a.tone + '">' + esc(technicalSignalLabel(a)) + '</span></td>' +
       '</tr>';
   });
   html += '</tbody></table>';
@@ -2598,8 +2682,9 @@ async function renderPortfolioView() {
       if (asset.ind.signals && asset.ind.signals.goldenCross) signals.push('Altın kesişim');
       if (asset.ind.signals && asset.ind.signals.deathCross) signals.push('Ölüm kesişimi');
     }
-    return { ...row, score: row.score == null ? '–' : row.score, rec: row.unpriced ? 'Fiyat yok' : row.label || '–', tone: row.tone || 'hold', sigStr: signals.join(', ') || '–' };
+    return { ...row, score: row.score == null ? '–' : row.score, rec: row.unpriced ? 'Fiyat yok' : technicalSignalLabel(row.tone || row.label), tone: row.tone || 'hold', sigStr: signals.join(', ') || '–' };
   });
+  syncPortfolioFirstEntry(!tableRows.length && portfolioState === 'ready');
   const riskPlan = helper.buildPortfolioRiskPlan ? helper.buildPortfolioRiskPlan({ data: DATA, portfolioData }) : null;
   const binding = riskPlan && riskPlan.constraints.length ? String(riskPlan.riskBudget.bindingConstraint) : '';
   const riskLabel = !riskPlan || !riskPlan.riskAvailable ? 'Risk hesaplanamadı' : binding ? 'Risk kısıtı var' : 'Dağılım izleniyor';
@@ -2690,13 +2775,15 @@ async function renderPortfolioView() {
       portfolioSaving = false;
       const status = $('#portfolioStatus');
       const editedDuringSave = inputStamp(portfolioForm) !== submittedInputStamp;
-      if (status) status.textContent = saved ? (editedDuringSave ? 'Önceki kayıt tamamlandı. Yeni değişiklikler taslak; kaydetmeniz gerekiyor.' : 'Kaydedildi: mevcut pozisyon güncellendi.') : 'Kaydedilemedi. Girdileriniz korunuyor; tekrar deneyin.';
+      if (status) { status.textContent = saved ? (editedDuringSave ? sym + ' kaydı tamamlandı. Yeni değişiklikler taslak; kaydetmeniz gerekiyor.' : sym + ' pozisyonu kaydedildi · ' + amt + ' adet. Portföy varlıkları tablosunda görünür.') : 'Kaydedilemedi. Girdileriniz korunuyor; tekrar deneyin.'; if (status.dataset) status.dataset.status = saved ? 'success' : 'error'; }
       if (saved) {
         portfolioData = candidate;
         renderPortfolioView();
+        if (window.FinansWorkspace) window.FinansWorkspace.openPanel('portfolio');
         if (!editedDuringSave) {
           $('#port-amount-input').value = '';
           $('#port-price-input').value = '';
+          if (status) { status.tabIndex = -1; status.focus && status.focus({preventScroll:true}); status.scrollIntoView && status.scrollIntoView({block:'nearest',behavior:'instant'}); }
         }
       }
       if (submit) submit.disabled = false;
@@ -2711,6 +2798,20 @@ async function renderPortfolioView() {
   if (selectedSymbol && list.some((x) => x.symbol === selectedSymbol)) $('#port-symbol-sel').value = selectedSymbol;
   syncPortfolioEditor();
   triggerRevealAnimations($('#view-portfolio'));
+}
+function syncPortfolioFirstEntry(empty) {
+  const view = $('#view-portfolio'), first = $('#portfolioFirstEntryHost'), host = $('#portfolioFormHost'), form = $('#portfolio-form');
+  if (!view || !first || !host || !form) return;
+  const focused = form.contains(document.activeElement) ? document.activeElement : null;
+  view.classList.toggle('is-first-position', empty);
+  view.classList.add('portfolio-workspace');
+  first.hidden = !empty;
+  const destination = empty ? first : host;
+  if (form.parentElement !== destination) destination.appendChild(form);
+  const grid = view.querySelector('.portfolio-primary-grid');
+  if (grid) grid.hidden = empty;
+  ['#portfolio-kpis','#portfolioActions','#portfolioRiskPlan'].forEach((selector) => { const el = $(selector); if (el) el.hidden = empty; });
+  if (focused && focused.isConnected) focused.focus({preventScroll:true});
 }
 
 function portfolioSymbolOptions(market) {
@@ -2771,7 +2872,8 @@ async function savePortfolio(candidate = portfolioData) {
     if (!res.ok) {
       return false;
     }
-    return true;
+    const result = await res.json();
+    return !!result && result.success === true;
   } catch (e) {
     console.error('Portföy kaydedilemedi:', e);
     return false;
@@ -2904,12 +3006,34 @@ function navigateToAsset(market, symbol) {
   const list = DATA && DATA[market] ? DATA[market] : [];
   const asset = list.find((x) => x.symbol === symbol || (market === 'crypto' && x.id === symbol));
   if (!asset) return;
+  candidateOrigin = null;
+  const marketView = $('#view-market'); if (marketView && marketView.dataset) delete marketView.dataset.candidateOrigin;
   saveRouteUi();
   marketUi[market].symbol = asset.symbol;
   marketDetailOpen = true;
   setView(market, {preserveCurrentSnapshot:true});
 }
 window.navigateToAsset = navigateToAsset;
+function navigateCandidateTask(button) {
+  const {market, symbol, panel, field, target} = button.dataset;
+  const asset = DATA && Array.isArray(DATA[market]) && DATA[market].find((item) => item.symbol === symbol && item.analysis && !item.__error);
+  if (!asset) return;
+  const origin = {view:activeView, button, market, symbol, scroll:window.scrollY, contentScroll:$('#content') && $('#content').scrollTop};
+  assetDetailTabs[market + ':' + symbol] = ['overview','technical','research','notes'].includes(panel) ? panel : 'overview';
+  navigateToAsset(market, symbol);
+  candidateOrigin = origin;
+  const marketView = $('#view-market'); if (marketView && marketView.dataset) marketView.dataset.candidateOrigin = 'true';
+  const returnButton = $('#assetReturnBtn');
+  if (returnButton) returnButton.textContent = 'Piyasa adaylarına dön';
+  requestAnimationFrame(() => {
+    const detail = $('#selectedAssetDetail');
+    if (activeView !== market || !detail || detail.dataset.assetKey !== market + ':' + symbol) return;
+    const section = detail.querySelector('[data-asset-panel="' + assetDetailTabs[market + ':' + symbol] + '"]');
+    const destination = field === 'thesis' || field === 'invalidation' ? section && section.querySelector('textarea[name="' + field + '"]') : section && section.querySelector('[data-task-target="' + target + '"]') || section;
+    if (destination) { if (!destination.matches('input,textarea,button')) destination.tabIndex = -1; destination.scrollIntoView({block:'center',behavior:'instant'}); destination.focus({preventScroll:true}); }
+  });
+}
+window.navigateCandidateTask = navigateCandidateTask;
 
 /* ---------- Strateji testi görünümü ---------- */
 let btInitialized = false;
@@ -4116,7 +4240,16 @@ $('#sortSel').addEventListener('change', (e) => { if (marketUi[activeView]) mark
 const marketSearch = $('#marketSearch');
 if (marketSearch) marketSearch.addEventListener('input', (e) => { if (marketUi[activeView]) marketUi[activeView].query = e.target.value; saveRouteUi(); renderTable(); });
 const assetReturn = $('#assetReturnBtn');
-  if (assetReturn) assetReturn.addEventListener('click', () => { saveRouteUi(); marketDetailOpen = false; $('#view-market').classList.remove('is-detail-open'); if (typeof writeRoute === 'function') writeRoute(activeView, false, true); saveRouteUi(); if (detailReturnFocus && detailReturnFocus.isConnected) { detailReturnFocus.setAttribute('aria-expanded', 'false'); detailReturnFocus.focus(); } });
+  if (assetReturn) assetReturn.addEventListener('click', () => {
+    const origin = candidateOrigin;
+    if (origin) {
+      candidateOrigin = null; marketDetailOpen = false; setView(origin.view);
+      requestAnimationFrame(() => { const content = $('#content'); if (content) content.scrollTop = origin.contentScroll || 0; window.scrollTo(0, origin.scroll); const button = Array.from(document.querySelectorAll('.cfo-row')).find((row) => row.dataset.market === origin.market && row.dataset.symbol === origin.symbol); if (button) button.focus({preventScroll:true}); });
+      assetReturn.textContent = 'Piyasa listesine dön';
+      return;
+    }
+    saveRouteUi(); marketDetailOpen = false; $('#view-market').classList.remove('is-detail-open'); if (typeof writeRoute === 'function') writeRoute(activeView, false, true); saveRouteUi(); if (detailReturnFocus && detailReturnFocus.isConnected) { detailReturnFocus.setAttribute('aria-expanded', 'false'); detailReturnFocus.focus(); }
+  });
 $('#refreshBtn').addEventListener('click', refresh);
 document.addEventListener('toggle', (e) => {
   const target = e.target;
@@ -4287,7 +4420,7 @@ function renderDailyDigest() {
     return '<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); font-size:12px;">' +
       '<b>' + esc(x.symbol) + ' <span style="font-size: 12px; color:var(--muted); text-transform:uppercase;">(' + esc(x.market) + ')</span></b>' +
       '<div style="display:flex; gap:8px; align-items:center;">' +
-        '<span class="badge tone-' + x.tone + '" style="font-size: 12px;">' + x.label + ' · ' + x.score + '</span>' +
+        '<span class="badge tone-' + x.tone + '" style="font-size: 12px;">' + esc(technicalSignalLabel(x.tone || x.label)) + ' · ' + x.score + '</span>' +
         '<span class="news-impact ' + cls + '" style="font-size: 12px; padding:2px 6px; border-radius:4px; font-weight:700;">' + sign + x.delta + '</span>' +
       '</div>' +
     '</div>';
@@ -4321,19 +4454,25 @@ async function renderCfoDecisionCockpit() {
       base = {};
     }
   }
-  const cockpit = window.FinansActionLayer.buildCfoDecisionCockpit(DATA, JOURNAL, base || {});
+  if (activeView !== 'overview') return;
+  const cockpit = window.FinansActionLayer.buildCfoDecisionCockpit(DATA, JOURNAL, safeCockpitBase(base));
+  renderWorkBrief($('#dailyWorkBrief'), base, REPORT_CACHE && REPORT_CACHE.integrity && REPORT_CACHE.integrity.usableResearch && REPORT_CACHE.ai && REPORT_CACHE.ai.research);
+  if (technicalHistory === null) loadTechnicalHistory().then(() => { if (activeView === 'overview' && technicalHistory && technicalHistory.length) renderCfoDecisionCockpit(); });
   const statusLabel = { ready: 'Kararı değerlendir', gated: 'Kanıtı tamamla', blocked: 'Uzak dur / çıkışı incele', watch: 'İzle' };
   const renderRow = (row) => {
+    const task = row.task || {panel:'overview',target:'control',label:statusLabel[row.status]};
     const delta = row.adjustedScore - row.score;
-    const macroLabel = delta ? 'Makro etkisi ' + (delta > 0 ? '+' : '') + delta + ' · Son puan ' + row.adjustedScore : 'Makro puan etkisi yok';
+    const macroLabel = !row.macroEffectAvailable ? 'Makro etkisi doğrulanmadı' : delta ? 'Makro etkisi ' + (delta > 0 ? '+' : '') + delta + ' · Son puan ' + row.adjustedScore : 'Makro puan etkisi: 0';
     const gaps = row.evidenceGaps || row.missingEvidence;
     const nextStep = row.gatingReason || (row.status === 'gated' && gaps.length ? gaps.slice(0, 2).join(' · ') + (gaps.length > 2 ? ' · +' + (gaps.length - 2) + ' eksik' : '') : row.nextAction || row.bindingReason);
-    const accessibleDetail = [row.marketLabel, row.decisionAsk, 'Teknik puan ' + row.score, macroLabel, row.selectionReason, row.bindingReason, 'Eksik kanıt: ' + (row.evidenceGaps || row.missingEvidence).join('; '), row.nextAction || 'Sonraki iş: ' + workflowLabel(row.nextWorkflow)].filter(Boolean).join('. ');
-    return '<button class="cfo-row cfo-' + esc(row.status) + '" type="button" aria-label="' + esc(row.symbol + '. ' + accessibleDetail) + '" title="' + esc(accessibleDetail) + '" data-market="' + esc(row.market) + '" data-symbol="' + esc(row.symbol) + '" onclick="navigateToAsset(this.dataset.market, this.dataset.symbol)">' +
-      '<span class="cfo-symbol"><b>' + esc(row.symbol) + '</b><small>' + esc(row.name || row.symbol) + '</small></span>' +
+    const accessibleDetail = [row.marketLabel, row.symbol, task.label, 'Teknik puan ' + row.score + '/100', row.gatingReason].filter(Boolean).join('. ');
+    const logo = window.FinansAssetIdentity ? window.FinansAssetIdentity.logoHtml(row, { className: 'candidate-logo' }) : '<span class="candidate-logo asset-logo" aria-hidden="true"><span class="asset-logo-monogram">' + esc(row.symbol.slice(0, 2)) + '</span></span>';
+    return '<button class="cfo-row candidate-card cfo-' + esc(row.status) + '" type="button" aria-label="' + esc(accessibleDetail) + '" data-market="' + esc(row.market) + '" data-symbol="' + esc(row.symbol) + '" data-panel="' + esc(task.panel) + '" data-target="' + esc(task.target || '') + '" data-field="' + esc(task.field || '') + '" onclick="navigateCandidateTask(this)">' +
+      '<span class="candidate-identity">' + logo + '<span class="cfo-symbol"><b>' + esc(row.symbol) + '</b><small>' + esc(row.name || row.symbol) + '</small></span></span>' +
       '<span class="cfo-score"><b>' + row.score + '<small> / 100</small></b><small>' + (delta ? esc(macroLabel) : 'Teknik puan') + '</small></span>' +
-      '<span class="cfo-decision"><b>' + esc(statusLabel[row.status] || row.decisionAsk) + '</b><small>' + esc(nextStep) + '</small></span>' +
+      '<span class="cfo-decision candidate-task"><b>' + esc(task.label) + '</b><small>' + esc(nextStep) + '</small></span>' +
       '<span class="cfo-rationale">' + esc(row.selectionReason || row.bindingReason) + '</span>' +
+      candidateTraceHtml(row) +
       '<span class="cfo-open" aria-hidden="true">↗</span>' +
     '</button>';
   };
@@ -4346,9 +4485,11 @@ async function renderCfoDecisionCockpit() {
       '<div class="cfo-rows">' + rows + '</div></section>';
   }).join('');
   el.innerHTML = '<div class="card reveal cfo-cockpit-card candidate-ledger">' +
-    '<div class="card-head"><div><h2>Piyasa adayları</h2><p class="card-sub">Her piyasa kendi içinde sıralanır. Bir adayı açıp eksik kanıtı inceleyin.</p></div><span class="candidate-legend">Puan, başarı olasılığı değildir.</span></div>' +
+    '<div class="card-head"><div><h2>Piyasa adayları</h2><p class="card-sub">Her piyasa kendi içinde sıralanır. Karttaki iş, ilgili varlık ve alanı açar.</p></div><span class="candidate-legend">Puan, başarı olasılığı değildir.</span></div>' +
     '<div class="candidate-markets">' + markets + '</div>' +
+    (technicalHistory && technicalHistory.length ? '<details class="candidate-history"><summary>Kayıtlı teknik puan geçmişini tabloyla incele</summary>' + groups.flatMap((group) => group.rows).map((row) => candidateTraceHtml(row, false)).join('') + '</details>' : '') +
     '</div>';
+  if (window.FinansAssetIdentity) window.FinansAssetIdentity.bindLogoFallback(el);
 }
 
 function renderPredictionScorecard() {
@@ -4494,7 +4635,7 @@ function assetLearningCard(x) {
   const adjLabel = snippet.adjustment !== 0 ? (snippet.adjustment > 0 ? '+' : '') + snippet.adjustment : '';
 
   return '<div class="asset-learning-card ' + cls + '">' +
-    '<div class="research-head"><h4>Karar Öğrenimi</h4><span>' + esc(snippet.kind) + '</span></div>' +
+    '<div class="research-head"><h4>Karar öğrenimi</h4><span>' + esc({archive:'Arşiv',rule:'Ölçülmüş kural',lesson:'Kayıtlı ders'}[snippet.kind] || 'Öğrenme kaydı') + '</span></div>' +
     '<div class="asset-learning-title"><b>' + esc(snippet.title) + (adjLabel ? ' (' + adjLabel + ')' : '') + '</b></div>' +
     '<p>' + esc(snippet.detail) + '</p>' +
     '<em>' + (snippet.kind === 'archive' ? 'Doğrulanmamış arşiv · puan etkisi yok' : 'Tek kayıt gözlemi · puan etkisi yok · ileri dönem doğrulaması gerekli') + '</em>' +
@@ -4610,7 +4751,7 @@ function renderSignalOverlayPanel() {
   const overlay = getReportSignalOverlay();
   if (!overlay || !overlay.assets) {
     const existingResearch = !!(REPORT_CACHE && REPORT_CACHE.ai);
-    el.innerHTML = '<div class="card reveal signal-overlay-card"><div class="card-head"><h2>Makro sinyal katmanı</h2><span class="card-sub">Güncel fiyatlarla eşleşen katman yok</span></div><p class="muted compact">' +
+    el.innerHTML = '<div class="card reveal signal-overlay-card"><div class="card-head"><h2>Makro etkisi</h2><span class="card-sub">Güncel fiyatlarla eşleşen katman yok</span></div><p class="muted compact">' +
       (existingResearch ? 'Araştırma kaydı var; bu fiyat kesitine uygulanabilecek doğrulanmış skor etkisi yok.' : 'Bu fiyat kesitine uygulanabilecek doğrulanmış makro skor etkisi henüz yok.') +
       ' Teknik skorlar aynen kullanılıyor.</p></div>';
     return;
@@ -4660,7 +4801,7 @@ function assetSignalOverlayCard(x) {
     ? '<p class="overlay-expired">' + overlay.expiredComponents.length + ' eski makro sinyal suresi doldugu icin etkisiz.</p>'
     : '';
   return '<div class="asset-overlay-card aoc-' + cls + '">' +
-    '<div class="research-head"><h4>Makro Katman</h4><span>' + esc(overlayStatusLabel(overlay.status)) + ' · guven ' + Math.round((overlay.confidence || 0) * 100) + '%</span></div>' +
+    '<div class="research-head"><h4>Makro etkisi</h4><span>' + esc(overlayStatusLabel(overlay.status)) + ' · modelin öznel güveni ' + Math.round((overlay.confidence || 0) * 100) + '%</span></div>' +
     '<div class="asset-overlay-score"><div><span>Teknik skor</span><b>' + overlay.technicalScore + '</b></div><div><span>Makro etki</span><b>' + adjustmentLabel(overlay.totalAdjustment) + '</b></div><div><span>Ayarlanmis skor</span><b>' + overlay.adjustedScore + '</b></div></div>' +
     '<ul class="asset-overlay-components">' + (components || '<li><em>Aktif bilesen yok.</em></li>') + '</ul>' +
     expired +
@@ -4689,7 +4830,7 @@ function renderIdeaFunnel() {
     const list = rows.length ? rows.map((x) => {
       return '<button class="idea-row" type="button" onclick="navigateToAsset(\'' + esc(x.market) + '\', \'' + esc(x.symbol) + '\')">' +
       '<span><b>' + esc(x.symbol) + '</b><small>' + esc(x.marketLabel) + ' · ' + esc(workflowLabel(x.nextWorkflow)) + '</small></span>' +
-        '<em class="badge tone-' + esc(x.tone) + '">' + esc(x.label) + ' · ' + x.score + '</em>' +
+        '<em class="badge tone-' + esc(x.tone) + '">' + esc(technicalSignalLabel(x.tone || x.label)) + ' · ' + x.score + '</em>' +
       '</button>';
     }).join('') : empty;
     return '<div class="idea-bucket ib-' + key + '">' +
@@ -4804,6 +4945,45 @@ function renderPortfolioRiskPlan() {
 }
 
 let calculatorListenersAttached = false;
+let learningOrigin = null;
+function focusLearningTopic(topic) {
+  const definitions = {rsi:['h4','RSI'], consensus:['h3','Haberleri beklentilerle'], control:['h3','İndikatörler ne anlatır?'], risk:['h3','Risk bütçesi']};
+  const definition = definitions[topic];
+  if (!definition) return;
+  const target = Array.from(document.querySelectorAll('#view-literacy ' + definition[0])).find((heading) => heading.textContent.includes(definition[1]));
+  if (target) { target.tabIndex = -1; target.scrollIntoView({block:'center',behavior:'instant'}); target.focus({preventScroll:true}); }
+}
+function openLearningTopic(topic) {
+  if (!['rsi','consensus','control','risk'].includes(topic)) return;
+  learningOrigin = {view:activeView, symbol:assetDeskState.symbol, market:assetDeskState.market};
+  setView('literacy');
+  const params = new URLSearchParams(window.location.hash.slice(1)); params.set('topic',topic);
+  window.history.replaceState(window.history.state, '', '#' + params.toString());
+  focusLearningTopic(topic);
+  let back = $('#learningReturn');
+  if (!back && $('#literacyContents')) { back = document.createElement('button'); back.id = 'learningReturn'; back.type = 'button'; back.className = 'btn btn-secondary'; back.textContent = 'İncelediğim yere dön'; $('#literacyContents').prepend(back); back.addEventListener('click', () => { const origin = learningOrigin; if (!origin) return; if (['us','bist','crypto'].includes(origin.view) && origin.symbol) navigateToAsset(origin.view,origin.symbol); else setView(origin.view); }); }
+}
+window.openLearningTopic = openLearningTopic;
+document.addEventListener('click', (event) => {
+  const help = event.target.closest('[data-learning-topic]');
+  if (help) openLearningTopic(help.dataset.learningTopic);
+  const task = event.target.closest('[data-brief-market]');
+  if (task && window.FinansActionLayer) {
+    const cockpit = window.FinansActionLayer.buildCfoDecisionCockpit(DATA,JOURNAL,safeCockpitBase(REPORT_CACHE && REPORT_CACHE.base));
+    const row = cockpit.marketGroups.flatMap((group) => group.rows).concat(cockpit.rows).find((item) => item.market === task.dataset.briefMarket && item.symbol === task.dataset.briefSymbol);
+    if (row && row.task) { Object.assign(task.dataset,{market:row.market,symbol:row.symbol,panel:row.task.panel,target:row.task.target || '',field:row.task.field || ''}); navigateCandidateTask(task); }
+  }
+  if (event.target.closest('[data-calc-example]')) {
+    calculatorIsExample = true;
+    [['#calc-capital',100000],['#calc-risk-pct',1],['#calc-price',100],['#calc-atr',2]].forEach(([selector,value]) => { const input = $(selector); if (input) input.value = value; });
+    updatePositionCalculator(); const comparison = $('#positionComparison'); if (comparison) { const details = comparison.querySelector('details'); if (details) details.open = true; }
+  }
+});
+document.addEventListener('change', (event) => {
+  if (event.target.matches('[data-calc-assumption]')) { comparisonMode = event.target.value === 'atr' ? 'atr' : 'risk'; updatePositionCalculator(); const details = $('#positionComparison details'); if (details) details.open = true; const select = $('#positionComparison [data-calc-assumption]'); if (select) select.focus({preventScroll:true}); }
+  const control = event.target.closest('[data-review-asset]');
+  if (control) { const progress = experienceProgress(); const record = progress && progress.setReviewed(control.dataset.reviewAsset,control.dataset.reviewRevision,control.checked); const status = control.closest('.review-control').parentElement.querySelector('[data-review-status]'); if (status) status.textContent = control.checked ? record && record.persistent ? 'Bu veri kesitini incelediğin yerel olarak kaydedildi. Tez ve kaynak eksikleri ayrıca tamamlanmalı.' : 'Bu veri kesitini incelediğin bu oturumda kaydedildi. Tez ve kaynak eksikleri ayrıca tamamlanmalı.' : 'İnceleme işareti kaldırıldı.'; }
+});
 
 function renderLiteracyView() {
   const guides = $('#view-literacy .editorial-content');
@@ -4841,7 +5021,7 @@ function renderLiteracyView() {
     inputs.forEach(sel => {
       const el = $(sel);
       if (el) {
-        el.addEventListener('input', updatePositionCalculator);
+        el.addEventListener('input', () => { calculatorIsExample = false; updatePositionCalculator(); });
       }
     });
     calculatorListenersAttached = true;
@@ -4883,6 +5063,13 @@ function updatePositionCalculator() {
     $('#res-pos-amount').textContent = '–';
     if (state) state.textContent = res.reason || 'Girdileri tamamlayın.';
   }
+  if (window.FinansExperience && state) {
+    let comparison = $('#positionComparison');
+    if (!comparison) { comparison = document.createElement('div'); comparison.id = 'positionComparison'; state.parentElement.appendChild(comparison); }
+    const open = comparison.querySelector('details') && comparison.querySelector('details').open;
+    comparison.innerHTML = window.FinansExperience.positionComparisonHtml({capital,riskPct,price,atr,currency:calculatorIsExample ? 'TL' : 'aynı para birimi',example:calculatorIsExample},window.FinansActionLayer.calculatePosition,{mode:comparisonMode});
+    if (open && comparison.querySelector('details')) comparison.querySelector('details').open = true;
+  }
 }
 
 function renderTipsArchive(tips) {
@@ -4904,16 +5091,19 @@ function renderTipsArchive(tips) {
     return;
   }
   
-  el.innerHTML = sorted.map(tip => {
+  const readable = [], archive = [];
+  sorted.forEach(tip => {
     const unreadable = /\p{L}\?\p{L}|\uFFFD|Ã.|Ä.|Å./u.test(tip.title + ' ' + tip.body);
     const title = unreadable ? 'Karakter kaybı olan eski not' : tip.title;
-    return '<details class="literacy-archive-entry">' +
+    const entry = '<details class="literacy-archive-entry">' +
       '<summary><span>' + esc(title) + '</span><time>' + esc(tip.date) + '</time></summary>' +
       (unreadable ? '<p class="muted-note" role="status">Kaynak kaydında karakter kaybı var. Orijinal metin aşağıda korunuyor; eksik harfler tahminle tamamlanmadı.</p><h4>' + esc(tip.title) + '</h4>' : '') +
       '<p class="muted-note">Tarihsel öğrenme notu · döneme ait yorumlar güncel beklenti olarak okunmamalı.</p>' +
       '<p class="literacy-archive-body">' + esc(tip.body) + '</p>' +
     '</details>';
-  }).join('');
+    (unreadable ? archive : readable).push(entry);
+  });
+  el.innerHTML = readable.join('') + (archive.length ? '<details class="literacy-unreadable-archive"><summary>Karakter kaybı olan eski notlar · ' + archive.length + '</summary><p class="muted-note">Kaynak metinler arşivde korunur; okunabilir notlardan ayrı gösterilir.</p>' + archive.join('') + '</details>' : '');
 }
 
 window.submitQuizAnswer = function(selectedIndex, correctIndex, quizDate) {
@@ -5012,13 +5202,14 @@ document.addEventListener('submit', async (e) => {
       const draft = noteDrafts[key];
       const editedDuringSave = draft && (draft.thesis !== thesis || draft.invalidation !== invalidation);
       if (!editedDuringSave) delete noteDrafts[key];
-      const message = editedDuringSave ? 'Önceki not kaydedildi. Yeni değişiklikler taslak; kaydetmeniz gerekiyor.' : '✓ Kaydedildi';
-      if (statusEl) statusEl.textContent = message;
+      const message = editedDuringSave ? symbol + ' notu kaydedildi. Yeni değişiklikler taslak; kaydetmeniz gerekiyor.' : symbol + ' tez ve takip notu kaydedildi.';
+      if (statusEl) { statusEl.textContent = message; if (statusEl.dataset) statusEl.dataset.status = 'success'; }
       setNoteSaveStatus(key, message);
+      if (activeView === 'overview') renderCfoDecisionCockpit();
     } catch (err) {
       JOURNAL.notes = previousNotes;
       const message = 'Kaydedilemedi: ' + err.message + '. Taslağınız korunuyor.';
-      if (statusEl) statusEl.textContent = message;
+      if (statusEl) { statusEl.textContent = message; if (statusEl.dataset) statusEl.dataset.status = 'error'; }
       setNoteSaveStatus(key, message);
     } finally {
       noteForm.dataset.saving = 'false';

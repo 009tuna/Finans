@@ -39,7 +39,8 @@ function harness() {
     globalThis.inspect = () => JSON.parse(JSON.stringify({portfolioData, portfolioSaving}));
     globalThis.setSourceState = (state) => { portfolioState = state; };`, context);
   return { context, elements, requests, button, form, submit: () => form.handler({ preventDefault() {}, currentTarget: form }),
-    finish: (ok = true) => requests.at(-1).resolve({ ok }) };
+    finish: (ok = true, acknowledgement = { success: true }) => requests.at(-1).resolve({ ok, json: async () => acknowledgement }),
+    finishMalformed: () => requests.at(-1).resolve({ ok: true, json: async () => { throw new SyntaxError('malformed acknowledgement'); } }) };
 }
 
 (async () => {
@@ -83,6 +84,25 @@ function harness() {
   assert.equal(failure.elements['#port-amount-input'].value, '4');
   assert.equal(failure.context.inspect().portfolioSaving, false);
   assert.equal(failure.button.disabled, false);
+
+  for (const acknowledgement of [{ success: false }, {}, null]) {
+    const rejected = harness();
+    const rejectedSave = rejected.submit();
+    rejected.finish(true, acknowledgement);
+    await rejectedSave;
+    assert.equal(rejected.context.inspect().portfolioData.us[0].amount, 1, 'an HTTP success without an explicit success acknowledgement cannot replace confirmed positions');
+    assert.equal(rejected.elements['#port-amount-input'].value, '2', 'unacknowledged saves preserve the draft');
+    assert.equal(rejected.context.inspect().portfolioSaving, false);
+    assert.equal(rejected.button.disabled, false);
+    assert.match(rejected.elements['#portfolioStatus'].textContent, /kaydedilemedi/i);
+  }
+  const malformed = harness();
+  const malformedSave = malformed.submit();
+  malformed.finishMalformed();
+  await malformedSave;
+  assert.equal(malformed.context.inspect().portfolioData.us[0].amount, 1, 'a malformed acknowledgement cannot replace confirmed positions');
+  assert.equal(malformed.elements['#port-amount-input'].value, '2');
+  assert.equal(malformed.button.disabled, false);
   const deletion = failure.context.deletePortfolioAsset('us', 'AAPL');
   await failure.submit();
   await failure.context.deletePortfolioAsset('us', 'AAPL');

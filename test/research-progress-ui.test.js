@@ -152,7 +152,9 @@ assert.match(unknownRecords, /Ölçüm kapsamı: Veri yok/);
 assert.doesNotMatch(unknownRecords, /0 tahmin kaydı|Henüz açıklama öncesi kaydedilmiş tahmin yok/);
 function outcomeLabel(verification, vintage) {
   return research.evaluationHtml({ forecasts: [auditForecast], outcomes: [{ forecastId: auditForecast.id, value: 0.2,
-    verification, vintage, sourceUrl: auditForecast.resolution.sourceUrl }] });
+    metric: auditForecast.metric, unit: auditForecast.unit, period: auditForecast.period,
+    publishedAt: auditForecast.scheduledAt, recordedAt: '2026-10-14T12:40:00Z',
+    verification, vintage, sourceUrl: auditForecast.resolution.sourceUrl }] }, { now: '2026-10-15T06:00:00Z' });
 }
 const official = outcomeLabel('bls-official-first-release', 'first_release');
 assert.match(official, /Resmî BLS ilk açıklama kaydı/);

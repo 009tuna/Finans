@@ -397,6 +397,140 @@
     return unique.sort((a, b) => Date.parse(a.scheduledAt) - Date.parse(b.scheduledAt))[0] || null;
   }
 
+  function displayPayrollEvent(data, now = Date.now()) {
+    const upcoming = matchPayrollEvent(data, now);
+    if (upcoming) return upcoming;
+    return [].concat(data && data.nextEvent || [], data && data.events || []).filter((event) =>
+      event && event.metric === 'us_nonfarm_payroll_change' && event.unit === 'thousand_jobs' &&
+      /^\d{4}-(0[1-9]|1[0-2])$/.test(event.period || '') && event.eventId === event.metric + ':' + event.period &&
+      Number.isFinite(Date.parse(event.scheduledAt)) && Date.parse(event.scheduledAt) <= now)
+      .sort((a, b) => Date.parse(b.scheduledAt) - Date.parse(a.scheduledAt))[0] || null;
+  }
+
+  function lifecycleIdentity(record, event, metric, unit) {
+    return Boolean(record && event && record.eventId === event.eventId && record.metric === metric &&
+      record.unit === unit && record.period === event.period &&
+      Number.isFinite(lifecycleTime(record.scheduledAt)) && lifecycleTime(record.scheduledAt) === lifecycleTime(event.scheduledAt));
+  }
+
+  function lifecycleTime(value) {
+    if (typeof value !== 'string') return NaN;
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,3})?(?:Z|[+-](\d{2}):(\d{2}))$/);
+    if (!match) return NaN;
+    const [year, month, day, hour, minute, second] = match.slice(1, 7).map(Number);
+    const maxDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    if (month < 1 || month > 12 || day < 1 || day > maxDay || hour > 23 || minute > 59 || second > 59 ||
+      match[7] && Number(match[7]) > 23 || match[8] && Number(match[8]) > 59) return NaN;
+    return Date.parse(value);
+  }
+
+  function lifecycleEligible(record, event, metric, unit, now) {
+    if (!lifecycleIdentity(record, event, metric, unit) || event.scheduleConflict || record.scheduleConflict ||
+      record.contested || record.chronologyStatus === 'unverified' || (!record.id && record.reviewOnly !== true) ||
+      !isFiniteValue(record.pointEstimate)) return false;
+    const release = lifecycleTime(event.scheduledAt);
+    const recorded = lifecycleTime(record.recordedAt || record.createdAt);
+    const created = record.createdAt != null ? lifecycleTime(record.createdAt) : recorded;
+    const cutoff = lifecycleTime(record.knowledgeCutoff);
+    if (![release, recorded, created, cutoff, now].every(Number.isFinite) || created > recorded ||
+      created > now || created >= release || recorded > now || cutoff > recorded || recorded >= release) return false;
+    const sources = Array.isArray(record.sourceEvidence) ? record.sourceEvidence : [];
+    if (!sources.length) return false;
+    let dated = false;
+    const eligible = sources.every((source) => {
+      const url = source && safeUrl(source.url);
+      if (!url) return false;
+      const published = lifecycleTime(source.publishedAt);
+      const observedValue = source.observedAt || source.retrievedAt;
+      const observed = observedValue ? lifecycleTime(observedValue) : null;
+      if (observedValue && (!Number.isFinite(observed) || observed > cutoff)) return false;
+      if (source.publishedAt === null && /^https:\/\/(?:www\.)?bls\.gov\/schedule\//i.test(url)) return true;
+      if (!Number.isFinite(published) || published > cutoff || (observed != null && published > observed)) return false;
+      dated = true;
+      return true;
+    });
+    return eligible && dated;
+  }
+
+  function buildMacroLifecycle(data, event, metric, unit, now = Date.now()) {
+    const instant = now instanceof Date ? now.getTime() : Number(now);
+    const release = event && lifecycleTime(event.scheduledAt);
+    const forecasts = (Array.isArray(data && data.modelForecasts) ? data.modelForecasts : [])
+      .filter((record) => record && record.reviewOnly !== true && lifecycleEligible(record, event, metric, unit, instant))
+      .sort((a, b) => Date.parse(a.recordedAt || a.createdAt) - Date.parse(b.recordedAt || b.createdAt));
+    const first = forecasts[0] || null;
+    const latest = first ? (Array.isArray(data && data.modelForecastReviews) ? data.modelForecastReviews : [])
+      .filter((record) => record && record.reviewOnly === true && record.originalForecastId === first.id &&
+        lifecycleEligible(record, event, metric, unit, instant) &&
+        Date.parse(record.recordedAt || record.createdAt) > Date.parse(first.recordedAt || first.createdAt))
+      .sort((a, b) => Date.parse(b.recordedAt || b.createdAt) - Date.parse(a.recordedAt || a.createdAt))[0] || null : null;
+    const observations = Array.isArray(data && data.observations) ? data.observations : [];
+    const modelOutcomes = Array.isArray(data && data.modelOutcomes) ? data.modelOutcomes : [];
+    const outcomes = Array.isArray(data && data.outcomes) ? data.outcomes : [];
+    const originalById = new Map((Array.isArray(data && data.modelForecasts) ? data.modelForecasts : [])
+      .filter((record) => record && record.id && record.reviewOnly !== true && lifecycleIdentity(record, event, metric, unit))
+      .map((record) => [record.id, record]));
+    const candidates = observations.concat(modelOutcomes, outcomes).filter((record) => {
+      if (!record || !event || event.scheduleConflict || record.metric !== metric || record.unit !== unit || record.period !== event.period ||
+        record.vintage !== 'first_release' || !safeUrl(record.sourceUrl) || !isFiniteValue(record.value != null ? record.value : record.actual)) return false;
+      if (modelOutcomes.includes(record) && record.verification !== 'bls-official-first-release') return false;
+      const matchingForecast = record.forecastId && originalById.get(record.forecastId);
+      const eventMatches = record.eventId === event.eventId || Boolean(matchingForecast) ||
+        observations.includes(record) && record.metric === metric && record.period === event.period;
+      if (!eventMatches || record.eventId && record.eventId !== event.eventId ||
+        record.scheduledAt && lifecycleTime(record.scheduledAt) !== release) return false;
+      const published = lifecycleTime(record.publishedAt);
+      const observed = lifecycleTime(record.observedAt);
+      return [release, published, observed, instant].every(Number.isFinite) && published === release && observed >= published && observed <= instant;
+    }).sort((a, b) => Date.parse(a.observedAt) - Date.parse(b.observedAt));
+    const actualRecord = candidates[0] || null;
+    const correctionReviews = Array.isArray(data && data.correctionReviews) ? data.correctionReviews : [];
+    const actual = actualRecord ? Object.assign({}, actualRecord, { contested: Boolean(actualRecord.contested ||
+      correctionReviews.some((review) => review && [actualRecord.id, actualRecord.actualId].filter(Boolean).includes(review.conflictWith))) }) : null;
+    const state = event && event.scheduleConflict || !Number.isFinite(release) || !Number.isFinite(instant) ? 'unverified' :
+      actual ? 'recorded' : release <= instant ? 'awaiting_result' : 'upcoming';
+    return { event, metric, unit, first, latest, actual, state };
+  }
+
+  function renderMacroLifecycle(data, event, metric, unit, now = Date.now(), label = '') {
+    if (!event) return '';
+    const lifecycle = buildMacroLifecycle(data, event, metric, unit, now);
+    const stateCopy = {
+      upcoming: 'Yaklaşan açıklama', awaiting_result: 'Açıklama saati geçti; ilk sonuç henüz doğrulanamadı',
+      recorded: 'İlk açıklanan sonuç kaydedildi', unverified: 'Açıklama takvimi doğrulanamadı',
+    }[lifecycle.state];
+    const value = (record, isActual = false) => escapeHtml(formatNumber(isActual ? record.value != null ? record.value : record.actual : record.pointEstimate, 2)) + (unit === 'percent' ? '%' : ' bin kişi');
+    const time = (stamp) => '<time datetime="' + escapeHtml(stamp) + '">' + escapeHtml(formatTimestamp(stamp)) + '</time>';
+    const first = lifecycle.first;
+    const latest = lifecycle.latest;
+    const actual = lifecycle.actual;
+    return '<section class="macro-lifecycle" aria-label="' + escapeHtml((label ? label + ' · ' : '') + 'Beklenti yaşam döngüsü') + '"><div class="macro-lifecycle-head"><b>' + escapeHtml(label || 'Açıklama öncesi görüşler ve sonuç') + '</b><span class="macro-lifecycle-state" data-lifecycle-state="' + lifecycle.state + '">' + escapeHtml(stateCopy) + '</span></div><ol class="macro-lifecycle-steps">' +
+      '<li><span>İlk kilitli tahmin</span><b>' + (first ? value(first) : 'Zaman ve kaynak kanıtı eşleşen kayıt yok') + '</b>' + (first ? '<small>Kayıt ' + time(first.recordedAt || first.createdAt) + ' · Bilgi kesiti ' + time(first.knowledgeCutoff) + '</small>' : '') + '</li>' +
+      '<li><span>Son açıklama öncesi görüş</span><b>' + (latest ? value(latest) : 'Ayrı bir uygun görüş kaydı yok') + '</b>' + (latest ? '<small>Kayıt ' + time(latest.recordedAt || latest.createdAt) + ' · Bilgi kesiti ' + time(latest.knowledgeCutoff) + '</small>' : '') + '</li>' +
+      '<li><span>İlk açıklanan sonuç</span><b>' + (actual ? value(actual, true) : lifecycle.state === 'upcoming' ? 'Açıklama bekleniyor' : 'Sonuç doğrulanamadı') + '</b>' + (actual ? '<small>Yayın ' + time(actual.publishedAt) + ' · Sisteme alındı ' + time(actual.observedAt) + ' · ' + externalLink(actual.sourceUrl, 'İlk açıklama kaynağı', 'macro-source-link') + '</small>' : '') + '</li></ol>' +
+      '<p class="macro-muted">Sonraki görüş ilk tahminin yerine geçmez. Önceki dönem değeri bu olayın sonucu değildir.' + (actual && actual.contested ? ' Sonuç kanıtı çelişkili; puanlama dışı.' : '') + '</p></section>';
+  }
+
+  function renderPastMacroLifecycles(data, currentEvent, now = Date.now()) {
+    const eventRecords = new Map();
+    [].concat(data && data.events || [], data && data.modelForecasts || []).forEach((record) => {
+      if (!record || record.metric !== 'us_nonfarm_payroll_change' || record.unit !== 'thousand_jobs' ||
+        !/^\d{4}-(0[1-9]|1[0-2])$/.test(record.period || '') || record.eventId !== record.metric + ':' + record.period ||
+        !Number.isFinite(Date.parse(record.scheduledAt)) || Date.parse(record.scheduledAt) > now ||
+        currentEvent && record.eventId === currentEvent.eventId) return;
+      const existing = eventRecords.get(record.eventId);
+      if (!existing) eventRecords.set(record.eventId, { eventId: record.eventId, metric: record.metric, unit: record.unit,
+        period: record.period, scheduledAt: record.scheduledAt, scheduleConflict: record.scheduleConflict || null });
+      else if (Date.parse(existing.scheduledAt) !== Date.parse(record.scheduledAt) || record.scheduleConflict) existing.scheduleConflict = true;
+    });
+    const events = [...eventRecords.values()].sort((a, b) => Date.parse(b.scheduledAt) - Date.parse(a.scheduledAt));
+    if (!events.length) return '';
+    const waiting = events.filter((event) => buildMacroLifecycle(data, event, event.metric, event.unit, now).state === 'awaiting_result').length;
+    return '<details class="macro-past-lifecycles"><summary>Geçmiş açıklamaların tahmin ve sonuç durumu (' + events.length + ')' +
+      (waiting ? ' · ' + waiting + ' ilk sonuç doğrulanamadı' : '') + '</summary>' + events.map((event) =>
+      renderMacroLifecycle(data, event, event.metric, event.unit, now, periodLabel(event.period))).join('') + '</details>';
+  }
+
   function eventForecasts(data, event) {
     if (!event) return [];
     return (Array.isArray(data && data.forecasts) ? data.forecasts : []).filter((forecast) =>
@@ -640,10 +774,11 @@
       (forecast.eventId == null || forecast.eventId === event.eventId));
     const reviews = validModelReviewHistory(data, event, now);
     if (!models.length && !reviews.length) return '';
-    return '<section class="macro-model-forecasts"><h3>Model tahmini</h3><div class="macro-model-summary-list">' + models.map((forecast) => {
+    const lifecycle = buildMacroLifecycle(data, event, event.metric, event.unit, now);
+    return '<details class="macro-model-records"><summary>Model tahmini · kayıt ve kaynak ayrıntıları</summary><section class="macro-model-forecasts"><div class="macro-model-summary-list">' + models.map((forecast) => {
       const estimate = isFiniteValue(forecast.pointEstimate) ? formatNumber(forecast.pointEstimate) + ' bin kişi' : 'Tahmin yok';
-      return '<div class="macro-model-summary"><span>Ölçülecek ilk model tahmini</span><b>' + escapeHtml(estimate) + '</b></div>';
-    }).join('') + reviews.map((review) => '<div class="macro-model-summary macro-model-review"><span>Güncel model görüşü · puanlamaya ayrı tahmin eklenmedi</span><b>' + escapeHtml(isFiniteValue(review.pointEstimate) ? formatNumber(review.pointEstimate) + ' bin kişi' : 'Sayısal görüş yok') + '</b>' + (review.recordedAt ? '<small>' + escapeHtml(formatTimestamp(review.recordedAt)) + '</small>' : '') + '</div>').join('') + '</div></section>';
+      return '<div class="macro-model-summary"><span>' + (forecast === lifecycle.first ? 'Ölçülecek ilk model tahmini' : 'Arşivdeki ilk model kaydı · zaman ve kaynak uygunluğu doğrulanmadı') + '</span><b>' + escapeHtml(estimate) + '</b></div>';
+    }).join('') + reviews.map((review) => '<div class="macro-model-summary macro-model-review"><span>' + (review === lifecycle.latest ? 'Güncel model görüşü · puanlamaya ayrı tahmin eklenmedi' : 'Arşivdeki sonraki görüş · uygunluğu doğrulanmadı; puanlama referansı değildir') + '</span><b>' + escapeHtml(isFiniteValue(review.pointEstimate) ? formatNumber(review.pointEstimate) + ' bin kişi' : 'Sayısal görüş yok') + '</b>' + (review.recordedAt ? '<small>' + escapeHtml(formatTimestamp(review.recordedAt)) + '</small>' : '') + '</div>').join('') + '</div></section></details>';
   }
 
   function renderModelOutcomes(data, now = Date.now()) {
@@ -708,13 +843,16 @@
         url: item.sourceUrl, publishedAt: item.publishedAt, observedAt: item.observedAt }, kind: 'independent', record: item };
     }
     const candidates = (Array.isArray(data && data.modelForecasts) ? data.modelForecasts : []).filter((forecast) =>
-      forecast && forecast.metric === event.metric && forecast.unit === event.unit && forecast.period === event.period &&
-      (forecast.eventId == null || forecast.eventId === event.eventId) && isFiniteValue(forecast.consensus));
+      lifecycleIdentity(forecast, event, event.metric, event.unit) && !forecast.scheduleConflict && !event.scheduleConflict &&
+      isFiniteValue(forecast.consensus));
     candidates.sort((a, b) => String(b.createdAt || b.recordedAt || '').localeCompare(String(a.createdAt || a.recordedAt || '')));
     for (const forecast of candidates) {
       const cutoff = Date.parse(forecast.knowledgeCutoff || forecast.createdAt || forecast.recordedAt || '');
+      const recorded = Date.parse(forecast.recordedAt || forecast.createdAt || '');
+      if (![cutoff, recorded].every(Number.isFinite) || cutoff > recorded || recorded > instant || recorded >= Date.parse(event.scheduledAt)) continue;
       const source = (Array.isArray(forecast.sourceEvidence) ? forecast.sourceEvidence : []).find((item) =>
-        item && item.id === forecast.consensusSourceId && safeUrl(item.url) && Number.isFinite(Date.parse(item.publishedAt)) && Number.isFinite(cutoff) && Date.parse(item.publishedAt) <= cutoff);
+        item && item.id === forecast.consensusSourceId && safeUrl(item.url) && Number.isFinite(Date.parse(item.publishedAt)) && Date.parse(item.publishedAt) <= cutoff &&
+        (!item.observedAt || Number.isFinite(Date.parse(item.observedAt)) && Date.parse(item.observedAt) >= Date.parse(item.publishedAt) && Date.parse(item.observedAt) <= cutoff));
       if (source) return { value: forecast.consensus, source };
     }
     return null;
@@ -864,10 +1002,28 @@
     return '<p class="macro-cpi-source-status"><b>Kaynak durumu:</b> ' + escapeHtml(label) + (source.lastSuccessfulAt ? ' · Son başarılı ' + escapeHtml(formatTimestamp(source.lastSuccessfulAt)) : '') + cached + '</p>' + (raw ? '<details class="macro-cpi-evidence macro-cpi-source-evidence"><summary>Kaynak teknik ayrıntısı</summary><p>' + escapeHtml(raw) + '</p></details>' : '');
   }
 
-  function renderCpi(family, selectedMetric = '') {
+  function displayCpiEvent(family, now = Date.now()) {
+    const events = [].concat(family && family.nextEvent || [], family && family.events || []).filter((event) =>
+      event && /^\d{4}-(0[1-9]|1[0-2])$/.test(event.period || '') && event.eventId === 'us_cpi:' + event.period && Number.isFinite(Date.parse(event.scheduledAt)));
+    const upcoming = events.filter((event) => Date.parse(event.scheduledAt) > now).sort((a, b) => Date.parse(a.scheduledAt) - Date.parse(b.scheduledAt));
+    return upcoming[0] || events.sort((a, b) => Date.parse(b.scheduledAt) - Date.parse(a.scheduledAt))[0] || null;
+  }
+
+  function renderCpiLifecycles(family, metrics, event, selectedMetric, now) {
+    if (!event) return '';
+    const selected = CPI_METRICS.includes(selectedMetric) ? selectedMetric : CPI_METRICS[0];
+    const renderMetric = (metricId) => {
+      const metric = metrics.find((record) => record && record.metric === metricId) || {};
+      const records = Object.assign({}, metric, { observations: Array.isArray(family && family.observations) ? family.observations : [], correctionReviews: family && family.correctionReviews || [] });
+      return renderMacroLifecycle(records, event, metricId, 'percent', now, CPI_SHORT_LABELS[metricId]);
+    };
+    return renderMetric(selected) + '<details class="macro-lifecycle-other"><summary>Diğer enflasyon ölçümlerinin tahmin ve sonuç geçmişi</summary>' + CPI_METRICS.filter((metric) => metric !== selected).map(renderMetric).join('') + '</details>';
+  }
+
+  function renderCpi(family, selectedMetric = '', now = Date.now()) {
     const metrics = Array.isArray(family && family.metrics) ? family.metrics : [];
     const byId = new Map(metrics.map((metric) => [metric && metric.metric, metric]));
-    const nextEvent = family && family.nextEvent;
+    const nextEvent = displayCpiEvent(family, now);
     const event = nextEvent && nextEvent.eventId && nextEvent.period ? nextEvent : null;
     const eventLabel = nextEvent && nextEvent.period ? periodLabel(nextEvent.period) : 'Dönem doğrulanamadı';
     const eventTime = nextEvent && nextEvent.scheduledAt ? '<time datetime="' + escapeHtml(nextEvent.scheduledAt) + '">' + escapeHtml(formatTimestamp(nextEvent.scheduledAt)) + ' (İstanbul)</time>' : 'Açıklama zamanı doğrulanmadı';
@@ -877,24 +1033,25 @@
       const models = (Array.isArray(metric.modelForecasts) ? metric.modelForecasts : metric.modelForecasts ? [metric.modelForecasts] : []).filter((item) => validCpiModel(item, event, id));
       const scorecards = Array.isArray(metric.scorecards) ? metric.scorecards : metric.scorecards ? [metric.scorecards] : [];
       const forecast = forecasts.find((item) => cpiMetricValue(item) != null) || forecasts[0];
-       const model = models.find((item) => cpiMetricValue(item) != null) || models[0];
+      const model = buildMacroLifecycle(metric, event, id, 'percent', now).first;
       const method = forecast ? ({ last_first_release_v1: 'Son ilk değer', consecutive_three_first_releases_v1: 'Üç ay ortalaması' }[forecast.methodId] || 'Yöntem tahmini') : 'Tahmin yok';
       const score = scorecards.find((item) => forecast && item.methodId === forecast.methodId) || scorecards[0];
       const sampleSize = score && (isFiniteValue(score.sampleSize) ? score.sampleSize : score.n);
       const scoreCopy = isFiniteValue(sampleSize) ? 'n=' + escapeHtml(String(sampleSize)) + (isFiniteValue(score.mae) ? ' · hata ' + escapeHtml(formatNumber(score.mae, 2)) + ' yüzde puan' : '') : 'Örneklem yok';
       const previous = metric.previousFirstRelease && event && String(metric.previousFirstRelease.period || '') < String(event.period) ? metric.previousFirstRelease : null;
-      const consensus = validCpiConsensus(metric.consensus, event, id) ? metric.consensus : null;
+      const consensusEvent = event && Object.assign({}, event, { metric: id, unit: 'percent' });
+      const consensus = consensusEvent && sourcedConsensus({ consensus: metric.consensus || null }, consensusEvent, now);
       const adjustment = id.endsWith('_nsa') ? 'Mevsim etkisinden arındırılmamış' : 'Mevsim etkisinden arındırılmış';
        const modelUnavailable = family && family.modelStatus && ['unavailable', 'store_unavailable'].includes(family.modelStatus.status);
        const modelCell = model ? '<b>' + cpiValue(model) + '</b>' : modelUnavailable ? 'Erişilemiyor' : 'Kayıt yok';
-       return '<tr' + (selectedMetric === id ? ' class="is-selected"' : '') + '><th scope="row"><span>' + escapeHtml(CPI_SHORT_LABELS[id] || 'CPI metriği') + '</span><small>' + adjustment + '</small></th><td>' + cpiCellValue(previous, 'Kayıt yok') + '</td><td>' + cpiCellValue(consensus, 'Bağlı değil') + '</td><td>' + modelCell + '</td><td><span>' + escapeHtml(method) + (forecast ? ' · ' + cpiValue(forecast) : '') + '</span><small>' + escapeHtml(forecast && forecast.contested ? 'Kanıt çelişkili · puanlama dışı' : scoreCopy) + '</small></td></tr>';
+       return '<tr' + (selectedMetric === id ? ' class="is-selected"' : '') + '><th scope="row"><span>' + escapeHtml(CPI_SHORT_LABELS[id] || 'CPI metriği') + '</span><small>' + adjustment + '</small></th><td>' + cpiCellValue(previous, 'Kayıt yok') + '</td><td>' + cpiCellValue(consensus, 'Bu dönem için konsensüs doğrulanamadı') + '</td><td>' + modelCell + '</td><td><span>' + escapeHtml(method) + (forecast ? ' · ' + cpiValue(forecast) : '') + '</span><small>' + escapeHtml(forecast && forecast.contested ? 'Kanıt çelişkili · puanlama dışı' : scoreCopy) + '</small></td></tr>';
     }).join('');
     const hasData = metrics.some((metric) => metric && (metric.previousFirstRelease || metric.consensus || (Array.isArray(metric.forecasts) && metric.forecasts.length) || (Array.isArray(metric.modelForecasts) && metric.modelForecasts.length)));
     const notInitialized = family && family.sourceStatus && family.sourceStatus.status === 'not_initialized';
     const missing = !family ? '<p class="macro-empty">Enflasyon kaynak ailesi mevcut değil; doğrulanmış veri akışı bekleniyor.</p>' : notInitialized || !hasData ? '<p class="macro-empty">Enflasyon kaynakları henüz alınmadı; doğrulanmış veri akışı bekleniyor.</p>' : !metrics.length ? '<p class="macro-empty">Enflasyon metrikleri henüz doğrulanmadı; kaynak yanıtı bekleniyor.</p>' : '';
     const source = renderCpiSourceHealth(family) + renderStoreStatus(family, 'Enflasyon') + renderModelStatus(family, 'Enflasyon') + (nextEvent && nextEvent.scheduleConflict ? '<p class="macro-refresh-warning" role="status">Açıklama takvimi çelişkili; yeni tahmin ve puanlama bekletiliyor.</p>' : family && family.sourceStatus && family.sourceStatus.auditRequired ? '<p class="macro-refresh-warning" role="status">İlk açıklama kaynağında çelişki var; ilgili kayıtlar puanlamadan ayrıldı.</p>' : '');
     const showData = metrics.length && hasData && !notInitialized;
-    return '<section id="macro-panel-us-cpi" class="macro-cpi" role="tabpanel" aria-labelledby="macro-tab-us-cpi" aria-label="ABD enflasyon görünümü"><header class="macro-cpi-head"><div><b>ABD enflasyon</b><span>' + escapeHtml(eventLabel) + ' · Açıklama: ' + eventTime + '</span></div></header>' + source + missing + (showData ? '<div class="macro-cpi-table-wrap" tabindex="0" role="region" aria-label="Enflasyon karşılaştırma tablosu"><table class="macro-cpi-table"><caption class="sr-only">Tüketici fiyat endeksi metrikleri. Model sütunu ilk model tahminini gösterir; sonraki model görüşleri ayrıntıda yer alır.</caption><thead><tr><th scope="col">Metrik</th><th scope="col">Önceki ilk açıklama</th><th scope="col">Konsensüs</th><th scope="col" aria-label="İlk model tahmini">İlk model tahmini</th><th scope="col">Yöntem kıyası</th></tr></thead><tbody>' + rows + '</tbody></table></div><div class="macro-cpi-evidence-list">' + renderCpiModelDetails(CPI_METRICS.map((id) => Object.assign({ metric: id }, byId.get(id) || {})), event) + renderCpiScenarios(family, event) + renderCpiMethods(CPI_METRICS.map((id) => Object.assign({ metric: id }, byId.get(id) || {})), event, family) + '<details class="macro-cpi-evidence"><summary>Kaynak ve kanıt · dört metrik</summary>' + CPI_METRICS.map((id) => cpiEvidence(Object.assign({ metric: id, eventId: event && event.eventId, eventPeriod: event && event.period }, byId.get(id) || {}))).join('') + '</details></div>' : '') + '</section>';
+    return '<section id="macro-panel-us-cpi" class="macro-cpi" role="tabpanel" aria-labelledby="macro-tab-us-cpi" aria-label="ABD enflasyon görünümü"><header class="macro-cpi-head"><div><b>ABD enflasyon</b><span>' + escapeHtml(eventLabel) + ' · Açıklama: ' + eventTime + '</span></div></header>' + source + missing + (showData ? renderCpiLifecycles(family, metrics, event, selectedMetric, now) + '<div class="macro-cpi-table-wrap" tabindex="0" role="region" aria-label="Enflasyon karşılaştırma tablosu"><table class="macro-cpi-table"><caption class="sr-only">Tüketici fiyat endeksi metrikleri. Model sütunu ilk model tahminini gösterir; sonraki model görüşleri ayrıntıda yer alır.</caption><thead><tr><th scope="col">Metrik</th><th scope="col">Önceki ilk açıklama</th><th scope="col">Konsensüs</th><th scope="col" aria-label="İlk model tahmini">İlk model tahmini</th><th scope="col">Yöntem kıyası</th></tr></thead><tbody>' + rows + '</tbody></table></div><div class="macro-cpi-evidence-list">' + renderCpiModelDetails(CPI_METRICS.map((id) => Object.assign({ metric: id }, byId.get(id) || {})), event) + renderCpiScenarios(family, event) + renderCpiMethods(CPI_METRICS.map((id) => Object.assign({ metric: id }, byId.get(id) || {})), event, family) + '<details class="macro-cpi-evidence"><summary>Kaynak ve kanıt · dört metrik</summary>' + CPI_METRICS.map((id) => cpiEvidence(Object.assign({ metric: id, eventId: event && event.eventId, eventPeriod: event && event.period }, byId.get(id) || {}))).join('') + '</details></div>' : '') + '</section>';
   }
 
   function renderMacroFamilyTabs(data, selectedFamily) {
@@ -910,16 +1067,14 @@
       const cpiFamily = data.families && data.families.us_cpi;
       const cpiUnavailable = !cpiFamily || ['unavailable', 'partial'].includes(cpiFamily.sourceStatus?.status) || cpiFamily.storeStatus?.status === 'unavailable';
       const refreshWarning = error && cpiUnavailable ? '<p class="macro-refresh-warning" role="status">Güncel enflasyon akışı alınamadı; mevcut kayıt korunuyor. ' + escapeHtml(error) + '</p><button type="button" class="macro-retry" data-macro-retry>Yeniden dene</button>' : '';
-      return '<section class="macro-panel" aria-label="Makro görünümü">' + tabs + refreshWarning + renderCpi(cpiFamily, view.metric) + '</section>';
+      return '<section class="macro-panel" aria-label="Makro görünümü">' + tabs + refreshWarning + renderCpi(cpiFamily, view.metric, now) + '</section>';
     }
-    const event = matchPayrollEvent(data, now);
+    const event = displayPayrollEvent(data, now);
     const scheduleLabel = event && event.scheduleVerification === 'model-cited-web-research' ? ' · Takvim: modelin resmî kaynak atfı; bağımsız erişim doğrulanamadı' : '';
     const eventSchedule = event ? '<time datetime="' + escapeHtml(event.scheduledAt) + '">' + escapeHtml(formatTimestamp(event.scheduledAt)) + ' (İstanbul)</time>' + escapeHtml(scheduleLabel) : 'Yaklaşan doğrulanmış BLS takvim olayı yok.';
     const obs = observationFor(data, event);
     const forecasts = eventForecasts(data, event);
-    const outcome = exactOutcome(data, event);
     const status = data.status === 'not_initialized' && data.storeStatus?.status !== 'unavailable' ? '<p class="macro-status">' + escapeHtml(statusCopy(data.status)) + '</p>' : '';
-    const result = outcome ? '<div class="macro-outcome"><span>İlk açıklanan sonuç · ' + escapeHtml(periodLabel(event.period)) + '</span><b>' + escapeHtml(formatNumber(outcome.actual)) + ' bin kişi</b></div>' : '';
     const attempts = (Array.isArray(data.methodAbstentions) ? data.methodAbstentions : []).filter((item) => event && item.eventId === event.eventId && item.metric === event.metric && item.unit === event.unit);
     const attemptHistory = attempts.length ? '<div class="macro-method-attempts"><h4>Tahmin üretmeyen denemeler (' + attempts.length + ')</h4>' + attempts.slice(-6).map((attempt) =>
       '<p><b>' + escapeHtml(METHOD_NAMES[attempt.methodId] || attempt.methodId) + '</b> · ' +
@@ -932,8 +1087,8 @@
     const consensusRecord = sourcedConsensus(data, event, now);
     const content = event ? '<div class="macro-event-head"><div><b>ABD tarım dışı istihdam</b><span>' + escapeHtml(periodLabel(event.period)) + ' · ' + eventSchedule + '</span></div></div>' +
       '<div class="macro-data-grid">' + renderObservation(obs) +
-      '<div class="macro-data-point"><span>Doğrulanmış konsensüs</span><b>' + (consensusRecord ? escapeHtml(formatNumber(consensusRecord.value)) + ' bin kişi' : 'Doğrulanmış konsensüs yok') + '</b>' + (consensusRecord && consensusRecord.kind === 'independent' ? '<small>' + escapeHtml(consensusRecord.source.title) + ' · bağımsız gözlem</small>' : '') + '</div></div>' + result +
-      renderModelForecasts(data, event, now) + methods + renderScenarios(data, event) : '<p class="macro-empty">Yaklaşan doğrulanmış BLS takvim olayı yok.</p>';
+      '<div class="macro-data-point"><span>Doğrulanmış konsensüs</span><b>' + (consensusRecord ? escapeHtml(formatNumber(consensusRecord.value)) + ' bin kişi' : 'Bu dönem için konsensüs doğrulanamadı') + '</b>' + (consensusRecord && consensusRecord.kind === 'independent' ? '<small>' + escapeHtml(consensusRecord.source.title) + ' · bağımsız gözlem</small>' : '') + '</div></div>' +
+      renderMacroLifecycle(data, event, event.metric, event.unit, now) + renderModelForecasts(data, event, now) + methods + renderScenarios(data, event) : '<p class="macro-empty">Yaklaşan doğrulanmış BLS takvim olayı yok.</p>';
     const warningCopy = error !== 'Yenileme başarısız.' && data.status === 'partial' && (obs || hasCachedSuccess) ? 'Kaynak kontrolünde eksik var; doğrulanmış kayıtlar gösteriliyor. ' : hasCachedSuccess ? 'Yenileme başarısız; son başarılı kayıt korunuyor. ' : 'Makro kaynağı erişilemiyor; doğrulanmış önceki kayıt yok. ';
     const sourceFailures = Array.isArray(data.sourceStatus?.failures) ? data.sourceStatus.failures : [];
     const consensusFailures = Array.isArray(data.consensusStatus?.failures) ? data.consensusStatus.failures : [];
@@ -944,7 +1099,7 @@
     const eventModelForecasts = (Array.isArray(data.modelForecasts) ? data.modelForecasts : []).filter((forecast) => event && forecast && forecast.metric === event.metric && forecast.unit === event.unit && forecast.period === event.period && (forecast.eventId == null || forecast.eventId === event.eventId));
     const eventModelReviews = (Array.isArray(data.modelForecastReviews) ? data.modelForecastReviews : []).filter((review) => event && review && review.eventId === event.eventId && review.metric === event.metric && review.unit === event.unit && review.period === event.period && review.reviewOnly === true);
     const evidence = renderSourceAndTimeEvidence(data, event, forecasts, eventModelForecasts.concat(eventModelReviews), attempts, now);
-    return '<section id="macro-panel-us-nfp" class="macro-panel" role="tabpanel" aria-labelledby="macro-tab-us-nfp" aria-label="ABD tarım dışı istihdam görünümü">' + tabs + status + renderStoreStatus(data, 'İstihdam') + renderModelStatus(data, 'İstihdam') + warning + content + performance + renderRecentOutcomes(data) + renderModelOutcomes(data, now) + evidence + '</section>';
+    return '<section id="macro-panel-us-nfp" class="macro-panel" role="tabpanel" aria-labelledby="macro-tab-us-nfp" aria-label="ABD tarım dışı istihdam görünümü">' + tabs + status + renderStoreStatus(data, 'İstihdam') + renderModelStatus(data, 'İstihdam') + warning + content + renderPastMacroLifecycles(data, event, now) + performance + renderRecentOutcomes(data) + renderModelOutcomes(data, now) + evidence + '</section>';
   }
 
   function marketTypeLabel(type) {
@@ -966,6 +1121,41 @@
 
   function announcementStatementLabel(value) {
     return ({ regulatory_measure_announcement: 'Düzenleyici tedbir duyurusu', draft_process_clarification: 'Taslak süreç açıklaması', investor_notice: 'Yatırımcı bildirimi', general_press_announcement: 'Genel basın duyurusu' })[value] || '';
+  }
+
+  function canonicalNewsUrl(value) {
+    const safe = safeUrl(value);
+    if (!safe) return null;
+    const url = new URL(safe);
+    url.hash = '';
+    Array.from(url.searchParams.keys()).forEach((key) => { if (/^(utm_.+|fbclid|gclid|mc_cid|mc_eid)$/i.test(key)) url.searchParams.delete(key); });
+    url.searchParams.sort();
+    return url.href;
+  }
+
+  function deduplicateNewsItems(items) {
+    const groups = new Map();
+    return (Array.isArray(items) ? items : []).filter((item) => item && typeof item === 'object').reduce((result, item, index) => {
+      const url = canonicalNewsUrl(item.url);
+      const title = String(item.title || '').normalize('NFKC').replace(/\s+/g, ' ').trim().toLocaleLowerCase('tr-TR');
+      const published = item.publishedAt && Date.parse(item.publishedAt);
+      const dateEvidence = Number.isFinite(published) ? new Date(published).toISOString() : /^\d{4}-\d{2}-\d{2}$/.test(item.publishedDate || '') ? item.publishedDate : null;
+      const key = url && title && dateEvidence ? [item.type || '', url, title, dateEvidence].join('|') : 'unmatched:' + index;
+      const existing = groups.get(key);
+      const symbols = [].concat(item.symbol || [], item.symbols || [], item.relatedSymbols || []).filter((symbol) => typeof symbol === 'string' && symbol.trim()).map((symbol) => symbol.trim());
+      const links = [item.url, item.sourceUrl, item.listSourceUrl, item.document && item.document.url, item.document && item.document.sourceUrl]
+        .concat((Array.isArray(item.sourceEvidence) ? item.sourceEvidence : []).map((source) => source && source.url)).filter(safeUrl);
+      if (!existing) {
+        const copy = Object.assign({}, item, { relatedSymbols: [...new Set(symbols)], groupedRecords: [item], groupedSourceUrls: [...new Set(links)] });
+        groups.set(key, copy);
+        result.push(copy);
+      } else {
+        existing.relatedSymbols = [...new Set(existing.relatedSymbols.concat(symbols))];
+        existing.groupedRecords.push(item);
+        existing.groupedSourceUrls = [...new Set(existing.groupedSourceUrls.concat(links))];
+      }
+      return result;
+    }, []);
   }
 
   function renderNewsItem(item, news) {
@@ -1031,8 +1221,11 @@
     const staleAnnouncement = announcement && announcementSource.status !== 'available'
       ? '<span>' + (announcementSource.status === 'unavailable' ? 'Son başarılı kayıttan; güncel kaynak kontrolü başarısız' : 'Kısmi kaynak yanıtı; kayıt yayın ve gözlem zamanlarıyla gösteriliyor') +
         (announcementSource.lastSuccessfulAt ? ' · Son başarılı ' + escapeHtml(formatTimestamp(announcementSource.lastSuccessfulAt)) : '') + '</span>' : '';
+    const related = Array.isArray(item.relatedSymbols) && item.relatedSymbols.length ? '<p class="market-news-related">Kaynak kayıtlarının bağlandığı varlıklar: ' + escapeHtml(item.relatedSymbols.join(' · ')) + '</p>' : '';
+    const grouped = Array.isArray(item.groupedRecords) && item.groupedRecords.length > 1 ? '<details class="market-news-grouped-evidence"><summary>Birleştirilen kaynak kayıtları (' + item.groupedRecords.length + ')</summary><p>Aynı başlık, yayın zamanı ve kaynak bağlantısı bir kez gösteriliyor. Bu eşleşme fiyat etkisi veya şirket ilişkisi kanıtı değildir.</p>' +
+      item.groupedRecords.map((record) => '<p>' + escapeHtml([record.source, record.symbol, record.evidenceStatus].filter(Boolean).join(' · ')) + (record.observedAt ? ' · Gözlem ' + escapeHtml(formatTimestamp(record.observedAt)) : '') + (record.evidence ? '<br>' + escapeHtml(record.evidence) : '') + (record.whatChanged ? '<br>' + escapeHtml(record.whatChanged) : '') + (record.counterEvidence ? '<br>Karşı kanıt: ' + escapeHtml(record.counterEvidence) : '') + '</p>').join('') + '<p>' + (item.groupedSourceUrls || []).map((url, index) => externalLink(url, 'Kaynak bağlantısı ' + (index + 1), 'macro-source-link')).join(' · ') + '</p></details>' : '';
     return '<article class="market-news-item"><div class="market-news-item-heading"><span class="market-news-type">' + escapeHtml((company && item.symbol ? item.symbol + ' · ' : '') + (announcement ? 'Resmî duyuru' : item.evidenceStatus === 'official_feed' ? 'Ağ / proje duyurusu' : marketTypeLabel(item.type))) + '</span><time>' + escapeHtml(itemDate(item)) + '</time></div><h3>' + title + '</h3>' +
-      details + '<div class="market-news-meta">' + (item.source ? '<span>' + escapeHtml(item.source) + '</span>' : announcement ? '<span>SPK</span>' : '') + status + observation + staleAnnouncement + staleCompany + '</div></article>';
+      related + details + grouped + '<div class="market-news-meta">' + (item.source ? '<span>' + escapeHtml(item.source) + '</span>' : announcement ? '<span>SPK</span>' : '') + status + observation + staleAnnouncement + staleCompany + '</div></article>';
   }
 
   function sourceStatusText(news, market) {
@@ -1091,7 +1284,7 @@
     const limit = MARKET_NEWS_LIMIT[id] || 8;
     if (!news) return '<div class="market-news-panel"><p class="market-news-status">' + escapeHtml(error || 'Kaynaklı haber akışı yükleniyor.') + '</p>' + (error ? '<button type="button" data-macro-retry>Yeniden dene</button>' : '') + '</div>';
     const groups = news.groups || {};
-    const validGroups = Object.fromEntries(MARKETS.map((market) => [market, Array.isArray(groups[market]) ? groups[market] : []]));
+    const validGroups = Object.fromEntries(MARKETS.map((market) => [market, deduplicateNewsItems(groups[market])]));
     const selected = MARKETS.includes(state.market) ? state.market : (validGroups.us.length ? 'us' : validGroups.bist.length ? 'bist' : 'crypto');
     const kind = ['regulatory', 'company'].includes(state.kind) ? state.kind : 'all';
     const acceptsKind = (item, filter) => filter === 'all' || (filter === 'regulatory' ? ['regulatory_bulletin', 'regulatory_announcement'].includes(item.type) : ['company_disclosure', 'company_news'].includes(item.type));
@@ -1258,7 +1451,8 @@
     else Promise.resolve().then(initialize);
   }
   return {
-    escapeHtml, safeUrl, matchPayrollEvent, eventForecasts, observationFor, exactOutcome,
+    escapeHtml, safeUrl, matchPayrollEvent, displayPayrollEvent, displayCpiEvent, eventForecasts, observationFor, exactOutcome,
+    buildMacroLifecycle, renderMacroLifecycle, canonicalNewsUrl, deduplicateNewsItems,
     renderMacro, renderCpi, renderMarketNews, renderModelOutcomes, createClient,
     refresh: (options) => client.refresh(options), render: () => client.render(), getState: () => client.getState(),
   };

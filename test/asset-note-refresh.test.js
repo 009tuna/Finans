@@ -156,12 +156,13 @@ function harness() {
     esc: value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]),
     fullTimestamp: value => value, technicalDataNotice: () => '', decisionInsightCard: () => '', decisionPanel: () => '',
     indGrid: () => '', subBars: () => '', reasonList: () => '', assetSignalOverlayCard: () => '', assetLearningCard: () => '',
-    currentList: () => assets, setView() {},
+    currentList: () => assets, setView() {}, activeView: 'us',
+    assetReviewHtml: () => '', candidateTraceHtml: () => '', contextHelp: () => '', technicalSummaryText: value => String(value || ''),
     fetch: (url, options) => new Promise(resolve => reads.push({ url, options, resolve })),
     authedFetch: (url, options) => new Promise(resolve => requests.push({ url, body: JSON.parse(options.body), resolve })),
   });
   const functions = ['validJournalPayload', 'journalLoadStateHtml', 'refreshJournalLoadState', 'syncJournalReadFields', 'loadJournal', 'saveJournal',
-    'assetResearchCard', 'committeeMemoCard', 'verdictLabel', 'renderSelectedAssetDetail'];
+    'assetResearchCard', 'committeeMemoCard', 'verdictLabel', 'technicalSignalLabel', 'renderSelectedAssetDetail'];
   const cardFunctions = source.slice(source.indexOf('function assetThesisSummaryHtml('), source.indexOf('function assetResearchCard('));
   assert.ok(cardFunctions.includes('function refreshAssetJournalReadouts('), 'note readout helpers must be included');
   vm.runInContext(functions.map(functionSource).join('\n') + '\n' + cardFunctions + '\n' + source.slice(source.indexOf('// Delegated event listeners for note-saving')), context);
@@ -182,11 +183,11 @@ test('saving a selected-asset note refreshes its saved summary and research gaps
   assert.equal(h.selected.querySelector('.asset-note-form'), form);
   assert.equal(h.selected.querySelector('.asset-thesis'), summary);
   assert.match(summary.textContent, /Kayıtlı tez.*Saved investment thesis/);
-  assert.match(summary.textContent, /Kayıtlı bozulma koşulu.*Saved failure condition/);
+  assert.match(summary.textContent, /Tezi geçersiz kılan koşul · kayıtlı.*Saved failure condition/);
   assert.doesNotMatch(h.selected.querySelector('[data-asset-panel="research"]').textContent, /Kayıtlı tez notu eksik|Kayıtlı tez bozulma koşulu eksik/);
-  assert.match(h.selected.querySelector('.committee-memo-card').textContent, /Kayıtlı bozulma koşulu: Saved failure condition/);
+  assert.match(h.selected.querySelector('.committee-memo-card').textContent, /Tezi geçersiz kılan kayıtlı koşul: Saved failure condition/);
   assert.match(h.selected.querySelector('.committee-memo-card').textContent, /Pozisyon boyutunu risk bütçesiyle birlikte incele/);
-  assert.match(form.querySelector('.note-status').textContent, /Kaydedildi/);
+  assert.match(form.querySelector('.note-status').textContent, /AAPL tez ve takip notu kaydedildi/);
   assert.equal(h.context.noteDrafts['us:AAPL'], undefined);
 });
 
@@ -206,7 +207,7 @@ test('editing during the save retains the new draft, focused textarea selection,
   assert.deepEqual([field.selectionStart, field.selectionEnd], [4, 13]);
   assert.equal(h.context.JOURNAL.notes['us:AAPL'].thesis, 'Submitted thesis');
   assert.equal(h.context.noteDrafts['us:AAPL'].thesis, field.value);
-  assert.match(form.querySelector('.note-status').textContent, /Önceki not kaydedildi/);
+  assert.match(form.querySelector('.note-status').textContent, /AAPL notu kaydedildi.*Yeni değişiklikler taslak/);
   assert.equal(h.selected.querySelectorAll('[data-asset-tab]').find(tab => tab.getAttribute('aria-selected') === 'true'), selectedTab);
   assert.equal(disclosure.open, true); assert.equal(disclosure.isConnected, true);
 });
@@ -226,7 +227,7 @@ test('a failed note save refreshes risk readouts from saved truth and keeps the 
   assert.match(h.selected.querySelector('.asset-thesis').textContent, /Tez taslağınız.*New draft during failed request/);
   const riskReadout = h.selected.querySelector('.committee-memo-card').textContent;
   assert.match(riskReadout, /Kayıtlı tez: Verified earlier thesis/);
-  assert.match(riskReadout, /Kayıtlı bozulma koşulu: Verified earlier condition/);
+  assert.match(riskReadout, /Tezi geçersiz kılan kayıtlı koşul: Verified earlier condition/);
   assert.doesNotMatch(riskReadout, /Rejected submitted|New draft during failed/);
   assert.equal(form, h.selected.querySelector('.asset-note-form'));
   assert.equal(field, form.elements.thesis); assert.equal(h.document.activeElement, field);
@@ -346,7 +347,7 @@ test('a successful journal GET refreshes saved readouts and research while retai
     assert.equal(form.elements.invalidation.value, 'Remote saved condition');
     assert.equal(h.document.activeElement, field); assert.deepEqual([field.selectionStart, field.selectionEnd], [6, 14]);
     assert.match(summary.textContent, /Tez taslağınız.*Local draft during journal reread/);
-    assert.match(summary.textContent, /Kayıtlı bozulma koşulu.*Remote saved condition/);
+    assert.match(summary.textContent, /Tezi geçersiz kılan koşul · kayıtlı.*Remote saved condition/);
     assert.doesNotMatch(h.selected.querySelector('[data-asset-panel="research"]').textContent, /Kayıtlı tez notu eksik|Kayıtlı tez bozulma koşulu eksik/);
     assert.match(h.selected.querySelector('[data-asset-panel="research"]').textContent, /Remote saved thesis/);
     assert.equal(alert, h.selected.querySelector('.alert-toggle-form'));
@@ -390,7 +391,7 @@ test('a cleared note draft does not borrow the technical suggestion under a user
   h.context.refreshAssetJournalReadouts(h.assets[0]);
   const summary = h.selected.querySelector('.asset-thesis');
   assert.match(summary.textContent, /Tez taslağınız boş; kayıtlı not henüz silinmedi/);
-  assert.match(summary.textContent, /Bozulma taslağınız boş; kayıtlı not henüz silinmedi/);
+  assert.match(summary.textContent, /Koşul taslağınız boş; kayıtlı not henüz silinmedi/);
   assert.doesNotMatch(summary.textContent, /Synthetic technical summary|Still saved thesis|Still saved condition/);
   assert.equal(h.noteForm.elements.thesis.value, '');
   assert.equal(h.context.JOURNAL.notes['us:AAPL'].thesis, 'Still saved thesis');

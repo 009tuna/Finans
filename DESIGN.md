@@ -101,3 +101,17 @@ Rapor özeti ve piyasa yorumunda oluşturulma zamanı görünürdür. Önceki mo
 ### 2 Ekim · teknik sonuçlar ve öğrenme kanıtı
 
 Teknik sonuçlar kaynak/piyasa/strateji/çözümleyici gruplarında okunur; birleşik başarı yüzdesi yoktur. Sürümlü açık senaryo sonuç örneklemi değildir. Eski ham hesap açık arşiv etiketiyle erişilebilir kalır. Grup seçimi klavye odağını ve sayfa dönüşünde seçimi korur. Örüntü önerileri aktif kural veya kalibre edilmiş güven yüzdesi gibi sunulmaz. [Canlı kabul kaydı](docs/research-audit/2026-10-02-performance-evidence-acceptance.md) aynı veriyle karşılaştırmayı, yedi genişliği, 72 test dosyasını ve açık doğrulama kapılarını içerir.
+
+### 4 Ekim · anlaşılır içerik ve tamamlanabilir işler
+
+Yazı boyutları kullanıcının talebiyle korunur. Genel Bakış ve Rapor üç satırlık gerçek çalışma özetiyle açılır: önceki teknik kayda göre değişim, kayıtlı yaklaşan açıklama ve açık kontrol. Aday satırı varlığın ilgili alanını açar, klavye odağını taşır; adaylara dönüş bağlamı korur. Teknik sinyal, veri/sinyal kontrolü ve araştırma eksikleri ayrı adlandırılır. Gerçek tarihsel teknik kayıt varsa küçük iz gösterilir.
+
+Boş portföyün tek kayıt formu ana alandadır; başarı sonrası yardımcı alana döner. Başarı sunucu onayına bağlıdır ve kaydı adlandırır; hata veya kayıt sırasında değişen taslak korunur. RSI/kontrol/konsensüs yardımı terimin yanındadır, rehberdeki ilgili başlığa bağlanır. Hesaplayıcının iki varsayım karşılaştırması mevcut hesap kısıtlarını kullanır; örnek veriler etiketlidir. Rapor devamı ve varlık incelemesi isteğe bağlı yerel tercihlerdir; araştırma veya finansal başarı kaydı sayılmaz.
+
+Beklentiler olay kimliğinde ilk kilitli tahmin, son uygun açıklama öncesi görüş ve kaynaklı sonuç olarak okunur. Saat geçmesi sonucu doğrulamaz; dönem, ölçüm, birim ve açıklama eşleşmesi gerekir. Eksik konsensüs sıfır veya piyasada beklenti yokluğu olarak gösterilmez. [Yerel uygulama ve kabul](docs/impeccable-2026-10-04/uygulama-ve-kabul.md) kanıtları ve gerçek zoom/ekran okuyucu/kullanıcı testi sınırlarını kaydeder.
+
+### 4 Ekim · aday kartları, logolar ve kısa hareket
+
+Piyasa adayları üç piyasa grubunda ayrı yüzeyli, tek native düğme olan kartlarla gösterilir. Logo/sembol/ad ve teknik puan üstte; görev, gerekçe ve gerçek kayıt izi aşağıdadır. Kart ilgili varlık ve görev alanına odaklanır. Mevcut takip listesinin 133 logosu kaynak kimliği doğrulanarak yerel dosyalardan sunulur; bilinmeyen veya yüklenemeyen görsel sembol karşılığına döner.
+
+Yazı boyutları korunur. Hover 180 ms, basma 120 ms; yalnız aday sekmesine manuel dönüşte toplam en fazla 220 ms kısa hareket vardır. İçerik daima görünür; ilk yükleme ve veri yenileme animasyon başlatmaz. Hareket azaltma ve sekme değişiminde iptal uygulanır. Dört genişlik, uzun ad, eksik kaynak, beş tema, görev odağı ve tam test kabulü [aday kartları kaydında](docs/impeccable-2026-10-04/aday-kartlari-kabul.md) bulunur.

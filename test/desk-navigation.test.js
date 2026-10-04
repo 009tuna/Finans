@@ -85,6 +85,7 @@ elements['#sortSel'].addEventListener=()=>{};
 elements['#marketSearch'].addEventListener=()=>{};
 elements['#assetReturnBtn']={addEventListener:(name,fn)=>{events[name]=fn;}};
 context.detailReturnFocus=null;
+context.candidateOrigin=null;
 vm.runInContext(source.slice(source.indexOf("$('#sortSel').addEventListener"),source.indexOf("$('#refreshBtn').addEventListener")),context);
 const beforeReturn=window.history.calls.length;
 events.click();
@@ -103,4 +104,70 @@ assert.equal(classes.has('is-detail-open'),false,'Forward restores the filtered 
 window.history.state=null;window.location.hash='#view=market&market=us&symbol=MISSING';context.applyRoute();
 assert.equal(classes.has('is-detail-open'),false,'an invalid symbol cannot show another asset as its detail');
 assert.match(elements['#marketRouteNotice'].textContent,/MISSING/);
+
+// Candidate tasks target the specific missing proof, then restore the candidate
+// workspace and keyboard position without replacing the market's saved filter.
+const frames = [];
+const taskDestinations = new Map();
+const taskSection = { querySelector(selector) { return taskDestinations.get(selector); } };
+function destination(input) {
+  return { focused: 0, scrolled: 0, matches: () => input,
+    scrollIntoView() { this.scrolled++; }, focus() { this.focused++; } };
+}
+const thesisField = destination(true), invalidationField = destination(true), freshnessBlock = destination(false);
+taskDestinations.set('textarea[name="thesis"]', thesisField);
+taskDestinations.set('textarea[name="invalidation"]', invalidationField);
+taskDestinations.set('[data-task-target="freshness"]', freshnessBlock);
+const taskDetail = { dataset: { assetKey: 'us:MSFT' }, querySelector(selector) { taskContext.lastPanelSelector = selector; return taskSection; } };
+const taskReturnEvents = {};
+const taskReturn = { textContent: '', addEventListener(type, handler) { taskReturnEvents[type] = handler; } };
+const content = { scrollTop: 72 };
+const restoredCandidate = { dataset: {market: 'us', symbol: 'MSFT'}, focused: 0, focus() { this.focused++; } };
+const taskElements = { '#selectedAssetDetail': taskDetail, '#assetReturnBtn': taskReturn, '#content': content,
+  '#sortSel': {addEventListener() {}}, '#marketSearch': {addEventListener() {}} };
+const taskContext = vm.createContext({
+  DATA: { us: [{symbol:'MSFT',analysis:{score:70}}] }, activeView:'overview', candidateOrigin:null, marketDetailOpen:false,
+  marketUi:{us:{query:'Microsoft',sort:'name',symbol:null}}, assetDetailTabs:{}, detailReturnFocus:null,
+  $: selector => taskElements[selector], requestAnimationFrame: fn => frames.push(fn),
+  saveRouteUi() { taskContext.savedSnapshots = (taskContext.savedSnapshots || 0) + 1; },
+  setView(view) { taskContext.activeView = view; },
+  document:{querySelectorAll:()=>[restoredCandidate]},
+  window:{scrollY:105,scrollTo(x,y){taskContext.restoredWindowY=y;}},
+});
+const taskStart = source.indexOf('function navigateToAsset(');
+vm.runInContext(source.slice(taskStart, source.indexOf('/* ---------- Strateji testi',taskStart)), taskContext);
+vm.runInContext(source.slice(source.indexOf("$('#sortSel').addEventListener"),source.indexOf("$('#refreshBtn').addEventListener")),taskContext);
+const taskButton = field => ({dataset:{market:'us',symbol:'MSFT',panel:'notes',field}});
+taskContext.navigateCandidateTask(taskButton('thesis'));
+assert.equal(taskContext.activeView,'us');
+assert.equal(taskContext.assetDetailTabs['us:MSFT'],'notes');
+frames.shift()();
+assert.equal(thesisField.focused,1,'missing thesis opens and focuses its own editor');
+assert.equal(invalidationField.focused,0);
+assert.equal(taskContext.marketUi.us.query,'Microsoft');
+assert.equal(taskContext.marketUi.us.sort,'name');
+assert.equal(taskReturn.textContent,'Piyasa adaylarına dön');
+content.scrollTop=0;
+taskReturnEvents.click();
+frames.shift()();
+assert.equal(taskContext.activeView,'overview');
+assert.equal(taskContext.candidateOrigin,null);
+assert.equal(content.scrollTop,72);
+assert.equal(taskContext.restoredWindowY,105);
+assert.equal(restoredCandidate.focused,1,'the recreated candidate row receives return focus');
+taskContext.navigateCandidateTask(taskButton('invalidation'));
+frames.shift()();
+assert.equal(invalidationField.focused,1,'missing invalidation does not focus thesis');
+taskContext.navigateCandidateTask({dataset:{market:'us',symbol:'MSFT',panel:'overview',target:'freshness'}});
+taskDetail.dataset.assetKey='us:OTHER';
+frames.shift()();
+assert.equal(freshnessBlock.focused,0,'a delayed focus callback cannot target a newly selected asset');
+taskDetail.dataset.assetKey='us:MSFT';
+taskContext.navigateCandidateTask({dataset:{market:'us',symbol:'MSFT',panel:'overview',target:'freshness'}});
+frames.shift()();
+assert.equal(freshnessBlock.focused,1);
+assert.equal(freshnessBlock.tabIndex,-1,'non-input proof panels accept programmatic keyboard focus');
+const beforeInvalidTask=taskContext.savedSnapshots;
+taskContext.navigateCandidateTask({dataset:{market:'us',symbol:'MISSING',panel:'notes',field:'thesis'}});
+assert.equal(taskContext.savedSnapshots,beforeInvalidTask,'unknown candidate cannot open a different asset');
 console.log('Karar Masası deep links, compatibility and history tests passed');

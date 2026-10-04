@@ -14,8 +14,8 @@ const family = {
     previousFirstRelease: { period: '2026-08', value: index + 1, publishedAt: '2026-09-11T12:30:00Z', observedAt: '2026-09-11T12:31:00Z', sourceUrl: 'https://www.bls.gov/cpi/', contentHash: 'hash-' + index },
     forecasts: [{ eventId: 'us_cpi:2026-09', metric, unit: 'percent', period: '2026-09', status: 'frozen', methodId: 'last_first_release_v1', estimate: index + 1.1, rationale: 'Baseline', sourceUrl: 'https://example.com/forecast-' + index }],
     outcomes: [], scorecards: [{ methodId: 'last_first_release_v1', n: index, mae: index ? 0.2 : null }],
-    consensus: index === 0 ? { eventId: 'us_cpi:2026-09', metric, unit: 'percent', period: '2026-09', value: 0.2, sourceUrl: 'https://example.com/consensus' } : null,
-    consensusStatus: { status: index === 0 ? 'available' : 'not_connected' }, modelForecasts: index === 1 ? [{ eventId: 'us_cpi:2026-09', metric, unit: 'percent', period: '2026-09', pointEstimate: 0.3, sourceUrl: 'https://example.com/model' }] : [],
+    consensus: index === 0 ? { eventId: 'us_cpi:2026-09', metric, unit: 'percent', period: '2026-09', value: 0.2, sourceUrl: 'https://example.com/consensus', scheduledAt: '2026-10-14T12:30:00Z', vintage: 'pre_release_consensus', publishedAt: '2026-09-30T12:00:00Z', observedAt: '2026-09-30T12:05:00Z' } : null,
+    consensusStatus: { status: index === 0 ? 'available' : 'not_connected' }, modelForecasts: index === 1 ? [{ id: 'cpi-first-core', eventId: 'us_cpi:2026-09', metric, unit: 'percent', period: '2026-09', pointEstimate: 0.3, sourceUrl: 'https://example.com/model', scheduledAt: '2026-10-14T12:30:00Z', recordedAt: '2026-09-30T13:00:00Z', knowledgeCutoff: '2026-09-30T12:00:00Z', sourceEvidence: [{ id: 'source', url: 'https://www.bls.gov/news.release/archives/cpi_09112026.htm', publishedAt: '2026-09-11T12:30:00Z' }] }] : [],
   })),
 };
 

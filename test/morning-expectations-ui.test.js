@@ -101,8 +101,8 @@ test('missing consensus never becomes zero or produces a fabricated numeric gap'
   for (const consensus of [null, undefined, '210', NaN]) {
     const html = render(research([{ ...payroll, consensus }]));
     assert.equal(numberFor(html, 'Model görüşü'), '250 bin kişi');
-    assert.match(numberFor(html, 'Piyasa konsensüsü'), /Yok|yok|bağlı değil/i);
-    assert.match(numberFor(html, 'Konsensüsten farkı'), /Konsensüs yok/);
+    assert.equal(numberFor(html, 'Piyasa konsensüsü'), 'Bu dönem için doğrulanamadı');
+    assert.match(numberFor(html, 'Konsensüsten farkı'), /Bu dönem için konsensüs doğrulanamadı/);
     assert.doesNotMatch(html, /Konsensüs kaynağı:/, 'no consensus source is claimed when its value is absent');
   }
 });
@@ -348,8 +348,8 @@ test('retained consensus has its own immutable source cutoff without hiding a va
     for (const opinions of [storedOpinions, [candidate]]) {
       const html = expectationsHtml(data, { now: AFTER_RELEASE, storedOpinions: opinions });
       assert.equal(numberFor(html, 'Model görüşü'), '250 bin kişi');
-      assert.equal(numberFor(html, 'Piyasa konsensüsü'), 'Yok');
-      assert.equal(numberFor(html, 'Konsensüsten farkı'), 'Konsensüs yok');
+      assert.equal(numberFor(html, 'Piyasa konsensüsü'), 'Bu dönem için doğrulanamadı');
+      assert.equal(numberFor(html, 'Konsensüsten farkı'), 'Bu dönem için konsensüs doğrulanamadı');
       assert.doesNotMatch(html, /Konsensüs kaynağı:|210 bin kişi|\+40 bin kişi/);
     }
     assert.deepEqual(candidate, previous, 'presentation never changes frozen forecast or review records');

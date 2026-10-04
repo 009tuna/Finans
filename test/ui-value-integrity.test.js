@@ -24,7 +24,8 @@ for (const [direction, label] of [['up', 'yükseliyor ▲'], ['down', 'düşüyo
 const legacy = context.indGrid({ind: {obv: {rising: false}}});
 assert.match(legacy, /yön bilgisi eksik/);
 assert.doesNotMatch(legacy, /düşüyor/);
-Object.assign(context, {esc:String, decisionTone:()=> 'clean', decisionLabel:()=> 'Temiz'});
+Object.assign(context, {esc:String, decisionTone:()=> 'clean', decisionLabel:()=> 'Gösterge çelişkisi saptanmadı', contextHelp:()=> ''});
+vm.runInContext(source.slice(source.indexOf('function fullTimestamp('),source.indexOf('function fullDate(')),context);
 vm.runInContext(source.slice(source.indexOf('function freshnessText('), source.indexOf('function decisionInsightCard(')), context);
 assert.equal(context.freshnessText({label:'Veri taze',ageHours:0}),'Veri taze · 0 saat');
 assert.equal(context.freshnessText({label:'Veri gecikmeli',ageHours:1.5}),'Veri gecikmeli · 1,5 saat');

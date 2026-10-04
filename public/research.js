@@ -119,7 +119,7 @@
     const known = typeof value === 'string' && Number.isFinite(Date.parse(value));
     const time = known ? '<time datetime="' + esc(value) + '">' + esc(timestamp(value)) + '</time>' : esc(timestamp(null));
     const previous = integrity && integrity.researchStatus === 'previous-analysis';
-    return '<div class="model-context"><span class="model-context-meta">Model yorumu · Oluşturuldu: ' + time + '</span>' +
+    return '<div class="model-context"><span class="model-context-meta">Model yorumu · ' + time + '</span>' +
       (previous ? '<span class="model-context-note">Sonraki kaynak güncellemeleri bu metne işlenmedi.</span>' : '') +
       (openWorkspace ? '<span class="model-context-actions"><button class="btn btn-secondary" type="button" data-open-model-workspace>Güncel beklentileri aç</button></span>' : '') + '</div>';
   }
@@ -138,7 +138,12 @@
     return num(value) + ({ thousand_jobs: ' bin kişi', percent: '%', 'USD/share': ' $ / hisse' }[unit] || ' ' + String(unit || ''));
   }
   const exactExpectationTime = (value) => typeof value === 'string' && /T.*(?:Z|[+-]\d\d:\d\d)$/.test(value) && Number.isFinite(Date.parse(value));
-  const expectationKey = (f) => [f.market, f.metric, f.unit, f.period, Date.parse(f.scheduledAt)].join('|');
+  // Period, metric and release instant are part of the identity. A previous
+  // observation, another symbol or a rescheduled release cannot fill this row.
+  const expectationKey = (f) => [f.market, f.symbol || '', f.eventId || '', f.metric, f.unit, f.period, Date.parse(f.scheduledAt)].join('|');
+  const expectationTargetKey = (f) => [f.market, f.metric, f.unit, f.period, Date.parse(f.scheduledAt)].join('|');
+  const sameExpectation = (a, b) => expectationTargetKey(a) === expectationTargetKey(b)
+    && (a.symbol || '') === (b.symbol || '') && (!a.eventId || !b.eventId || a.eventId === b.eventId);
   function storedSourceShape(source) {
     if (!source || typeof source.id !== 'string' || !source.id.trim() || typeof source.title !== 'string' || !source.title.trim()
       || typeof source.evidence !== 'string' || !source.evidence.trim() || !['primary', 'secondary'].includes(source.kind)
@@ -188,66 +193,152 @@
   function storedExpectations(macro, asOf) {
     if (!macro || !exactExpectationTime(asOf)) return [];
     const sources = [macro, macro.families && macro.families.us_cpi].filter(Boolean);
-    const items = sources.flatMap((family) => (family.modelForecasts || []).concat(family.modelForecastReviews || []));
+    const firstItems = sources.flatMap((family) => Array.isArray(family.modelForecasts) ? family.modelForecasts : []);
+    const items = firstItems.concat(sources.flatMap((family) => Array.isArray(family.modelForecastReviews) ? family.modelForecastReviews : []));
     const eligible = items.filter(f => storedOpinionBeforeCutoff(f, asOf))
       .sort((a, b) => Date.parse(a.createdAt || a.recordedAt) - Date.parse(b.createdAt || b.recordedAt));
     const groups = new Map();
     eligible.forEach((f) => {
-      const key = expectationKey(f), previous = groups.get(key);
-      groups.set(key, { ...storedDisplayOpinion(f), retained: true, originalPointEstimate: previous ? previous.originalPointEstimate : f.pointEstimate });
+      const key = Array.from(groups.keys()).find(existing => sameExpectation(groups.get(existing), f)) || expectationKey(f), previous = groups.get(key);
+      const firstOpinion = previous && previous.firstOpinion || (firstItems.includes(f) ? storedDisplayOpinion(f) : null);
+      const opinionHistory = (previous ? previous.opinionHistory : []).concat(storedDisplayOpinion(f));
+      const outcomes = sources.flatMap(family => Array.isArray(family.modelOutcomes) ? family.modelOutcomes : []);
+      groups.set(key, { ...storedDisplayOpinion(f), retained: true, originalPointEstimate: firstOpinion ? firstOpinion.pointEstimate : null,
+        firstOpinion, opinionHistory, outcomes });
     });
     return Array.from(groups.values());
   }
-  function expectationsHtml(research, { compact = false, now = new Date().toISOString(), storedOpinions = [] } = {}) {
+  function exactOutcomeFor(first, outcomes, now) {
+    if (!first || !exactExpectationTime(now) || !Number.isFinite(first.pointEstimate)
+      || !exactExpectationTime(first.scheduledAt) || !exactExpectationTime(first.createdAt || first.recordedAt)
+      || Date.parse(first.createdAt || first.recordedAt) >= Date.parse(first.scheduledAt)
+      || first.knowledgeCutoff && (!exactExpectationTime(first.knowledgeCutoff) || Date.parse(first.knowledgeCutoff) > Date.parse(first.createdAt || first.recordedAt))) return null;
+    const scheduled = Date.parse(first.scheduledAt), instant = Date.parse(now);
+    const safeResultUrl = (value) => { try { const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password; } catch (_) { return false; } };
+    return (Array.isArray(outcomes) ? outcomes : []).filter(outcome => {
+      if (!outcome || !Number.isFinite(outcome.value) || outcome.contested || outcome.stale
+        || outcome.metric !== first.metric || outcome.unit !== first.unit || outcome.period !== first.period
+        || outcome.market && outcome.market !== first.market || outcome.eventId && outcome.eventId !== first.eventId
+        || outcome.scheduledAt && (!exactExpectationTime(outcome.scheduledAt) || Date.parse(outcome.scheduledAt) !== scheduled)) return false;
+      // The ledger's immutable forecast id proves the release identity even
+      // when the outcome format does not duplicate its calendar fields.
+      const exactBinding = first.id && outcome.forecastId === first.id;
+      const explicitBinding = outcome.eventId && first.eventId === outcome.eventId && outcome.market === first.market
+        && exactExpectationTime(outcome.scheduledAt) && Date.parse(outcome.scheduledAt) === scheduled;
+      const seenAt = outcome.recordedAt || outcome.observedAt;
+      if ((!exactBinding && !explicitBinding) || !safeResultUrl(outcome.sourceUrl)
+        || !exactExpectationTime(outcome.publishedAt) || !exactExpectationTime(seenAt)
+        || Date.parse(outcome.publishedAt) < scheduled || Date.parse(seenAt) < Date.parse(outcome.publishedAt)
+        || Date.parse(seenAt) > instant || Date.parse(outcome.publishedAt) > instant
+        || ['recordedAt', 'observedAt'].some(key => outcome[key] != null && (!exactExpectationTime(outcome[key]) || Date.parse(outcome[key]) < Date.parse(outcome.publishedAt) || Date.parse(outcome[key]) > instant))
+        || outcome.recordedAt && outcome.observedAt && Date.parse(outcome.recordedAt) < Date.parse(outcome.observedAt)) return false;
+      if (outcome.verification === 'bls-official-first-release') return outcome.vintage === 'first_release';
+      return ['human-reviewed', 'provider-first-observed'].includes(outcome.verification);
+    }).sort((a, b) => Date.parse(a.recordedAt || a.observedAt) - Date.parse(b.recordedAt || b.observedAt))[0] || null;
+  }
+  function buildExpectationLifecycle(research, { now = new Date().toISOString(), storedOpinions = [], storedOutcomes = [] } = {}) {
     const r = research || {};
     const cutoff = exactExpectationTime(r.generatedAt) ? Date.parse(r.generatedAt) : NaN;
     const nowMs = Date.parse(now);
-    const sourceMap = new Map((r.sources || []).map((source) => [source.id, source]));
+    const sourceMap = new Map((Array.isArray(r.sources) ? r.sources : []).filter(Boolean).map((source) => [source.id, source]));
     // Render only views recorded before release. A post-release number is never a forecast.
-    const beforeRelease = (f) => Number.isFinite(cutoff) && exactExpectationTime(f.scheduledAt) && Date.parse(f.scheduledAt) > cutoff
-      && ['createdAt', 'recordedAt'].every((key) => !f[key] || exactExpectationTime(f[key]) && Date.parse(f[key]) <= cutoff);
-    const forecasts = (r.forecasts || []).filter((f) => Number.isFinite(f.pointEstimate) && beforeRelease(f));
+    const beforeRelease = (f) => f && Number.isFinite(cutoff) && exactExpectationTime(f.scheduledAt) && Date.parse(f.scheduledAt) > cutoff
+      && ['createdAt', 'recordedAt'].every((key) => !f[key] || exactExpectationTime(f[key]) && Date.parse(f[key]) <= cutoff)
+      && (!f.knowledgeCutoff || exactExpectationTime(f.knowledgeCutoff) && Date.parse(f.knowledgeCutoff) <= Date.parse(f.createdAt || f.recordedAt || r.generatedAt))
+      && (!f.createdAt || !f.recordedAt || Date.parse(f.createdAt) <= Date.parse(f.recordedAt));
+    const forecasts = (Array.isArray(r.forecasts) ? r.forecasts : []).filter((f) => f && Number.isFinite(f.pointEstimate) && beforeRelease(f));
     const analysisCutoff = exactExpectationTime(r.analysisAsOf) ? Date.parse(r.analysisAsOf) : cutoff;
-    const historicalContext = (f) => Number.isFinite(analysisCutoff) && Number.isFinite(cutoff) && analysisCutoff <= cutoff && exactExpectationTime(f.scheduledAt) && Date.parse(f.scheduledAt) > analysisCutoff;
-    const abstentions = (r.forecastAbstentions || []).filter(historicalContext);
-    const reassessments = (Array.isArray(r.expectationReassessments) ? r.expectationReassessments : []).filter((item) => historicalContext(item) && ['unchanged', 'updated', 'abstained'].includes(item.status));
-    const known = new Set(forecasts.concat(abstentions).map(expectationKey));
-    storedOpinions.forEach((f) => {
-      if (storedOpinionBeforeCutoff(f, r.generatedAt) && !known.has(expectationKey(f))) { forecasts.push({ ...storedDisplayOpinion(f), retained: true }); known.add(expectationKey(f)); }
+    const historicalContext = (f) => f && Number.isFinite(analysisCutoff) && Number.isFinite(cutoff) && analysisCutoff <= cutoff && exactExpectationTime(f.scheduledAt) && Date.parse(f.scheduledAt) > analysisCutoff;
+    const abstentions = (Array.isArray(r.forecastAbstentions) ? r.forecastAbstentions : []).filter(historicalContext);
+    const eligibleStored = (Array.isArray(storedOpinions) ? storedOpinions : []).filter(f => storedOpinionBeforeCutoff(f, r.generatedAt));
+    eligibleStored.forEach((f) => {
+      if (!forecasts.concat(abstentions).some(item => sameExpectation(item, f))) forecasts.push({ ...storedDisplayOpinion(f), retained: true });
     });
-    const ordered = forecasts.map((f) => ({ ...f, available: true })).concat(abstentions.map((f) => ({ ...f, available: false })))
-      .sort((a, b) => Date.parse(a.scheduledAt) - Date.parse(b.scheduledAt) || String(a.metric).localeCompare(String(b.metric)));
+    return forecasts.map(f => ({ ...f, available: true })).concat(abstentions.map(f => ({ ...f, available: false }))).map(event => {
+      const retained = eligibleStored.find(item => sameExpectation(item, event));
+      const firstCandidate = retained && (retained.firstOpinion || (!retained.opinionHistory && retained.reviewOnly !== true && (retained.originalPointEstimate == null || retained.originalPointEstimate === retained.pointEstimate) ? retained : null));
+      const firstOpinion = firstCandidate && storedOpinionBeforeCutoff(firstCandidate, r.generatedAt) ? storedDisplayOpinion(firstCandidate) : null;
+      const history = retained && Array.isArray(retained.opinionHistory) ? retained.opinionHistory : retained ? [retained] : [];
+      const reportOpinion = event.available && !event.retained ? { ...event, recordedAt: event.recordedAt || r.generatedAt,
+        createdAt: event.createdAt || r.generatedAt, knowledgeCutoff: event.knowledgeCutoff || r.analysisAsOf || r.generatedAt,
+        sourceEvidence: (event.sourceIds || []).map(id => sourceMap.get(id)).filter(Boolean) } : null;
+      const latestOpinion = history.concat(reportOpinion || []).filter(item => sameExpectation(item, event) && storedOpinionBeforeCutoff(item, r.generatedAt))
+        .sort((a, b) => Date.parse(b.createdAt || b.recordedAt) - Date.parse(a.createdAt || a.recordedAt))[0] || null;
+      const outcome = exactOutcomeFor(firstOpinion, storedOutcomes.concat(retained && retained.outcomes || []), now);
+      const status = outcome ? 'resolved' : !event.available ? 'abstention' : Number.isFinite(nowMs) && Date.parse(event.scheduledAt) <= nowMs ? 'awaiting-outcome' : 'upcoming';
+      return { key: expectationKey(event), event, firstOpinion, latestOpinion, outcome, status };
+    }).sort((a, b) => Date.parse(a.event.scheduledAt) - Date.parse(b.event.scheduledAt) || String(a.event.metric).localeCompare(String(b.event.metric)));
+  }
+  function nextUpcomingExpectation(research, options = {}) {
+    const now = options.now || new Date().toISOString();
+    if (!exactExpectationTime(now)) return null;
+    const next = buildExpectationLifecycle(research, { ...options, now }).find(entry => Date.parse(entry.event.scheduledAt) > Date.parse(now));
+    return next ? { ...next.event, label: measurementLabel(next.event.metric), status: next.status } : null;
+  }
+  function expectationTimelineHtml(entry) {
+    const stage = (label, opinion, missing) => '<li><span>' + esc(label) + '</span><b>' + esc(opinion ? expectationValue(opinion.pointEstimate, entry.event.unit) : missing) + '</b>' +
+      (opinion ? '<small>Kaydedildi: ' + esc(timestamp(opinion.recordedAt || opinion.createdAt)) + '</small><small>Bilgi kesiti: ' + esc(timestamp(opinion.knowledgeCutoff || opinion.createdAt || opinion.recordedAt)) + '</small>' : '') + '</li>';
+    const outcome = entry.outcome;
+    return '<ol class="expectation-timeline" aria-label="Aynı açıklamanın tahmin ve sonuç geçmişi">' +
+      stage('İlk kilitli tahmin', entry.firstOpinion, 'Kayıt doğrulanamadı') +
+      stage('Son uygun açıklama öncesi görüş', entry.latestOpinion, entry.event.available ? 'Kaynak ve zaman kanıtı doğrulanamadı' : 'Sayısal görüş üretilmedi') +
+      '<li><span>' + (outcome && outcome.verification === 'bls-official-first-release' ? 'İlk açıklanan sonuç' : 'Kaydedilen sonuç') + '</span><b>' + esc(outcome ? expectationValue(outcome.value, entry.event.unit) : 'Sonuç kaydı yok') + '</b>' +
+      (outcome ? '<small>Yayın: ' + esc(timestamp(outcome.publishedAt)) + '</small><small>' + esc(outcomeVerificationText(outcome)) + '</small>' : '') + '</li></ol>';
+  }
+  function expectationsHtml(research, { compact = false, now = new Date().toISOString(), storedOpinions = [], storedOutcomes = [] } = {}) {
+    const r = research || {};
+    const cutoff = exactExpectationTime(r.generatedAt) ? Date.parse(r.generatedAt) : NaN;
+    const nowMs = Date.parse(now);
+    const sourceMap = new Map((Array.isArray(r.sources) ? r.sources : []).filter(Boolean).map(source => [source.id, source]));
+    const analysisCutoff = exactExpectationTime(r.analysisAsOf) ? Date.parse(r.analysisAsOf) : cutoff;
+    const reassessments = (Array.isArray(r.expectationReassessments) ? r.expectationReassessments : []).filter(item => item && Number.isFinite(analysisCutoff) && Number.isFinite(cutoff) && analysisCutoff <= cutoff
+      && exactExpectationTime(item.scheduledAt) && Date.parse(item.scheduledAt) > analysisCutoff && ['unchanged', 'updated', 'abstained'].includes(item.status));
+    const ordered = buildExpectationLifecycle(r, { now, storedOpinions, storedOutcomes });
     const sameDay = (date) => Number.isFinite(Date.parse(date)) && Number.isFinite(nowMs) && new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul' }).format(new Date(date)) === new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul' }).format(new Date(nowMs));
-    const rows = compact ? ordered.filter((f) => Date.parse(f.scheduledAt) > nowMs || sameDay(f.scheduledAt)).slice(0, 2) : ordered;
+    const rows = compact ? ordered.filter(entry => Date.parse(entry.event.scheduledAt) > nowMs || sameDay(entry.event.scheduledAt)).slice(0, 2) : ordered;
     const calendarNotes = (Array.isArray(r.expectationCoverage) ? r.expectationCoverage : []).filter((item) => item && item.scope === 'independent_calendar' && ['unavailable', 'no_upcoming_release', 'schedule_conflict'].includes(item.status));
     const coverageHtml = calendarNotes.length ? '<div class="expectation-coverage" role="status">' + calendarNotes.map((item) => '<p><b>' + esc(item.family === 'us_cpi' ? 'TÜFE takvimi' : item.family === 'us_nonfarm_payroll_change' ? 'İstihdam takvimi' : 'Veri takvimi') + ':</b> ' + esc(item.reason) + ' <small>Kontrol: ' + esc(timestamp(item.checkedAt)) + '</small></p>').join('') + '</div>' : '';
-    const rowHtml = (f) => {
+    const rowHtml = (entry) => {
+      const f = entry.event;
       const passed = Number.isFinite(nowMs) && Date.parse(f.scheduledAt) <= nowMs;
       const name = EXPECTATION_LABELS[f.metric] || [market(f.market), f.symbol, f.metric].filter(Boolean).join(' · ');
       const consensusKnown = typeof f.consensus === 'number' && Number.isFinite(f.consensus);
       const difference = consensusKnown ? f.pointEstimate - f.consensus : null;
-      const differenceText = difference == null ? 'Konsensüs yok' : (difference > 0 ? '+' : '') + (f.unit === 'percent' ? num(difference) + ' yüzde puan' : expectationValue(difference, f.unit));
+      const differenceText = difference == null ? 'Bu dönem için konsensüs doğrulanamadı' : (difference > 0 ? '+' : '') + (f.unit === 'percent' ? num(difference) + ' yüzde puan' : expectationValue(difference, f.unit));
       const rowSources = f.retained ? new Map((f.sourceEvidence || []).map((source) => [source.id, source])) : sourceMap;
       const consensusSource = rowSources.get(f.consensusSourceId);
       const sources = (f.sourceIds || []).map((id) => rowSources.get(id)).filter(Boolean).map((s) => link(s.url, s.title)).join(' · ');
-      const review = reassessments.find((item) => expectationKey(item) === expectationKey(f));
+      const review = reassessments.find((item) => expectationTargetKey(item) === expectationTargetKey(f));
       const reviewSources = review ? (review.sourceIds || []).map((id) => sourceMap.get(id)).filter(Boolean).map((s) => link(s.url, s.title)).join(' · ') : '';
       const reviewLabel = review && { unchanged: 'Kayıtlı görüş yeniden incelendi ve korundu', updated: 'Model görüşü yeniden incelendi ve güncellendi', abstained: 'Yeni sayısal görüş üretmekten kaçınıldı' }[review.status];
-      return '<article class="expectation-entry' + (!f.available ? ' expectation-abstention' : '') + '">' +
+      return '<article class="expectation-entry' + (!f.available ? ' expectation-abstention' : '') + '" data-expectation-status="' + entry.status + '">' +
         '<div class="expectation-event"><h3>' + esc(name) + '</h3><span>' + esc(f.period) + ' dönemi · ' + esc(timestamp(f.scheduledAt)) + '</span>' +
-        (f.retained ? '<span>Kayıtlı görüş · ' + esc(timestamp(f.knowledgeCutoff || f.recordedAt)) + (f.originalPointEstimate !== f.pointEstimate ? ' · İlk kilitli tahmin: ' + esc(expectationValue(f.originalPointEstimate, f.unit)) : ' · İlk kilitli tahmin') + '</span>' : '') +
+        (f.retained ? '<span>Kayıtlı görüş · Bilgi kesiti: ' + esc(timestamp(f.knowledgeCutoff || f.recordedAt)) + (entry.firstOpinion ? ' · İlk kilitli tahmin: ' + esc(expectationValue(entry.firstOpinion.pointEstimate, f.unit)) : ' · İlk kilitli tahmin kaydı doğrulanamadı') + '</span>' : '') +
         (review ? '<span class="expectation-review">' + esc(reviewLabel) + ' · ' + esc(timestamp(r.generatedAt)) + '</span>' : '') +
-        (passed ? '<span class="expectation-passed">Açıklama saati geçti · bu satır raporun eski görüşüdür.</span>' : '') + '</div>' +
-        (f.available ? '<dl class="expectation-numbers"><div><dt>Model görüşü</dt><dd>' + esc(expectationValue(f.pointEstimate, f.unit)) + '</dd></div><div><dt>Piyasa konsensüsü</dt><dd>' + esc(expectationValue(f.consensus, f.unit)) + '</dd></div><div><dt>Konsensüsten farkı</dt><dd>' + esc(differenceText) + '</dd></div></dl>' : '<p class="expectation-missing"><b>Tahmin üretilemedi.</b> ' + esc(f.reason) + '</p>') +
+        (passed ? '<span class="expectation-passed">Açıklama saati geçti · bu satır raporun eski görüşüdür. ' + (entry.outcome ? 'Aynı açıklamanın sonuç kaydı aşağıda.' : 'Gerçekleşen veri kaydı doğrulanamadı.') + '</span>' : '') + '</div>' +
+        (f.available ? '<dl class="expectation-numbers"><div><dt>Model görüşü</dt><dd>' + esc(expectationValue(f.pointEstimate, f.unit)) + '</dd></div><div><dt>Piyasa konsensüsü</dt><dd>' + esc(consensusKnown ? expectationValue(f.consensus, f.unit) : 'Bu dönem için doğrulanamadı') + '</dd></div><div><dt>Konsensüsten farkı</dt><dd>' + esc(differenceText) + '</dd></div></dl>' : '<p class="expectation-missing"><b>Tahmin üretilemedi.</b> ' + esc(f.reason) + '</p>') +
+        (!compact && root.FinansExperience ? root.FinansExperience.contextHelpHtml('consensus') : '') +
+        (!compact && (f.available || entry.firstOpinion) ? expectationTimelineHtml(entry) : '') +
         '<details class="expectation-reason"><summary>' + (f.available ? 'Gerekçe ve kaynaklar' : 'Eksik kanıt') + '</summary>' +
         (f.available ? '<p>' + esc(f.rationale) + '</p>' : '<ul>' + (f.missingEvidence || []).map((item) => '<li>' + esc(item) + '</li>').join('') + '</ul>') +
         (review ? '<p><b>Yeniden değerlendirme:</b> ' + esc(review.reason) + '</p>' + (reviewSources ? '<p class="research-source">Değerlendirme kaynakları: ' + reviewSources + '</p>' : '') : '') +
         (consensusKnown ? '<p class="research-source">Konsensüs kaynağı: ' + (consensusSource ? link(consensusSource.url, consensusSource.title) : 'Bu kesitte kaynak kaydı yok') + '</p>' : '') +
-        (sources ? '<p class="research-source">' + sources + '</p>' : '') + '</details></article>';
+        (sources ? '<p class="research-source">' + sources + '</p>' : '') +
+        (entry.outcome ? '<p class="research-source">Sonuç kaynağı: ' + link(entry.outcome.sourceUrl, 'Kaydedilen açıklamayı aç') + '</p>' : '') + '</details></article>';
     };
-    return '<section class="expectation-ledger' + (compact ? ' is-compact' : '') + '" aria-label="Raporun model veri beklentileri"><header class="expectation-head"><div><h2>Veri açıklanmadan önce</h2><p>' + (Number.isFinite(cutoff) ? 'Rapor görüşü · ' + esc(timestamp(r.generatedAt)) : 'Kaynaklı model raporu bekleniyor') + '</p></div>' +
+    const groups = [
+      ['upcoming', 'Yaklaşan açıklamalar', 'Takvim saati henüz gelmedi.'],
+      ['awaiting-outcome', 'Saati geçti · sonuç bekleniyor', 'Saatin geçmesi gerçekleşen verinin alındığını göstermez.'],
+      ['resolved', 'Sonuç kaydı var', 'İlk kilitli tahmin ve sonraki görüş aynı açıklamanın sonucu ile ayrı karşılaştırılır.'],
+      ['abstention', 'Sayısal görüş üretilmedi', 'Eksik kanıt nedeniyle sayı üretilmedi; varsa önceki kilitli tahmin korunur.'],
+    ];
+    const rowsHtml = groups.map(([status, label, note]) => {
+      const entries = rows.filter(entry => entry.status === status);
+      return entries.length ? '<section class="expectation-group" data-expectation-status="' + status + '"><header><h3>' + label + '</h3><span>' + entries.length + ' kayıt</span></header>' + (!compact ? '<p class="expectation-group-note">' + note + '</p>' : '') + entries.map(rowHtml).join('') + '</section>' : '';
+    }).join('');
+    return '<section class="expectation-ledger' + (compact ? ' is-compact' : '') + '" aria-label="Raporun model veri beklentileri"><header class="expectation-head"><div><h2>Açıklama öncesi kaydedilen görüşler</h2><p>' + (Number.isFinite(cutoff) ? 'Rapor görüşü · ' + esc(timestamp(r.generatedAt)) : 'Kaynaklı model raporu bekleniyor') + '</p></div>' +
       (compact ? '<button class="expectation-workspace-link" type="button" data-open-expectation-report>Raporu oku <span aria-hidden="true">→</span></button>' : '<span class="ai-badge">Model beklentileri</span>') + '</header>' +
-      (rows.length ? rows.map(rowHtml).join('') : '<p class="expectation-empty">' + (compact && ordered.length ? 'Rapor kesitindeki açıklamaların zamanı geçti. Kayıtlı görüşleri tüm beklentiler bölümünde inceleyin.' : 'Bu raporda açıklama öncesi sayısal model görüşü yok. Kayıtlı ilk tahminleri tüm beklentiler bölümünde inceleyin.') + '</p>') + coverageHtml +
+      (rows.length ? rowsHtml : '<p class="expectation-empty">' + (compact && ordered.length ? 'Rapor kesitindeki açıklamaların zamanı geçti. Kayıtlı görüşleri tüm beklentiler bölümünde inceleyin.' : 'Bu raporda açıklama öncesi sayısal model görüşü yok. Kayıtlı ilk tahminleri tüm beklentiler bölümünde inceleyin.') + '</p>') + coverageHtml +
       (!compact && rows.length ? '<p class="expectation-footnote">Bu değerler raporun bilgi kesitine kadar kaydedilmiş model görüşleridir. Güncel görüş ve ilk kilitli tahmin ayrı tutulur; performans ilk tahmine göre ölçülür.</p><button class="btn btn-secondary" type="button" data-open-model-workspace>İlk tahmini ve güncel görüşü karşılaştır</button>' : '') + '</section>';
   }
   function researchHtml(r) {
@@ -258,23 +349,41 @@
     const events = Array.isArray(r.events) ? r.events : [];
     const scenarios = Array.isArray(r.scenarios) ? r.scenarios : [];
     const unresolved = Array.isArray(r.unresolvedQuestions) ? r.unresolvedQuestions : [];
-    return '<section class="card research-card"><div class="card-head"><h2>Model araştırması · Gelişmeler</h2><span class="ai-badge">' + esc(r.model || 'Model görüşü') + '</span></div>' +
+    const eventScenarios = (event) => scenarios.filter(scenario => event.id && scenario.eventId === event.id && scenario.market === event.market);
+    const scenarioText = (scenario) => [market(scenario.market), scenario.symbol, scenario.horizon].filter(Boolean).join(' · ');
+    const storyHtml = (event) => {
+      const tied = eventScenarios(event);
+      const conditions = tied.map(scenario => '<p><b>' + esc(scenarioText(scenario)) + ':</b> ' + esc(scenario.condition) + ' ' + esc(scenario.impact) + '</p>').join('');
+      const watch = tied.map(scenario => '<p><b>' + esc(scenarioText(scenario)) + ':</b> ' + esc(scenario.invalidation) + '</p>').join('');
+      return '<article class="research-event"><p class="research-source">' + esc(market(event.market)) + '</p><h3>' + esc(event.title) + '</h3>' +
+        '<dl class="research-story"><div><dt>Ne oldu?</dt><dd>' + esc(event.whatChanged || 'Bu kayıtta değişimin açıklaması yok.') + '</dd></div>' +
+        '<div><dt>Neden önemli?</dt><dd>' + esc(event.expectationGap || 'Bu kayıtta beklentiden farkı belirtilmemiş.') + '</dd></div>' +
+        '<div><dt>Hangi koşulda etkiler?</dt><dd>' + (conditions || 'Bu gelişmeye bağlanmış koşullu etki senaryosu yok.') + '</dd></div>' +
+        '<div><dt>Neyi izlemeli?</dt><dd>' + (watch || esc(event.counterEvidence || 'İzlenecek karşı kanıt bu kayıtta belirtilmemiş.')) + '</dd></div></dl>' +
+        '<details><summary>Karşı kanıt ve kaynaklar</summary><p><b>Karşı kanıt:</b> ' + esc(event.counterEvidence) + '</p><p class="research-source">' + sourceLinks(event.sourceIds) + '</p>' +
+        tied.map(scenario => '<p class="research-source">' + esc(scenarioText(scenario)) + ' · ' + sourceLinks(scenario.sourceIds) + '</p>').join('') + '</details></article>';
+    };
+    const standaloneScenarios = scenarios.filter(scenario => !events.some(event => event.id && scenario.eventId === event.id && scenario.market === event.market));
+    return '<section class="card research-card"><div class="card-head"><h2>Model araştırması · Gelişmeler</h2><span class="ai-badge">Model yorumu</span></div>' +
       '<p class="muted">Kaynaklı model yorumu · ' + esc(timestamp(r.generatedAt)) + ' · Olasılıklar henüz kalibre edilmedi.</p>' +
       '<p class="muted">' + (r.sourceVerification === 'model-cited-web-research'
         ? 'Kaynaklar model tarafından seçildi. Piyasa etkileri model görüşüdür; kaynak atfı bağımsız içerik doğrulaması anlamına gelmez.'
         : r.sourceVerification === 'synthetic-acceptance-only' ? 'Sentetik kabul içeriği; gerçek araştırma değildir.' : 'Kaynak doğrulama yöntemi kayıtlı değil.') + '</p>' +
+      '<details class="research-method"><summary>Model ve araştırma yöntemi</summary><p>Model: ' + esc(r.model || 'Kayıtlı değil') + '</p></details>' +
       '<div class="research-coverage">' + coverage.map((c) => '<div><b>' + esc(market(c.market)) + ' · ' + esc({ available: 'Kaynak var', partial: 'Kısmi kapsam', insufficient_evidence: 'Kanıt yetersiz' }[c.status] || 'Durum bilinmiyor') + '</b><p>' + esc(c.reason) + '</p></div>').join('') + '</div>' +
-      events.map((e) => '<article class="research-event"><p class="research-source">' + esc(market(e.market)) + '</p><h3>' + esc(e.title) + '</h3><p>' + esc(e.whatChanged) + '</p><details><summary>Karşı kanıt ve kaynaklar</summary><p><b>Beklentiden farkı:</b> ' + esc(e.expectationGap) + '</p><p><b>Karşı kanıt:</b> ' + esc(e.counterEvidence) + '</p><p class="research-source">' + sourceLinks(e.sourceIds) + '</p></details></article>').join('') +
-      (scenarios.length ? '<h3>Piyasa etkileri · koşullu senaryolar</h3>' + scenarios.map((s) => '<article class="research-event"><b>' + esc(market(s.market) + ' ' + s.symbol + ' · ' + s.horizon) + '</b><p><b>Koşul:</b> ' + esc(s.condition) + '</p><p>' + esc(s.impact) + '</p><p><b>Bozulma koşulu:</b> ' + esc(s.invalidation) + '</p><p class="research-source">' + sourceLinks(s.sourceIds) + '</p></article>').join('') : '') +
+      events.map(storyHtml).join('') +
+      (standaloneScenarios.length ? '<h3>Makro etkisi · koşullu senaryolar</h3>' + standaloneScenarios.map((s) => '<article class="research-event"><b>' + esc(scenarioText(s)) + '</b><p><b>Koşul:</b> ' + esc(s.condition) + '</p><p>' + esc(s.impact) + '</p><p><b>Tezi geçersiz kılan koşul:</b> ' + esc(s.invalidation) + '</p><p class="research-source">' + sourceLinks(s.sourceIds) + '</p></article>').join('') : '') +
       (unresolved.length ? '<h3>Veri eksikleri</h3><ul>' + unresolved.map((q) => '<li>' + esc(q) + '</li>').join('') + '</ul>' : '') + '</section>';
   }
-  function evaluationHtml(data) {
+  function evaluationHtml(data, { now = new Date().toISOString() } = {}) {
     const s = data && data.scorecard || {};
     const recordsKnown = Array.isArray(data && data.forecasts);
     const forecasts = recordsKnown ? data.forecasts : [];
     const outcomes = Array.isArray(data && data.outcomes) ? data.outcomes : [];
     const groups = Array.isArray(s.groups) ? s.groups : [];
     const measurementKnown = Number.isSafeInteger(s.total) && s.total >= 0;
+    const storedOpinions = storedExpectations({ modelForecasts: forecasts, modelForecastReviews: data && data.forecastReviews, modelOutcomes: outcomes }, now);
+    const lifecycle = buildExpectationLifecycle({ generatedAt: now, forecasts: [] }, { now, storedOpinions });
     return '<div class="card-head"><h2>Tahminler ne kadar isabetli?</h2><span class="card-sub">Olay açıklanmadan önce kaydedilen tahminler</span></div>' +
       '<p>' + (recordsKnown ? count(forecasts.length) + ' tahmin kaydı gösteriliyor.' : 'Gösterilen kayıt sayısı bilinmiyor.') + '</p>' +
       '<p>' + (measurementKnown ? 'Ölçüm kapsamı: ' + count(s.total) + ' tahmin · ' + count(s.resolved) + ' sonuçlandı · ' + count(s.pending) + ' açıklama bekliyor · ' + count(s.awaitingOutcome) + ' gerçekleşen veri bekliyor'
@@ -283,11 +392,17 @@
       (s.total === 0 && recordsKnown && !forecasts.length ? '<p>Henüz açıklama öncesi kaydedilmiş tahmin yok. Geçmiş olaylardan yapay başarı üretilmez.</p>' : '') +
       (groups.length ? '<div class="research-table"><table><thead><tr><th>Piyasa / ölçüm</th><th>Sonuçlanan / toplam</th><th>MAE</th><th>Model / konsensüs MAE</th><th>Brier</th><th>Örneklem</th></tr></thead><tbody>' + groups.map((g) => '<tr><td>' + esc(market(g.market) + ' · ' + measurementLabel(g.metric) + ' (' + errorUnitLabel(g.unit) + ')') + '</td><td>' + count(g.resolved) + '/' + count(g.forecasts) + '</td><td>' + num(g.mae) + '</td><td>' + num(g.pairedModelMae) + ' / ' + num(g.consensusMae) + ' (n=' + count(g.pairedCount) + ')</td><td>' + num(g.brier) + ' (n=' + count(g.brierCount) + ')</td><td>' + (g.sampleStatus === 'insufficient_sample' ? 'Yetersiz' : 'Yalnız betimsel') + '</td></tr>').join('') + '</tbody></table></div>' : '') +
       forecasts.map((f) => {
-        const o = outcomes.find((x) => x.forecastId === f.id);
+        const o = exactOutcomeFor(f, outcomes, now);
+        const invalidOutcome = !o && outcomes.find(x => x && x.forecastId === f.id);
+        const state = o ? 'Sonuç kaydı var' : exactExpectationTime(f.scheduledAt) && exactExpectationTime(now)
+          ? Date.parse(f.scheduledAt) > Date.parse(now) ? 'Açıklama bekleniyor' : 'Saati geçti · sonuç doğrulanamadı' : 'Açıklama zamanı doğrulanamadı';
+        const entry = lifecycle.find(item => item.firstOpinion && item.firstOpinion.id === f.id);
         const probability = Number.isFinite(f.probabilityAboveConsensus) && f.probabilityAboveConsensus >= 0 && f.probabilityAboveConsensus <= 1
           ? num(f.probabilityAboveConsensus * 100) + '% (öznel)' : '—';
-        return '<details class="research-event"><summary>' + esc(market(f.market) + (f.symbol ? ' ' + f.symbol : '') + ' · ' + measurementLabel(f.metric) + ' · ' + f.period) + ' — ' + (o ? 'Sonuçlandı' : 'Bekliyor') + '</summary><p>Tahmin: ' + num(f.pointEstimate) + ' ' + esc(unitLabel(f.unit)) + ' · Konsensüs: ' + num(f.consensus) + ' ' + esc(unitLabel(f.unit)) + ' · Konsensüsün üzerinde gerçekleşme olasılığı: ' + probability + '</p><p>Kayıt: ' + esc(timestamp(f.recordedAt)) + ' · Açıklama: ' + esc(timestamp(f.scheduledAt)) + '</p><p>' + esc(f.rationale) + '</p>' +
-          (o ? '<p>Gerçekleşen: ' + num(o.value) + ' ' + esc(unitLabel(f.unit)) + ' · ' + link(o.sourceUrl, 'Sonuç kaynağı') + ' · ' + outcomeVerificationText(o) + '</p>' : '<p>' + link(f.resolution.sourceUrl, 'Gerçekleşenin izleneceği kaynak') + '</p>') +
+        return '<details class="research-event"><summary>' + esc(market(f.market) + (f.symbol ? ' ' + f.symbol : '') + ' · ' + measurementLabel(f.metric) + ' · ' + f.period) + ' — ' + state + '</summary><p>Tahmin: ' + num(f.pointEstimate) + ' ' + esc(unitLabel(f.unit)) + ' · Konsensüs: ' + (Number.isFinite(f.consensus) ? num(f.consensus) + ' ' + esc(unitLabel(f.unit)) : 'Bu dönem için konsensüs doğrulanamadı') + ' · Konsensüsün üzerinde gerçekleşme olasılığı: ' + probability + '</p><p>Kayıt: ' + esc(timestamp(f.recordedAt)) + ' · Açıklama: ' + esc(timestamp(f.scheduledAt)) + '</p>' +
+          (entry ? expectationTimelineHtml(entry) : '') + '<p>' + esc(f.rationale) + '</p>' +
+          (o ? '<p>Gerçekleşen: ' + num(o.value) + ' ' + esc(unitLabel(f.unit)) + ' · ' + link(o.sourceUrl, 'Sonuç kaynağı') + ' · ' + outcomeVerificationText(o) + '</p>' : '<p>' + link(f.resolution && f.resolution.sourceUrl, 'Gerçekleşenin izleneceği kaynak') + '</p>') +
+          (invalidOutcome ? '<p class="expectation-group-note">Sonuç kaydı ölçümle eşleşmedi veya kaynak, zaman ya da ilk açıklama sürümü doğrulanamadı.' + (!['human-reviewed', 'provider-first-observed', 'bls-official-first-release'].includes(invalidOutcome.verification) ? ' Doğrulama yöntemi kayıtlı değil.' : '') + '</p>' : '') +
           '<p class="research-source">' + (f.sourceEvidence || []).map((x) => link(x.url, x.title)).join(' · ') + '</p></details>';
       }).join('');
   }
@@ -299,6 +414,6 @@
       if (el && el.isConnected) el.innerHTML = evaluationHtml(data);
     } catch (_) { if (el && el.isConnected) el.innerHTML = '<h2>Tahmin ölçümü</h2><p>Ölçüm günlüğüne erişilemedi. Başarı oranı gösterilemiyor.</p>'; }
   }
-  root.FinansResearch = { researchHtml, expectationsHtml, storedExpectations, evaluationHtml, loadEvaluation, reportTimeLabels, reportIntegrityHtml, sourcePublicationText, automationHtml, automationStatusSummary, researchStatusMessage, timestamp, canUseReportOverlay, restoreStrippedResearchMetadata, proseHtml, modelContextHtml };
+  root.FinansResearch = { researchHtml, expectationsHtml, storedExpectations, buildExpectationLifecycle, nextUpcomingExpectation, evaluationHtml, loadEvaluation, reportTimeLabels, reportIntegrityHtml, sourcePublicationText, automationHtml, automationStatusSummary, researchStatusMessage, timestamp, canUseReportOverlay, restoreStrippedResearchMetadata, proseHtml, modelContextHtml };
   if (typeof module === 'object' && module.exports) module.exports = root.FinansResearch;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

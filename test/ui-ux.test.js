@@ -101,6 +101,7 @@ async function testMarketSearchPersistence() {
     activeView: 'us',
     sortBy: 'score',
     detailReturnFocus: null,
+    candidateOrigin: null,
     marketDetailOpen: false,
     marketUi: { us: { query: '', sort: 'score' } },
     savedUiCount: 0,
@@ -270,6 +271,9 @@ async function testReportContentSurvivesLayoutChange() {
     esc: (value) => String(value == null ? '' : value).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])),
     fullTimestamp: research.timestamp, relTime: () => 'önce',
     reportSignalOverlayHtml: () => '', weeklyHtml: () => '<h2>Takvim kaydı</h2>', triggerRevealAnimations() {}, reduceMotion: true,
+    // This harness checks report content. Optional experience helpers have their own behavioral tests.
+    workBriefHtml: () => '', bindReportReading() {},
+    technicalSignalLabel: require('../public/insights').technicalSignalLabel,
   }, { '#reportContent': report });
   evaluate(appSource.slice(appSource.indexOf('function marketShortLabel('), appSource.indexOf('function catalystPressureLabel(')), ctx);
   const start = appSource.indexOf('async function renderReport()');

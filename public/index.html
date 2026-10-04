@@ -242,6 +242,7 @@
               </div>
             </div>
             <div id="overviewWorkspaceStatus" class="workspace-status overview-span-all" role="status" aria-live="polite"></div>
+            <div id="dailyWorkBrief" class="overview-span-all"></div>
             <div id="overviewPortfolioSummary" class="overview-portfolio-summary overview-span-all"></div>
             <section class="workspace-core" aria-label="Karar çalışma alanı">
               <section id="overview-panel-decisions" class="overview-task-panel" role="tabpanel" aria-labelledby="overview-tab-decisions" tabindex="0">
@@ -322,7 +323,7 @@
           </header>
           <div class="market-workspace">
             <div class="market-list-pane">
-              <div id="marketStatus" class="mstatus"></div>
+              <div id="marketStatus" class="mstatus" hidden></div>
               <div class="market-toolbar">
                 <label class="market-toolbar-label" for="marketSearch">Ara
                   <input id="marketSearch" type="search" autocomplete="off" placeholder="Sembol veya isim" />
@@ -392,7 +393,7 @@
               </div>
               <div id="selectedAssetDetail" class="selected-asset-detail"></div>
               <div class="card">
-            <div class="card-head"><h2 id="marketChartTitle">Yatırım Puanları</h2>
+            <div class="card-head"><h2 id="marketChartTitle">Teknik puan karşılaştırması</h2>
             </div>
             <div class="chart-box tall"><canvas id="scoreChart"></canvas></div>
               </div>
@@ -413,6 +414,7 @@
           </header>
           <div id="portfolioLoadState" class="ui-state" role="status" aria-live="polite"></div>
           <div class="kpis" id="portfolio-kpis"></div>
+          <section id="portfolioFirstEntryHost" class="portfolio-first-entry" hidden aria-labelledby="portfolioFirstTitle"><h3 id="portfolioFirstTitle">İlk pozisyonunu kaydet</h3><p>Önce piyasa ve sembolü seç, ardından adet ve birim maliyeti gir. Kayıt, bir alım emri oluşturmaz.</p></section>
           <div class="grid-2 portfolio-primary-grid">
           <div class="card reveal portfolio-holdings">
             <div class="card-head">
@@ -423,7 +425,7 @@
               <table>
                 <thead>
                   <tr>
-                    <th>Sembol</th><th>Adet</th><th>Maliyet</th><th>Fiyat</th><th>Değer</th><th>Kâr / Zarar</th><th data-weight-head="true">Ağırlık</th><th>Teknik Puan</th><th>Öneri</th><th>Aktif Uyarılar</th><th>İşlem</th>
+                    <th>Sembol</th><th>Adet</th><th>Maliyet</th><th>Fiyat</th><th>Değer</th><th>Kâr / Zarar</th><th data-weight-head="true">Ağırlık</th><th>Teknik Puan</th><th>Teknik sinyal</th><th>Aktif Uyarılar</th><th>İşlem</th>
                   </tr>
                 </thead>
                 <tbody id="portfolio-table-body"></tbody>
@@ -436,7 +438,7 @@
                 <h2>Yeni varlık ekle / düzenle</h2>
                 <span class="card-sub">Portföyünüze varlık ekleyin veya güncelleyin</span>
               </div>
-              <form id="portfolio-form" class="port-form">
+              <div id="portfolioFormHost"><form id="portfolio-form" class="port-form">
                 <div class="form-row">
                   <label>Pazar:
                     <select id="port-market-sel" required>
@@ -461,7 +463,7 @@
                 </div>
                 <button type="submit" class="btn"><span class="btn-ic">✓</span> Pozisyonu Kaydet</button>
                 <p id="portfolioStatus" class="field-status" role="status" aria-live="polite"></p>
-              </form>
+              </form></div>
             </div>
           </div>
           <div id="portfolioActions"></div>
@@ -483,7 +485,7 @@
           <div class="screener-grid reveal">
             <div class="screener-card">
               <div class="screener-card-head screener-green">
-                <h3>Dönüş yakın · Aşırı satım</h3>
+                <h3>Aşırı satım göstergeleri</h3>
                 <span class="screener-desc">RSI ≤ 35 veya Bollinger Alt Bandı altındakiler</span>
               </div>
               <ul class="screener-list" id="screen-oversold"></ul>
@@ -1032,6 +1034,8 @@
   <script src="action-layer.js"></script>
   <script src="report-integrity.js"></script>
   <script src="research.js"></script>
+  <script src="experience.js"></script>
+  <script src="asset-identity.js"></script>
   <script src="app.js"></script>
   <script src="/workspace.js"></script>
   <script defer src="/macro.js"></script>
