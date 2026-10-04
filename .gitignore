@@ -10,6 +10,7 @@ build/
 data/finans.db
 
 .vercel
+supabase/.temp/
 
 # Local research captures and unpublished model drafts are not release inputs.
 /kap*

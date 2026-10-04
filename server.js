@@ -14,7 +14,8 @@ const { runAll } = require('./src/fetch-all');
 const { runBacktest } = require('./src/backtest-engine');
 const { fetchAssetChart } = require('./src/chart-data');
 const { runMonteCarlo, calculateDCF, runStressTest, calculateCorrelationMatrix, calculateGraham, calculateDDM } = require('./src/forecast');
-const { getPortfolio, savePortfolio, getLatestSnapshot, getHistory, getReport, getCache } = require('./src/db');
+const { getPortfolio, getLatestSnapshot, getHistory, getReport, getCache } = require('./src/db');
+const portfolioHandler = require('./api/portfolio');
 const { isAuthorized } = require('./src/admin-auth');
 const { handleJournal } = require('./src/journal-api');
 const { getReportPayload } = require('./src/report-api');
@@ -126,27 +127,13 @@ const server = http.createServer(async (req, res) => {
       }
     }
     if (p === '/api/portfolio') {
-      if (req.method === 'GET') {
-        const portfolio = await getPortfolio();
-        res.writeHead(200, { 'Content-Type': MIME['.json'] });
-        return res.end(JSON.stringify(portfolio));
-      }
-      if (req.method === 'POST') {
-        if (!isAuthorized(req)) {
-          res.writeHead(401, { 'Content-Type': MIME['.json'] });
-          return res.end(JSON.stringify({ error: 'Yetkisiz: admin parolası gerekli' }));
-        }
-        const bodyStr = await readBody(req);
-        try {
-          const parsed = JSON.parse(bodyStr);
-          await savePortfolio(parsed);
-          res.writeHead(200, { 'Content-Type': MIME['.json'] });
-          return res.end(JSON.stringify({ success: true }));
-        } catch (e) {
-          res.writeHead(400);
-          return res.end('Gecersiz JSON verisi');
-        }
-      }
+      if (req.method === 'POST') req.body = await readBody(req);
+      const reply = {
+        setHeader: (name, value) => res.setHeader(name, value),
+        status(code) { res.statusCode = code; return reply; },
+        json(body) { res.end(JSON.stringify(body)); },
+      };
+      return portfolioHandler(req, reply);
     }
     if (p === '/api/journal') {
       const body = req.method === 'POST' ? await readBody(req) : undefined;

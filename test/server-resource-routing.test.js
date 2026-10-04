@@ -31,6 +31,13 @@ const modules = {
   './src/research-api': { handleResearch: async () => ({ status: 200, body: { forecasts: [] } }) },
   './src/intelligence-api': { handleIntelligence: (req, options) => handleIntelligence(req, { ...options, database }) },
 };
+const portfolioContext = vm.createContext({ module: { exports: {} }, console: { error() {} }, require: name => {
+  if (name === '../src/db') return modules['./src/db'];
+  if (name === '../src/admin-auth') return modules['./src/admin-auth'];
+  throw new Error('Unexpected portfolio dependency ' + name);
+} });
+vm.runInContext(fs.readFileSync(path.join(root, 'api/portfolio.js'), 'utf8'), portfolioContext);
+modules['./api/portfolio'] = portfolioContext.module.exports;
 (async () => {
   const context = vm.createContext({ __dirname: root, Buffer, URL, console: { log() {}, error() {} },
     process: { env: { PORT: '0' }, exit: code => { throw new Error('Unexpected server exit ' + code); } },
@@ -80,6 +87,16 @@ const modules = {
     assert.equal(handlerResponse.code, 200);
     assert.equal(stressSourceReads, 0, 'the cloud calculation has the same input cut and no write/read substitution');
     assert.equal(stressCalculations, 3, 'two valid routes plus one rejected input were dispatched');
+    const unavailablePortfolio = await fetch(base + '/api/portfolio');
+    assert.equal(unavailablePortfolio.status, 503, 'Node and Vercel both expose a portfolio outage instead of an empty portfolio');
+    assert.equal(unavailablePortfolio.headers.get('cache-control'), 'no-store');
+    const portfolioError = await unavailablePortfolio.json();
+    assert.ok(portfolioError.error);
+    assert.equal(portfolioError.error.includes('posted calculation'), false, 'internal source errors are not exposed');
+    const sourceReads = stressSourceReads;
+    assert.equal((await fetch(base + '/api/portfolio', { method: 'POST', body: '{}' })).status, 401);
+    assert.equal(stressSourceReads, sourceReads, 'unauthorized portfolio requests never reach the database');
+    assert.equal((await fetch(base + '/api/portfolio', { method: 'PATCH' })).status, 405);
   } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
   console.log('Node/Vercel resource routing: payload shape, methods, direct aliases and unchanged report passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });

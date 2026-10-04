@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
-const source=fs.readFileSync('public/app.js','utf8');
+const source=fs.readFileSync('public/app.js','utf8').replace(/\r\n/g, '\n');
 const context=vm.createContext({});
 const start=source.indexOf('function syncForecastPanels(');
 vm.runInContext(source.slice(start,source.indexOf('function renderForecastView(',start)),context);
@@ -98,6 +98,7 @@ console.log('Stress scenario empty-state, absence, failure-retention and race te
 
 const visibilityStart = source.indexOf('function setValuationModelGroupVisibility(');
 const visibilityEnd = source.indexOf('\n\n  const modelSel', visibilityStart);
+assert.ok(visibilityStart >= 0 && visibilityEnd > visibilityStart, 'valuation visibility helper has a bounded extraction');
 vm.runInContext(source.slice(visibilityStart, visibilityEnd), stressContext);
 const groups = { dcf: { style: { display: 'none' } }, graham: { style: { display: 'none' } }, ddm: { style: { display: 'none' } } };
 stressContext.setValuationModelGroupVisibility('dcf', groups);

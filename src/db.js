@@ -43,84 +43,43 @@ const supabaseAdmin = SUPABASE_URL && SUPABASE_SERVICE_KEY
  * @returns {{ us: [], bist: [], crypto: [] }}
  */
 async function getPortfolio() {
-  const empty = { us: [], bist: [], crypto: [] };
-  if (!supabase) return empty;
-
-  try {
-    const { data, error } = await supabase
-      .from('portfolio')
-      .select('*');
-
-    if (error) throw error;
-    if (!data || data.length === 0) return empty;
-
-    const portfolio = { us: [], bist: [], crypto: [] };
-    data.forEach(row => {
-      const m = row.market.toLowerCase();
-      if (portfolio[m]) {
-        portfolio[m].push({
-          symbol:   row.symbol,
-          amount:   row.amount,
-          avgPrice: row.avg_price
-        });
-      }
-    });
-    return portfolio;
-  } catch (e) {
-    console.error('⚠️  [db] getPortfolio hatası:', e.message);
-    return empty;
-  }
+  if (!supabase) throw new Error('Portföy için veritabanı bağlantısı gerekli');
+  const { portfolioFromRows, completePortfolioRows } = require('./portfolio-storage');
+  const rows = completePortfolioRows(await supabase.from('portfolio').select('*', { count: 'exact' }));
+  return portfolioFromRows(rows);
 }
 
 /**
  * Portföy verilerini Supabase'e kaydeder.
- * Tüm mevcut kayıtları siler ve yeniden ekler (atomic upsert).
+ * Yeni satırları tek upsert ile kaydeder, ardından yalnız ilk okumada gözlenen
+ * kaldırılmış satırları temizler. Adımların tamamı tek transaction değildir;
+ * başarı ancak son okuma hedef portföyle birebir uyuşursa bildirilir.
  * @param {{ us: [], bist: [], crypto: [] }} portfolio
  */
 async function savePortfolio(portfolio) {
-  if (!supabaseAdmin) return;
-
-  try {
-    // 1. Mevcut tüm portföy kayıtlarını sil
-    const { error: delErr } = await supabaseAdmin
-      .from('portfolio')
-      .delete()
-      .neq('market', '___never___'); // Tüm satırları sil
-
-    if (delErr) throw delErr;
-
-    // 2. Yeni kayıtları hazırla
-    const rows = [];
-    const addList = (list, market) => {
-      (list || []).forEach(item => {
-        if (item && item.symbol) {
-          rows.push({
-            market:    market.toLowerCase(),
-            symbol:    item.symbol.toUpperCase().trim(),
-            amount:    parseFloat(item.amount)   || 0,
-            avg_price: parseFloat(item.avgPrice) || 0,
-            updated_at: new Date().toISOString()
-          });
-        }
-      });
-    };
-
-    addList(portfolio.us,     'us');
-    addList(portfolio.bist,   'bist');
-    addList(portfolio.crypto, 'crypto');
-
-    if (rows.length === 0) return;
-
-    // 3. Toplu insert
-    const { error: insErr } = await supabaseAdmin
-      .from('portfolio')
-      .insert(rows);
-
-    if (insErr) throw insErr;
-  } catch (e) {
-    console.error('⚠️  [db] savePortfolio hatası:', e.message);
-    throw e;
+  const { normalizePortfolioInput, completePortfolioRows, samePortfolioRows, removedPortfolioFilter } = require('./portfolio-storage');
+  const rows = normalizePortfolioInput(portfolio);
+  if (!supabaseAdmin || !SUPABASE_SERVICE_KEY) throw new Error('Portföy için veritabanı yazma yetkisi gerekli');
+  const read = async () => completePortfolioRows(await supabaseAdmin.from('portfolio').select('*', { count: 'exact' }));
+  const previous = await read();
+  const nextKeys = new Set(rows.map(row => row.market + ':' + row.symbol));
+  const removed = previous.filter(row => !nextKeys.has(row.market + ':' + row.symbol));
+  // Build and validate the narrow deletion predicate before the first mutation.
+  const removeFilter = removedPortfolioFilter(removed);
+  if (rows.length) {
+    const updatedAt = new Date().toISOString();
+    const payload = rows.map(row => ({ ...row, updated_at: updatedAt }));
+    const saved = completePortfolioRows(await supabaseAdmin.from('portfolio')
+      .upsert(payload, { onConflict: 'market,symbol', count: 'exact' }).select('*'));
+    if (!samePortfolioRows(saved, rows)) throw new Error('Portföy yazma sonucu doğrulanamadı');
   }
+  if (removed.length) {
+    const deleted = completePortfolioRows(await supabaseAdmin.from('portfolio')
+      .delete({ count: 'exact' }).or(removeFilter).select('*'));
+    if (!samePortfolioRows(deleted, removed)) throw new Error('Portföy temizleme sonucu doğrulanamadı');
+  }
+  if (!samePortfolioRows(await read(), rows)) throw new Error('Portföy kaydının son hali doğrulanamadı');
+  return true;
 }
 
 // =====================================================

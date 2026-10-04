@@ -6,6 +6,7 @@ docs/
 .env*
 *.log
 .codex/
+supabase/.temp/
 # Local source inspection downloads and internal visual concept.
 /kap*
 /cpi-real.html
