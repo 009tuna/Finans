@@ -45,7 +45,7 @@
   function explainDecision(asset) {
     if (!asset) return null;
     const a = asset.analysis || {};
-    if (a.score == null) return null;
+    if (typeof a.score !== 'number' || !Number.isFinite(a.score) || a.score < 0 || a.score > 100) return null;
     const d = asset.decision || {};
     const reasons = a.reasons || [];
     const sub = a.sub || {};
@@ -61,7 +61,7 @@
     // Alt-skorlardan en güçlü / en zayıf alanı bul
     const areaMap = { Momentum: sub.momentum, Trend: sub.trend, Hacim: sub.hacim, Volatilite: sub.volatilite };
     if (sub.temel != null) areaMap['Temel/Analist'] = sub.temel;
-    const areas = Object.keys(areaMap).map(function (k) { return [k, areaMap[k]]; }).filter(function (e) { return e[1] != null; });
+    const areas = Object.keys(areaMap).map(function (k) { return [k, areaMap[k]]; }).filter(function (e) { return typeof e[1] === 'number' && Number.isFinite(e[1]) && e[1] >= 0 && e[1] <= 100; });
     areas.sort(function (x, y) { return y[1] - x[1]; });
     const strongest = areas[0];
     const weakest = areas[areas.length - 1];
@@ -86,16 +86,16 @@
     const t = (d.activeSignal && d.activeSignal.available) ? d.activeSignal : (d.trade || {});
     let plan;
     if (t.available) {
-      plan = money(t.entry, currency) + ' civarından al · stop ' + money(t.stop, currency) +
+      plan = 'Model giriş seviyesi ' + money(t.entry, currency) + ' · stop ' + money(t.stop, currency) +
         ' · hedef ' + money(t.target, currency) + ' (Risk/Ödül ' + (t.riskReward || 2) + ':1).' +
-        ' Stop altına inerse tez bozulur; pozisyonu hesabın %' + (t.positionRiskPct != null ? t.positionRiskPct : 2) + ' riskiyle sınırla.';
+        ' Hesapta kullanılan risk bütçesi %' + (t.positionRiskPct != null ? t.positionRiskPct : 2) + '; emir gerçekleşmesi ve fiyat kayması ayrıca değerlendirilir.';
     } else {
       plan = 'İşlem planı için veri yetersiz (' + (t.reason || 'ATR/fiyat eksik') + ').';
     }
 
     // ---- Karar kalitesi (Katman 2: Güven) ----
     if (t.predictionId) {
-      plan = 'Aktif sistem sinyali ' + money(t.entry, currency) + ' girisinden izleniyor; stop ' + money(t.stop, currency) + ', hedef ' + money(t.target, currency) + '. Anlik sonuc ' + (t.resultPct >= 0 ? '+' : '') + t.resultPct + '%.';
+      plan = 'Aktif sistem sinyali ' + money(t.entry, currency) + ' girişinden izleniyor; stop ' + money(t.stop, currency) + ', hedef ' + money(t.target, currency) + '. ' + (typeof t.resultPct === 'number' && Number.isFinite(t.resultPct) ? 'Son ölçülen fiyat değişimi ' + pct(t.resultPct) + '.' : 'Son fiyat değişimi hesaplanamadı.');
     }
     const qBits = [];
     if (d.freshness && d.freshness.label) qBits.push(d.freshness.label);
@@ -104,7 +104,7 @@
     const quality = {
       status: d.status || null, // clean | caution | blocked
       statusLabel: d.status ? (STATUS_LABEL[d.status] || d.status) : null,
-      score: d.score != null ? d.score : null,
+      score: typeof d.score === 'number' && Number.isFinite(d.score) && d.score >= 0 && d.score <= 100 ? d.score : null,
       note: qBits.join(' · ') || 'Karar kalitesi verisi yok',
     };
 
@@ -114,11 +114,13 @@
     if (reg) {
       regimeLabel = reg.label + (reg.adx != null ? ' · ADX ' + reg.adx : '');
       if (reg.type === 'range') {
-        suitability = 'Yatay rejim: kısa-vadede aşırı satımdan tepki (mean-reversion) mantıklı; trend takibi/breakout sermaye eritir.';
+        suitability = 'Yatay rejim: göstergeler bu dönemde belirgin yön saptamıyor. Bir eşik geçişi tek başına tepki ya da kırılma beklentisi oluşturmaz.';
       } else if (reg.direction === 'up') {
-        suitability = (reg.type === 'strong-trend' ? 'Güçlü yukarı trend' : 'Yukarı trend') + ': trend yönünde işlem/breakout uygun; dip alımına temkinli ol.';
+        suitability = (reg.type === 'strong-trend' ? 'Güçlü yukarı trend' : 'Yukarı trend') + ': fiyatın geçmiş hareketi trend yönünde. Yeni giriş için bu gözlemle birlikte fiyat tarihini, stop mesafesini ve karşı kanıtı incele.';
+      } else if (reg.direction === 'down') {
+        suitability = (reg.type === 'strong-trend' ? 'Güçlü aşağı trend' : 'Aşağı trend') + ': fiyatın geçmiş yönü aşağı. Aşırı satım, dönüşün başladığını göstermez.';
       } else {
-        suitability = (reg.type === 'strong-trend' ? 'Güçlü aşağı trend' : 'Aşağı trend') + ': kısa-vade long riskli; tepki beklemek veya nakitte kalmak mantıklı.';
+        suitability = 'Rejimin yön bilgisi eksik; strateji uyumu değerlendirilemiyor.';
       }
     }
 
@@ -157,32 +159,36 @@
   }
 
   /**
-   * Strateji testi sonucunu "ne zaman çalışır / ne zaman bozulur" diliyle açıklar.
+   * Strateji testinin ölçülmüş net sonuçlarını ve örneklem sınırlarını açıklar.
    * @param {object} res - runBacktest çıktısı
    * @returns {object} { maxDrawdown, winRate, closedTrades, best, worst, beatBH, headlineTone, worksWhen, breaksWhen, note }
    */
   function explainBacktest(res) {
     if (!res) return null;
-    const curve = res.equityCurve || [];
-    const trades = res.trades || [];
+    const finite = function (n) { return typeof n === 'number' && Number.isFinite(n); };
+    const curve = Array.isArray(res.equityCurve) ? res.equityCurve : [];
+    const trades = Array.isArray(res.trades) ? res.trades : [];
     const sells = trades.filter(function (t) { return t.type === 'SELL'; });
     const buys = trades.filter(function (t) { return t.type === 'BUY'; });
 
     // Maksimum düşüş (sermaye eğrisi tepe-dip)
-    let peak = -Infinity;
-    let maxDD = 0;
+    let peak = finite(res.initialCapital) && res.initialCapital > 0 ? res.initialCapital : -Infinity;
+    let maxDD = curve.length && curve.every(function (c) { return c && finite(c.total) && c.total >= 0; }) ? 0 : null;
     curve.forEach(function (c) {
+      if (maxDD == null) return;
       if (c.total > peak) peak = c.total;
       const dd = peak > 0 ? ((peak - c.total) / peak) * 100 : 0;
       if (dd > maxDD) maxDD = dd;
     });
-    maxDD = Math.round(maxDD * 100) / 100;
+    if (maxDD != null) maxDD = Math.round(maxDD * 100) / 100;
 
-    const wins = sells.filter(function (t) { return t.pnlPct > 0; });
-    const winRate = sells.length ? Math.round((wins.length / sells.length) * 100) : 0;
-    const best = sells.reduce(function (m, t) { return (m == null || t.pnlPct > m.pnlPct) ? t : m; }, null);
-    const worst = sells.reduce(function (m, t) { return (m == null || t.pnlPct < m.pnlPct) ? t : m; }, null);
-    const beatBH = res.strategyReturn >= res.bhReturn;
+    const measured = sells.filter(function (t) { return finite(t.netPnlPct); });
+    const wins = measured.filter(function (t) { return t.netPnlPct > 0; });
+    const winRate = measured.length ? Math.round((wins.length / measured.length) * 100) : null;
+    const best = measured.reduce(function (m, t) { return (m == null || t.netPnlPct > m.netPnlPct) ? t : m; }, null);
+    const worst = measured.reduce(function (m, t) { return (m == null || t.netPnlPct < m.netPnlPct) ? t : m; }, null);
+    const difference = finite(res.strategyReturn) && finite(res.bhReturn) ? res.strategyReturn - res.bhReturn : null;
+    const beatBH = difference == null ? null : difference > 0;
 
     let worksWhen;
     let breaksWhen;
@@ -191,32 +197,28 @@
     if (!buys.length) {
       headlineTone = 'warn';
       worksWhen = 'Bu eşiklerde hiç alım sinyali oluşmadı — strateji test edilemedi.';
-      breaksWhen = 'Alım eşiği (' + res.buyThreshold + ') bu varlık için fazla seçici. Eşiği düşürüp tekrar deneyin.';
-    } else if (beatBH && winRate >= 50) {
-      headlineTone = 'pos';
-      worksWhen = 'Trend belirgin olduğunda iyi çalıştı: skor eşikleri zamanında sinyal verdi ve al-tut yaklaşımını geçti (%' + winRate + ' isabet).';
-      breaksWhen = 'Yatay/testere piyasada sık giriş-çıkış yıpratır. En sert geri çekilme (max düşüş) %' + maxDD + ' — bu büyüklükteki dalgalanmaya hazır ol.';
-    } else if (beatBH) {
-      headlineTone = 'pos';
-      worksWhen = 'Al-tut yaklaşımını geçti ama isabet düşük (%' + winRate + '); kazanç birkaç büyük işlemden geldi.';
-      breaksWhen = 'İsabet düşük olduğu için sonuç şansa duyarlı. Max düşüş %' + maxDD + '. Farklı dönemlerde tekrar test edilmeli.';
+      breaksWhen = 'Bu dönem ve eşikler işlem üretmedi. Bu gözlem, eşiklerin değiştirilmesi gerektiğini ya da başka bir dönemde başarılı olacağını göstermez.';
     } else {
-      headlineTone = 'neg';
-      worksWhen = 'Bu varlık ve dönemde strateji al-tut’un gerisinde kaldı; erken çıkışlar yukarı hareketin bir kısmını kaçırdı.';
-      breaksWhen = 'Güçlü tek-yönlü boğa trendinde skor-eşikli strateji genelde al-tut’u geçemez. Max düşüş %' + maxDD + '.';
+      headlineTone = difference == null ? 'warn' : difference > 0 ? 'pos' : difference < 0 ? 'neg' : 'warn';
+      worksWhen = measured.length ? measured.length + ' kapanan işlemin ' + wins.length + ' tanesi alış ve satış maliyetleri sonrasında pozitif sonuçlandı (%' + winRate + ').' : 'Kapanan işlemlerde net getiri verisi yok; kârlı işlem oranı hesaplanamadı.';
+      if (measured.length < sells.length) worksWhen += ' ' + (sells.length - measured.length) + ' işlemin net sonucu eksik.';
+      if (difference != null) worksWhen += difference === 0 ? ' Strateji ve maliyet hariç al-tut getirisi eşit.' : ' Net strateji, maliyet hariç al-tut fiyat getirisinin ' + Math.abs(Math.round(difference * 100) / 100) + ' yüzde puan ' + (difference > 0 ? 'üzerinde' : 'altında') + '.';
+      breaksWhen = (maxDD != null ? 'Bu sermaye eğrisinde en büyük tepe-dip düşüşü %' + maxDD + '. ' : 'Sermaye eğrisi eksik; en büyük düşüş hesaplanamadı. ') + 'Bu test, hangi piyasa rejiminde çalışacağını veya gelecekteki başarı oranını belirlemez.';
     }
 
     return {
       maxDrawdown: maxDD,
       winRate: winRate,
       closedTrades: sells.length,
+      measuredClosedTrades: measured.length,
+      unknownClosedTrades: sells.length - measured.length,
       best: best,
       worst: worst,
       beatBH: beatBH,
       headlineTone: headlineTone,
       worksWhen: worksWhen,
       breaksWhen: breaksWhen,
-      note: 'Bu bir geçmişe-dönük simülasyondur; gelecek getiriyi garanti etmez. Farklı eşik ve piyasa rejimleriyle tekrar deneyin.',
+      note: 'Net strateji tahmini işlem maliyetlerini içerir; al-tut karşılaştırması fiyat değişimidir ve maliyet içermez. Eşiklerin bu döneme göre seçilmesi sonucu iyimserleştirebilir.',
     };
   }
 
@@ -229,10 +231,10 @@
     if (!snapshot) return null;
     const mr = snapshot.marketRegime || {};
     const all = [].concat(snapshot.us || [], snapshot.bist || [], snapshot.crypto || [])
-      .filter(function (x) { return x && x.analysis && x.analysis.score != null; });
+      .filter(function (x) { return x && !x.__error && x.analysis && typeof x.analysis.score === 'number' && Number.isFinite(x.analysis.score) && x.analysis.score >= 0 && x.analysis.score <= 100; });
     if (!all.length && !mr.us && !mr.bist && !mr.crypto) return null;
 
-    const dq = all.map(function (x) { return x.decision && x.decision.score; }).filter(function (v) { return typeof v === 'number'; });
+    const dq = all.map(function (x) { return x.decision && x.decision.score; }).filter(function (v) { return typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 100; });
     const avgQuality = dq.length ? Math.round(dq.reduce(function (a, b) { return a + b; }, 0) / dq.length) : null;
     const contradictionCount = all.reduce(function (n, x) { return n + ((x.decision && x.decision.contradictions) ? x.decision.contradictions.length : 0); }, 0);
 
@@ -241,15 +243,15 @@
     if (mr.us) {
       if (mr.us.type === 'panic') { riskPoints += 2; environment.push('ABD: panik volatilite'); }
       else if (mr.us.type === 'stress') { riskPoints += 1; environment.push('ABD: yüksek volatilite (stres)'); }
-      else if (mr.us.type === 'calm') { environment.push('ABD: düşük volatilite (mean-reversion)'); }
+      else if (mr.us.type === 'calm') { environment.push('ABD: düşük volatilite'); }
       else environment.push('ABD: normal volatilite');
     }
     if (mr.bist) {
       if (mr.bist.type === 'cash') { riskPoints += 2; environment.push('BIST: 200g altı (nakit rejimi)'); }
-      else environment.push('BIST: long rejim aktif');
+      else environment.push('BIST: 200g ortalama üstü');
     }
     if (mr.crypto) {
-      if (mr.crypto.type === 'decoupled') environment.push('Kripto: Nasdaq kopuşu (tepki fırsatı)');
+      if (mr.crypto.type === 'decoupled') environment.push('Kripto: Nasdaq ile düşük ilişki');
       else if (mr.crypto.type === 'coupled') environment.push('Kripto: makroya bağlı');
       else environment.push('Kripto: korelasyon karışık');
     }
@@ -262,18 +264,17 @@
       : !evidence || !evidence.macroAvailable || (snapshot.errors || []).length || !mr.us || !mr.bist || !mr.crypto
         ? { label: 'Belirsiz', tone: 'warn' } : { label: 'Düşük', tone: 'pos' };
 
-    const best = (snapshot.topPicks || [])[0] || null;
+    const best = (snapshot.topPicks || []).filter(function (x) { return x && !x.__error && typeof x.score === 'number' && Number.isFinite(x.score) && x.score >= 0 && x.score <= 100; }).sort(function (a, b) { return b.score - a.score; })[0] || null;
 
     const regimeActions = [];
-    if (mr.bist && mr.bist.type === 'cash') regimeActions.push('BIST 200g ortalama altında — kısa-vade long\'dan kaçın; sadece likit büyüklerde tepki ya da nakit.');
-    if (mr.us && (mr.us.type === 'stress' || mr.us.type === 'panic')) regimeActions.push('ABD volatilitesi yüksek — pozisyon küçült; mean-reversion yerine breakout/momentum.');
-    else if (mr.us && mr.us.type === 'calm') regimeActions.push('ABD düşük volatilitede — RSI uçları/Bollinger ile mean-reversion uygun, trend takibi zor.');
-    if (mr.crypto && mr.crypto.type === 'coupled') regimeActions.push('Kripto Nasdaq ile bağlı — bağımsız kripto sinyaline güvenme, makro risk-on/off izle.');
-    else if (mr.crypto && mr.crypto.type === 'decoupled') regimeActions.push('Kripto Nasdaq\'tan koptu — geçici ayrışma; majörlerde tepki/yakınsama izlenebilir.');
-    // En fazla 2 rejim aksiyonu + en iyi fırsat + (her zaman) dürüstlük notu.
-    const honesty = 'Kısa-vade üç piyasada da maliyet-sonrası çoğu birey için negatif-toplamlı; az ama doğru işlem + sıkı stop.';
+    if (mr.bist && mr.bist.type === 'cash') regimeActions.push('BIST 200g ortalama altında. Adayın trend gerekçesini ve karşı kanıtını birlikte incele.');
+    if (mr.us && (mr.us.type === 'stress' || mr.us.type === 'panic')) regimeActions.push('ABD volatilitesi yüksek. Pozisyon hesabında stop mesafesini ve sermaye sınırını kontrol et.');
+    else if (mr.us && mr.us.type === 'calm') regimeActions.push('ABD volatilitesi düşük. Bu gözlem tek başına bir stratejinin üstünlüğünü göstermez.');
+    if (mr.crypto && mr.crypto.type === 'coupled') regimeActions.push('Kripto ve Nasdaq birlikte hareket ediyor. İkisindeki pozisyonları bağımsız risk sayma.');
+    else if (mr.crypto && mr.crypto.type === 'decoupled') regimeActions.push('Kripto ile Nasdaq arasındaki ilişki düşük. Bu, tepki veya yakınsama beklentisi için yeterli kanıt değildir.');
+    const honesty = 'Teknik puan başarı olasılığı değildir. Fiyat tarihini, kaynak kapsamını ve işlem maliyetini adayın kanıtlarıyla birlikte kontrol et.';
     const finalActions = regimeActions.slice(0, 2);
-    if (best) finalActions.push('En yüksek puanlı fırsat: ' + best.market + ' ' + best.symbol + ' (' + best.label + ' · ' + best.score + ') — varlığın rejim/maliyet kartını oku.');
+    if (best) finalActions.push('Teknik puanı en yüksek aday: ' + best.market + ' ' + best.symbol + ' (' + best.score + '/100). Gerekçe ve kanıt eksiklerini aday kartından incele.');
     finalActions.push(honesty);
 
     const headline = (riskLevel.label === 'Belirsiz' ? 'Makro veya veri kapsamı eksik; toplam risk düşük olarak sınıflandırılamıyor' : 'Piyasa ortamı ' + riskLevel.label.toLowerCase() + ' riskli')

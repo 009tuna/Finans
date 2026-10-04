@@ -6,13 +6,12 @@ function sleep(ms) {
 }
 
 // JSON getirir; 429/5xx durumlarinda artan beklemeyle yeniden dener.
-async function fetchJson(url, { headers = {}, retries = 3, timeoutMs = 15000 } = {}) {
+async function fetchJson(url, { headers = {}, retries = 3, timeoutMs = 15000, transport = fetch } = {}) {
   for (let attempt = 0; attempt <= retries; attempt++) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), timeoutMs);
     try {
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), timeoutMs);
-      const res = await fetch(url, { headers, signal: ctrl.signal });
-      clearTimeout(t);
+      const res = await transport(url, { headers, signal: ctrl.signal });
       if (res.status === 429 || res.status >= 500) {
         throw new Error('HTTP ' + res.status);
       }
@@ -26,6 +25,8 @@ async function fetchJson(url, { headers = {}, retries = 3, timeoutMs = 15000 } =
         return { __error: String((err && err.message) || err) };
       }
       await sleep(700 * (attempt + 1));
+    } finally {
+      clearTimeout(t);
     }
   }
 }

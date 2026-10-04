@@ -10,3 +10,13 @@ build/
 data/finans.db
 
 .vercel
+
+# Local research captures and unpublished model drafts are not release inputs.
+/kap*
+/cpi-real.html
+data/_private/
+data/report/*draft*.json
+data/report/*stage*.json
+data/report/*rejected*.json
+docs/design-air/live-expectations-draft*.json
+docs/design-air/live-expectations-draft*.log

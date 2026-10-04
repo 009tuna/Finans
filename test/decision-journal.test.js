@@ -55,6 +55,11 @@ const withPrediction = recordPrediction(withAlert, {
 }, '2026-06-08T20:02:00.000Z');
 assert.equal(withPrediction.predictions.length, 1);
 assert.equal(withPrediction.predictions[0].outcome, 'open');
+assert.equal(withPrediction.predictions[0].strategyVersion, 'user-scenario-v1');
+const systemPrediction = recordPrediction(empty, { market: 'us', symbol: 'MSFT', source: 'system' }, '2026-06-08T20:02:00.000Z');
+assert.equal(systemPrediction.predictions[0].strategyVersion, 'technical-rules-v1');
+const versionedPrediction = recordPrediction(empty, { market: 'us', symbol: 'NVDA', source: 'user', strategyVersion: 'scenario-7' }, '2026-06-08T20:02:00.000Z');
+assert.equal(versionedPrediction.predictions[0].strategyVersion, 'scenario-7');
 
 const scorecard = buildPredictionScorecard({
   predictions: [
@@ -66,6 +71,27 @@ const scorecard = buildPredictionScorecard({
 assert.equal(scorecard.closed, 2);
 assert.equal(scorecard.winRate, 50);
 assert.equal(scorecard.open, 1);
+const strictScorecard = buildPredictionScorecard({ predictions: [
+  { source: 'system', outcome: 'target-hit', resultPct: 10 },
+  { source: 'system', outcome: 'stop-hit', resultPct: -5 },
+  { source: 'system', outcome: 'stop-hit', outcomeEvidence: 'ambiguous_bar', resultPct: -2 },
+  { source: 'user', outcome: 'mystery-closed', resultPct: 'not-a-number' },
+  { source: 'user', outcome: 'open' },
+] });
+assert.equal(strictScorecard.closed, 4);
+assert.equal(strictScorecard.wins, 1);
+assert.equal(strictScorecard.losses, 1);
+assert.equal(strictScorecard.decisive, 2);
+assert.equal(strictScorecard.ambiguous, 1);
+assert.equal(strictScorecard.unscored, 1);
+assert.equal(strictScorecard.winRate, 50);
+assert.equal(strictScorecard.avgResultPct, 2.5);
+assert.equal(strictScorecard.resultSampleSize, 2);
+assert.equal(strictScorecard.bySource.system.ambiguous, 1);
+assert.equal(strictScorecard.bySource.user.winRate, null);
+const noNumericResult = buildPredictionScorecard({ predictions: [{ outcome: 'target-hit', resultPct: '10' }] });
+assert.equal(noNumericResult.avgResultPct, null);
+assert.equal(noNumericResult.resultSampleSize, 0);
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'finans-journal-'));
 const file = path.join(dir, 'journal.json');

@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const CURRENT_STRATEGY_VERSION = Object.freeze({ system: 'technical-rules-v1', user: 'user-scenario-v1' });
 
 let db = null;
 try {
@@ -87,6 +88,10 @@ function recordPrediction(journal, prediction, nowIso) {
     nowIso.slice(0, 10),
   ].join(':');
   if (!j.predictions.some((x) => x.id === id)) {
+    const source = prediction.source || 'user';
+    const strategyVersion = prediction.strategyVersion !== undefined && prediction.strategyVersion !== null
+      ? prediction.strategyVersion
+      : CURRENT_STRATEGY_VERSION[source === 'system' ? 'system' : 'user'];
     j.predictions.push({
       id,
       market,
@@ -100,7 +105,8 @@ function recordPrediction(journal, prediction, nowIso) {
       horizonDays: prediction.horizonDays || 30,
       resolvedAt: null,
       outcome: 'open',
-      source: prediction.source || 'user',
+      source,
+      strategyVersion,
     });
   }
   return j;
@@ -118,25 +124,32 @@ function appendDecisionAudit(journal, audit) {
 function buildPredictionScorecard(journal) {
   const predictions = normalizeJournal(journal).predictions;
   const closedItems = predictions.filter((x) => x.outcome && x.outcome !== 'open');
-  
-  // wins definition expanded: target-hit or expired-win
-  const wins = closedItems.filter((x) => x.outcome === 'target-hit' || x.outcome === 'expired-win').length;
-  
-  let avgResultPct = 0;
-  if (closedItems.length > 0) {
-    const totalPct = closedItems.reduce((acc, x) => acc + (x.resultPct || 0), 0);
-    avgResultPct = Number((totalPct / closedItems.length).toFixed(1));
-  }
+  const wins = closedItems.filter((x) => x.outcomeEvidence !== 'ambiguous_bar' && (x.outcome === 'target-hit' || x.outcome === 'expired-win')).length;
+  const losses = closedItems.filter((x) => x.outcomeEvidence !== 'ambiguous_bar' && (x.outcome === 'stop-hit' || x.outcome === 'expired-loss')).length;
+  const ambiguous = closedItems.filter((x) => x.outcomeEvidence === 'ambiguous_bar').length;
+  const decisive = wins + losses;
+  const resultValues = closedItems.filter((x) => x.outcomeEvidence !== 'ambiguous_bar' &&
+    ['target-hit', 'stop-hit', 'expired-win', 'expired-loss'].includes(x.outcome))
+    .map((x) => x.resultPct).filter((x) => typeof x === 'number' && Number.isFinite(x));
+  const avgResultPct = resultValues.length ? Number((resultValues.reduce((sum, n) => sum + n, 0) / resultValues.length).toFixed(1)) : null;
+  const unscored = closedItems.length - decisive - ambiguous;
 
   const getSubScorecard = (source) => {
     const filtered = predictions.filter((x) => (x.source || 'user') === source);
     const closed = filtered.filter((x) => x.outcome && x.outcome !== 'open');
-    const w = closed.filter((x) => x.outcome === 'target-hit' || x.outcome === 'expired-win').length;
+    const w = closed.filter((x) => x.outcomeEvidence !== 'ambiguous_bar' && (x.outcome === 'target-hit' || x.outcome === 'expired-win')).length;
+    const l = closed.filter((x) => x.outcomeEvidence !== 'ambiguous_bar' && (x.outcome === 'stop-hit' || x.outcome === 'expired-loss')).length;
+    const ambiguousCount = closed.filter((x) => x.outcomeEvidence === 'ambiguous_bar').length;
+    const denominator = w + l;
     return {
       total: filtered.length,
       closed: closed.length,
       wins: w,
-      winRate: closed.length ? Math.round((w / closed.length) * 100) : 0,
+      losses: l,
+      decisive: denominator,
+      ambiguous: ambiguousCount,
+      unscored: closed.length - denominator - ambiguousCount,
+      winRate: denominator ? Math.round((w / denominator) * 100) : null,
     };
   };
 
@@ -145,9 +158,13 @@ function buildPredictionScorecard(journal) {
     open: predictions.length - closedItems.length,
     closed: closedItems.length,
     wins,
-    losses: closedItems.length - wins,
-    winRate: closedItems.length ? Math.round((wins / closedItems.length) * 100) : 0,
+    losses,
+    decisive,
+    ambiguous,
+    unscored,
+    winRate: decisive ? Math.round((wins / decisive) * 100) : null,
     avgResultPct,
+    resultSampleSize: resultValues.length,
     bySource: {
       system: getSubScorecard('system'),
       user: getSubScorecard('user'),
@@ -242,4 +259,5 @@ module.exports = {
   writeJournalFile,
   readJournal,
   writeJournal,
+  CURRENT_STRATEGY_VERSION,
 };

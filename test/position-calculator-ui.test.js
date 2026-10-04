@@ -1,0 +1,35 @@
+'use strict';
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const layer = require('../public/action-layer');
+const source = fs.readFileSync('public/app.js', 'utf8');
+const functionSource = source.slice(source.indexOf('function updatePositionCalculator('), source.indexOf('function renderTipsArchive('));
+const formatting = source.slice(source.indexOf('function fmtQty('), source.indexOf('function fmtPrice('));
+const nodes = new Map();
+const $ = id => { if (!nodes.has(id)) nodes.set(id, { value: '', textContent: '' }); return nodes.get(id); };
+const context = vm.createContext({ window: { FinansActionLayer: layer }, $ });
+vm.runInContext(formatting + functionSource, context);
+function fill(capital, risk, price, atr) {
+  [capital, risk, price, atr].forEach((value, index) => { $(['#calc-capital', '#calc-risk-pct', '#calc-price', '#calc-atr'][index]).value = String(value); });
+  context.updatePositionCalculator();
+}
+fill(10000, 2, 100, 2);
+assert.equal($('#res-units').textContent, '66');
+assert.match($('#position-calculator-state').textContent, /198,00/);
+fill(0, 2, 100, 2);
+assert.equal($('#res-units').textContent, '–');
+assert.equal($('#res-risk-amount').textContent, '–', 'zero capital must not fabricate a risk budget');
+assert.ok($('#position-calculator-state').textContent);
+fill(100, 2, 10, 0.01);
+assert.equal($('#res-pos-amount').textContent, '100,00');
+assert.match($('#position-calculator-state').textContent, /sermayenizle sınırlandı/);
+fill(100, 2, 0.000001, 0.0000001);
+assert.notEqual($('#res-entry').textContent, '0,0000');
+assert.match($('#res-entry').textContent, /0,000001/);
+fill(0.000001, 1, 1, 0.01);
+assert.notEqual($('#res-risk-amount').textContent, '0,00');
+assert.match($('#position-calculator-state').textContent, /Kesirli adet teoriktir/);
+fill(1000, 2, 10, 10);
+assert.equal($('#res-stop').textContent, '–', 'negative stop must clear the model result');
+console.log('Position calculator UI missing input, capital cap, quote precision and fractional amount tests passed');

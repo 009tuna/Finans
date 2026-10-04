@@ -8,7 +8,7 @@ const path = require('path');
 const { randomUUID } = require('crypto');
 const { isFresh, snapshotId } = require('../public/report-integrity');
 const { fetchEconomic, fetchEarnings, fetchCompanyNews } = require('./calendar');
-const { getLatestSnapshot, saveReport } = require('./db');
+const { getLatestSnapshot } = require('./db');
 const { buildMacroSignalOverlay } = require('./signal-overlay');
 const { buildLearningSummary } = require('./decision-auditor');
 
@@ -24,10 +24,11 @@ function loadConfig() {
 function ymd(d) {
   return d.toISOString().slice(0, 10);
 }
-async function buildBaseReport() {
+async function buildBaseReport({ onSnapshot, snapshot: suppliedSnapshot } = {}) {
   const cfg = loadConfig();
   const token = cfg.finnhubToken;
-  const snap = await getLatestSnapshot({ strict: true });
+  const snap = suppliedSnapshot || await getLatestSnapshot({ strict: true });
+  if (onSnapshot) onSnapshot(snap);
   if (!snap || !isFresh(snap.generatedAt, new Date().toISOString())) throw new Error('Guncel snapshot yok. Once piyasa verisini yenileyin.');
   const all = []
     .concat((snap.us || []).map((x) => ({ market: 'ABD', ...x })))
@@ -177,19 +178,16 @@ async function buildBaseReport() {
   return base;
 }
 
-async function run({ reportDir = REPORT_DIR } = {}) {
-  const base = await buildBaseReport();
-  // Publish first; a failed cloud write must not leave a new local input for AI.
-  await saveReport(base.date, { base, ai: null });
-  console.log('Temel rapor Supabase\'e yazıldı: ' + base.date + ' | ' + base.runId + ' | kalite: ' + base.quality.status);
-  // Yerel dosya (Claude routine base.json'u okur) — best-effort.
+async function run({ reportDir = REPORT_DIR, snapshot } = {}) {
+  let frozenSnapshot;
+  const base = await buildBaseReport({ snapshot, onSnapshot: (value) => { frozenSnapshot = value; } });
+  // Yerel dosya eski routine'ler icin taslak kalir; active publication'a dokunmaz.
   try {
     fs.mkdirSync(reportDir, { recursive: true });
+    fs.writeFileSync(path.join(reportDir, 'base-stage.json'), JSON.stringify({ base, snapshot: frozenSnapshot }, null, 2));
     fs.writeFileSync(path.join(reportDir, 'base.json'), JSON.stringify(base, null, 2));
     fs.writeFileSync(path.join(reportDir, 'base-' + base.date + '.json'), JSON.stringify(base));
-  } catch (e) {
-    console.warn('Yerel base.json yazılamadı (sorun değil, Supabase asıl):', e.message);
-  }
+  } catch (e) { throw new Error('Temel rapor taslagi kaydedilemedi'); }
   const c = base.calendar || {};
   console.log('Temel rapor üretildi: ' + base.date + ' | duyarlılık ' + base.sentiment.label + ' (' + base.sentiment.avg + ')');
   console.log('  Takvim: ' + (c.economic || []).length + ' ekonomik olay, ' + (c.earnings || []).length + ' bilanço, ' + (c.companyNews || []).length + ' haber');

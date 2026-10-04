@@ -43,8 +43,15 @@ assert.equal(envelope(record, snapshot, NOW).integrity.usableOverlay, true);
 assert.equal(envelope(record, null, NOW).ai, null, 'missing price snapshot must fail closed');
 assert.equal(envelope(record, { snapshotId: SNAP, generatedAt: '2026-06-01' }, NOW).base.signalOverlay, null);
 assert.equal(envelope(record, { generatedAt: NOW }, NOW).base.signalOverlay, null);
-assert.equal(envelope(record, { generatedAt: NOW }, NOW).ai, null);
+assert.equal(envelope(record, { generatedAt: NOW }, NOW).integrity.researchStatus, 'previous-analysis');
+assert.equal(envelope(record, { generatedAt: NOW }, NOW).ai.runId, ai.runId, 'snapshot id may fall back to generatedAt');
 assert.equal(envelope({ ...record, ai: { ...ai, runId: 'old' } }, snapshot, NOW).ai, null);
+const priorSnapshot = { generatedAt: '2026-09-07T11:45:00.000Z', snapshotId: 'newer' };
+const previous = envelope({ ...record, ai: { ...ai, research: { events: [] } } }, priorSnapshot, NOW);
+assert.equal(previous.integrity.researchStatus, 'previous-analysis');
+assert.equal(previous.integrity.usableResearch, true);
+assert.equal(previous.ai.runId, base.runId);
+assert.equal(previous.integrity.pricesAsOf, priorSnapshot.generatedAt);
 assert.equal(envelope({ ...record, base: { ...base, signalOverlay: { ...fresh, schemaVersion: 1 } } }, snapshot, NOW).base.signalOverlay, null);
 assert.equal(assess({}, ai, snapshot, NOW).baseStatus, 'unverified');
 assert.equal(assess(base, { ...ai, generatedAt: '2026-06-01' }, snapshot, NOW).aiStatus, 'stale');
@@ -57,11 +64,13 @@ assert.equal(risk.riskLevel.label, 'Belirsiz');
 
 (async () => {
   let stored = record;
+  let ledgerValue = require('../src/research-ledger').empty();
   let writes = 0;
   const db = {
     getReport: async () => stored,
     getLatestSnapshot: async () => snapshot,
-    publishAiReport: async (date, id, fields) => { writes++; assert.equal(id, base.runId); stored = { date, ...fields }; },
+    getCache: async () => ({ value: ledgerValue, revision: writes ? 'v' + writes : null }),
+    compareAndSetCache: async (_, value) => { writes++; ledgerValue = value; },
   };
   const result = await publish(ai, { db, now: NOW, readJournal: async () => ({}), journalPath: 'unused' });
   assert.equal(result.runId, base.runId);

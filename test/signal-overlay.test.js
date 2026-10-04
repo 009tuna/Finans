@@ -149,7 +149,7 @@ console.log('   ok');
 console.log('5. thesis, calibration and banking gaps are explicit components...');
 assert.ok(aapl.components.some((x) => x.type === 'thesisStatus' && x.adjustment > 0));
 assert.ok(amd.components.some((x) => x.type === 'thesisStatus' && x.adjustment < 0));
-assert.ok(aapl.components.some((x) => x.type === 'predictionCalibration' && x.adjustment < 0));
+assert.ok(!aapl.components.some((x) => x.type === 'predictionCalibration'),'pooled legacy performance cannot affect readiness');
 assert.ok(aapl.components.some((x) => x.type === 'tearsheetCompleteness' && x.adjustment < 0));
 assert.ok(aapl.components.some((x) => x.type === 'compsValuationGap'));
 assert.ok(aapl.components.some((x) => x.type === 'modelAuditGap'));
@@ -184,6 +184,14 @@ const learningJournal = {
     resolvedAt: '2026-05-1' + day + 'T20:59:59.000Z',
   })),
 };
+learningJournal.predictions.forEach((prediction, index) => {
+  prediction.strategyVersion = 'technical-rules-v1';
+  prediction.resolverVersion = 'daily-bar-resolver-v3';
+  prediction.outcomeEvidence = index === 4 ? 'daily_bar_range' : 'daily_bar_range';
+  prediction.barDate = '2026-05-' + String(6 + index).padStart(2, '0');
+  prediction.barEndAt = '2026-05-' + String(6 + index).padStart(2, '0') + 'T20:59:59.000Z';
+  prediction.closePrice = 100 * (1 + prediction.resultPct / 100);
+});
 const learningOverlay = buildMacroSignalOverlay({
   snapshot: baseSnapshot(),
   aiReport: { commentary: {} },
@@ -192,8 +200,10 @@ const learningOverlay = buildMacroSignalOverlay({
   now: NOW,
 });
 const learningComponent = learningOverlay.assets['us:AAPL'].components.find((x) => x.type === 'learningCalibration');
-assert.ok(learningComponent);
-assert.ok(learningComponent.adjustment > 0);
+assert.equal(learningComponent, undefined);
+assert.ok(!learningOverlay.assets['us:AAPL'].components.some(x=>x.type === 'predictionCalibration'));
+const emptyOverlay = buildMacroSignalOverlay({snapshot:baseSnapshot(),aiReport:{commentary:{}},baseReport:{},journal:{},now:NOW});
+assert.equal(learningOverlay.assets['us:AAPL'].totalAdjustment,emptyOverlay.assets['us:AAPL'].totalAdjustment,'eligible in-sample patterns are proposals, not active adjustments');
 assert.ok(Math.abs(learningOverlay.assets['us:AAPL'].totalAdjustment) <= 8);
 console.log('   ok');
 

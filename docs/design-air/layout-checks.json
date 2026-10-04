@@ -1,0 +1,508 @@
+[
+  {
+    "label": "1440-overview",
+    "controls": 36,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": false,
+        "id": "aux-panel-overview",
+        "width": 264
+      }
+    ],
+    "view": "view-overview",
+    "width": 1440
+  },
+  {
+    "label": "1440-report",
+    "controls": 6,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": false,
+        "id": "aux-panel-report",
+        "width": 264
+      }
+    ],
+    "view": "view-report",
+    "width": 1440
+  },
+  {
+    "label": "1440-portfolio",
+    "controls": 3,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": false,
+        "id": "aux-panel-portfolio",
+        "width": 264
+      }
+    ],
+    "view": "view-portfolio",
+    "width": 1440
+  },
+  {
+    "label": "1440-screener",
+    "controls": 55,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-screener",
+    "width": 1440
+  },
+  {
+    "label": "1440-backtest",
+    "controls": 1,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-backtest",
+    "width": 1440
+  },
+  {
+    "label": "1440-forecast",
+    "controls": 4,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-forecast",
+    "width": 1440
+  },
+  {
+    "label": "1440-literacy",
+    "controls": 0,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-literacy",
+    "width": 1440
+  },
+  {
+    "label": "1440-market",
+    "controls": 110,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-market",
+    "width": 1440
+  },
+  {
+    "label": "1280-overview",
+    "controls": 36,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": false,
+        "id": "aux-panel-overview",
+        "width": 264
+      }
+    ],
+    "view": "view-overview",
+    "width": 1280
+  },
+  {
+    "label": "1280-portfolio",
+    "controls": 3,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": false,
+        "id": "aux-panel-portfolio",
+        "width": 264
+      }
+    ],
+    "view": "view-portfolio",
+    "width": 1280
+  },
+  {
+    "label": "1280-screener",
+    "controls": 55,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-screener",
+    "width": 1280
+  },
+  {
+    "label": "1280-backtest",
+    "controls": 1,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-backtest",
+    "width": 1280
+  },
+  {
+    "label": "1280-forecast",
+    "controls": 4,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-forecast",
+    "width": 1280
+  },
+  {
+    "label": "1280-literacy",
+    "controls": 0,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-literacy",
+    "width": 1280
+  },
+  {
+    "label": "1280-market",
+    "controls": 11,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-market",
+    "width": 1280
+  },
+  {
+    "label": "1024-overview",
+    "controls": 36,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": false,
+        "id": "aux-panel-overview",
+        "width": 766
+      }
+    ],
+    "view": "view-overview",
+    "width": 1024
+  },
+  {
+    "label": "1024-report",
+    "controls": 6,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": false,
+        "id": "aux-panel-report",
+        "width": 766
+      }
+    ],
+    "view": "view-report",
+    "width": 1024
+  },
+  {
+    "label": "1024-portfolio",
+    "controls": 3,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": false,
+        "id": "aux-panel-portfolio",
+        "width": 766
+      }
+    ],
+    "view": "view-portfolio",
+    "width": 1024
+  },
+  {
+    "label": "1024-screener",
+    "controls": 55,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-screener",
+    "width": 1024
+  },
+  {
+    "label": "1024-backtest",
+    "controls": 1,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-backtest",
+    "width": 1024
+  },
+  {
+    "label": "1024-forecast",
+    "controls": 4,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-forecast",
+    "width": 1024
+  },
+  {
+    "label": "1024-literacy",
+    "controls": 0,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-literacy",
+    "width": 1024
+  },
+  {
+    "label": "1024-market",
+    "controls": 11,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-market",
+    "width": 1024
+  },
+  {
+    "label": "768-overview",
+    "controls": 36,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": false,
+        "id": "aux-panel-overview",
+        "width": 722
+      }
+    ],
+    "view": "view-overview",
+    "width": 768
+  },
+  {
+    "label": "768-report",
+    "controls": 6,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": false,
+        "id": "aux-panel-report",
+        "width": 722
+      }
+    ],
+    "view": "view-report",
+    "width": 768
+  },
+  {
+    "label": "768-portfolio",
+    "controls": 3,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": false,
+        "id": "aux-panel-portfolio",
+        "width": 722
+      }
+    ],
+    "view": "view-portfolio",
+    "width": 768
+  },
+  {
+    "label": "768-screener",
+    "controls": 55,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-screener",
+    "width": 768
+  },
+  {
+    "label": "768-backtest",
+    "controls": 1,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-backtest",
+    "width": 768
+  },
+  {
+    "label": "768-forecast",
+    "controls": 4,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-forecast",
+    "width": 768
+  },
+  {
+    "label": "768-literacy",
+    "controls": 0,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-literacy",
+    "width": 768
+  },
+  {
+    "label": "768-market",
+    "controls": 11,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-market",
+    "width": 768
+  },
+  {
+    "label": "390-overview",
+    "controls": 36,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": false,
+        "id": "aux-panel-overview",
+        "width": 357
+      }
+    ],
+    "view": "view-overview",
+    "width": 390
+  },
+  {
+    "label": "390-report",
+    "controls": 2,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": false,
+        "id": "aux-panel-report",
+        "width": 357
+      }
+    ],
+    "view": "view-report",
+    "width": 390
+  },
+  {
+    "label": "390-portfolio",
+    "controls": 3,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": false,
+        "id": "aux-panel-portfolio",
+        "width": 357
+      }
+    ],
+    "view": "view-portfolio",
+    "width": 390
+  },
+  {
+    "label": "390-screener",
+    "controls": 55,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-screener",
+    "width": 390
+  },
+  {
+    "label": "390-backtest",
+    "controls": 1,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-backtest",
+    "width": 390
+  },
+  {
+    "label": "390-forecast",
+    "controls": 4,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-forecast",
+    "width": 390
+  },
+  {
+    "label": "390-literacy",
+    "controls": 0,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-literacy",
+    "width": 390
+  },
+  {
+    "label": "390-market",
+    "controls": 11,
+    "headingFont": "16px",
+    "height": 844,
+    "overflow": 0,
+    "panels": [],
+    "view": "view-market",
+    "width": 390
+  },
+  {
+    "label": "1440-focus-report",
+    "controls": 6,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": true,
+        "id": "aux-panel-report",
+        "width": 44
+      }
+    ],
+    "view": "view-report",
+    "width": 1440
+  },
+  {
+    "label": "1440-report-restored",
+    "controls": 6,
+    "headingFont": "18px",
+    "height": 900,
+    "overflow": 0,
+    "panels": [
+      {
+        "collapsed": false,
+        "id": "aux-panel-report",
+        "width": 264
+      }
+    ],
+    "view": "view-report",
+    "width": 1440
+  }
+]

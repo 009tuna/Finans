@@ -1,14 +1,8 @@
 // Decision metadata layer: freshness, signal stability, contradictions, and ATR trade plan.
 'use strict';
+const { calculatePosition } = require('../public/action-layer');
 
 const round = (x, d = 2) => (x == null || isNaN(x) ? null : Math.round(x * 10 ** d) / 10 ** d);
-
-function priceDigits(price) {
-  if (price == null || isNaN(price)) return 2;
-  if (price >= 1000) return 0;
-  if (price >= 1) return 2;
-  return 4;
-}
 
 function marketPrefix(market) {
   if (market === 'us') return 'US:';
@@ -25,26 +19,37 @@ function latestPriorHistory(history, date) {
 function buildTradePlan(asset, riskPct) {
   const price = asset && asset.price;
   const atr = asset && asset.ind && asset.ind.atr;
-  if (typeof price !== 'number' || typeof atr !== 'number' || atr <= 0) {
-    return { available: false, reason: 'ATR veya fiyat eksik' };
-  }
-
-  const digits = priceDigits(price);
-  const risk = atr * 1.5;
-  const entry = round(price, digits);
-  const stop = round(price - risk, digits);
-  const target = round(price + risk * 2, digits);
-  const rawUnits = risk > 0 ? (100000 * (riskPct / 100)) / risk : null;
-  const unitsPer100k = rawUnits == null ? null : rawUnits >= 1 ? Math.floor(rawUnits) : round(rawUnits, 4);
+  const capitalBase = 100000;
+  // Use the same pure arithmetic as the calculator. A risk allowance is an
+  // upper bound, not permission to borrow cash when the ATR distance is small.
+  const sized = calculatePosition(capitalBase, riskPct, price, atr);
+  if (!sized.available) return sized;
 
   return {
     available: true,
-    entry,
-    stop,
-    target,
+    entry: sized.entry,
+    stop: sized.stop,
+    target: sized.target,
     riskReward: 2,
     positionRiskPct: riskPct,
-    unitsPer100k,
+    unitsPer100k: sized.units,
+    capitalBase,
+    capitalCurrency: typeof (asset && asset.currency) === 'string' && asset.currency.trim() ? asset.currency.trim() : null,
+    riskAmount: sized.riskAmount,
+    actualRiskAmount: sized.actualRiskAmount,
+    actualRiskPct: sized.actualRiskAmount / capitalBase * 100,
+    positionAmount: sized.positionAmount,
+    capitalLimited: sized.capitalLimited,
+    priceDecimals: sized.priceDecimals,
+    constraints: sized.constraints,
+    assumptions: {
+      currencyBasis: 'asset_price_currency',
+      stopAtrMultiple: 1.5,
+      targetAtrMultiple: 3,
+      costsIncluded: false,
+      slippageIncluded: false,
+      brokerLotRulesApplied: false,
+    },
   };
 }
 
@@ -229,7 +234,7 @@ function buildDecisionScore(freshness, confidence, contradictions) {
 
 function buildAssetDecision(asset, opts = {}) {
   const now = opts.now || new Date();
-  const riskPct = typeof opts.riskPct === 'number' ? opts.riskPct : 2;
+  const riskPct = Object.prototype.hasOwnProperty.call(opts, 'riskPct') ? opts.riskPct : 2;
   const history = opts.history || [];
   const marketKey = opts.marketKey || marketPrefix(asset.market);
   const freshness = buildFreshness(asset, now);
@@ -273,7 +278,7 @@ function attachSignalHealth(snapshot, journal) {
 
 function attachDecisionMetadata(snapshot, history, cfg = {}) {
   const now = new Date(snapshot.generatedAt || Date.now());
-  const riskPct = typeof cfg.riskPct === 'number' ? cfg.riskPct : 2;
+  const riskPct = Object.prototype.hasOwnProperty.call(cfg, 'riskPct') ? cfg.riskPct : 2;
   const attach = (arr, prefix) => (arr || []).forEach((asset) => {
     if (!asset.analysis || asset.analysis.score == null) return;
     asset.decision = buildAssetDecision(asset, { now, history, riskPct, marketKey: prefix });

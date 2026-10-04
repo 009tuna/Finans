@@ -6,7 +6,7 @@ const strings = { type: 'array', items: string };
 const market = { type: 'string', enum: ['us', 'bist', 'crypto'] };
 const object = (properties) => ({ type: 'object', properties, required: Object.keys(properties), additionalProperties: false });
 const array = (properties) => ({ type: 'array', items: object(properties) });
-module.exports = object({
+const schema = object({
   macroSummary: string,
   todayFocus: string,
   commentary: object({ us: string, bist: string, crypto: string }),
@@ -16,10 +16,17 @@ module.exports = object({
   forecasts: array({ eventId: string, market, symbol: string, metric: string, unit: string, period: string,
     scheduledAt: string, pointEstimate: number, consensus: nullableNumber, consensusSourceId: string,
     probabilityAboveConsensus: nullableNumber, rationale: string, sourceIds: strings,
-    resolution: object({ provider: { type: 'string', enum: ['finnhub-earnings', 'manual'] },
-      field: { type: 'string', enum: ['epsActual', 'revenueActual', 'manual'] }, sourceUrl: string }),
+    resolution: object({ provider: { type: 'string', enum: ['finnhub-earnings', 'bls-first-release', 'manual'] },
+      field: { type: 'string', enum: ['epsActual', 'revenueActual', 'nonfarmPayrollChange', 'cpiHeadlineMomSa', 'cpiCoreMomSa', 'cpiHeadlineYoyNsa', 'cpiCoreYoyNsa', 'manual'] }, sourceUrl: string }),
   }),
   scenarios: array({ eventId: string, market, symbol: string, condition: string, impact: string, horizon: string, invalidation: string, sourceIds: strings }),
   signals: array({ eventId: string, market, symbol: string, adjustment: number, confidence: number, sourceId: string, asOf: string, expiresAt: string, reason: string }),
   unresolvedQuestions: strings,
 });
+// Historical runs remain valid. The current generator requires this field so a
+// missing numeric estimate has an explicit, displayable evidence gap.
+schema.properties.forecastAbstentions = array({ market, metric: string, unit: string, period: string,
+  scheduledAt: string, reason: string, missingEvidence: strings, sourceIds: strings });
+schema.properties.expectationReassessments = array({ market, metric: string, unit: string, period: string,
+  scheduledAt: string, status: { type: 'string', enum: ['unchanged', 'updated', 'abstained'] }, reason: string, sourceIds: strings });
+module.exports = schema;

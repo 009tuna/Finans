@@ -3,6 +3,7 @@
 
 const util = require('./util');
 const db = require('./db');
+const cryptoMarketData = require('./crypto-market-data');
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)';
 
@@ -53,6 +54,20 @@ function normalizeYahooChart(data, ctx) {
     throw new Error((data && data.__error) || 'Yahoo chart verisi yok');
   }
   const meta = result.meta || {};
+  const observedAt = ctx.observedAt || new Date(Date.now()).toISOString();
+  const timeZone = typeof meta.exchangeTimezoneName === 'string' ? meta.exchangeTimezoneName : null;
+  let dateBasis = 'unverified';
+  if (timeZone) {
+    try { new Intl.DateTimeFormat('en-CA',{timeZone}).format(new Date(0)); dateBasis = 'exchange_timezone'; }
+    catch (_) { /* Keep live bars accessible; estimators require a verified daily date basis. */ }
+  }
+  const regular = meta.currentTradingPeriod?.regular;
+  const currentTradingPeriod = regular && typeof regular === 'object' ? {regular:{
+    start:finite(regular.start) && regular.start > 0 ? regular.start : null,
+    end:finite(regular.end) && regular.end > 0 ? regular.end : null,
+    timezone:typeof regular.timezone === 'string' ? regular.timezone : null,
+    gmtoffset:finite(regular.gmtoffset) ? regular.gmtoffset : null,
+  }} : null;
   const q = (result.indicators && result.indicators.quote && result.indicators.quote[0]) || {};
   const bars = [];
   for (let i = 0; i < result.timestamp.length; i++) {
@@ -64,10 +79,12 @@ function normalizeYahooChart(data, ctx) {
     const volume = num(q.volume && q.volume[i]);
     bars.push({
       time: Math.floor(result.timestamp[i]),
+      sourceTime: finite(result.timestamp[i]) ? result.timestamp[i] : null,
       open: open == null ? close : open,
       high: high == null ? close : high,
       low: low == null ? close : low,
       close,
+      closeVerified: finite(q.close && q.close[i]) && q.close[i] > 0,
       volume: volume == null ? 0 : volume,
     });
   }
@@ -79,24 +96,18 @@ function normalizeYahooChart(data, ctx) {
     source: 'yahoo',
     interval: ctx.interval,
     range: ctx.range,
-    currency: meta.currency || (ctx.market === 'bist' ? 'TRY' : 'USD'),
+    currency: typeof meta.currency === 'string' && meta.currency.trim() ? meta.currency.trim() : null,
     name: meta.longName || meta.shortName || ctx.symbol,
     bars,
-    fetchedAt: new Date().toISOString(),
+    fetchedAt: observedAt,
+    observedAt, timeZone, dateBasis, currentTradingPeriod,
   };
 }
 
 function normalizeBinanceKlines(data, ctx) {
-  if (!Array.isArray(data) || !data.length) throw new Error('Binance kline verisi yok');
-  const bars = data.map((k) => ({
-    time: Math.floor(num(k[0]) / 1000),
-    open: num(k[1]),
-    high: num(k[2]),
-    low: num(k[3]),
-    close: num(k[4]),
-    volume: num(k[5]),
-  })).filter((b) => finite(b.time) && finite(b.open) && finite(b.high) && finite(b.low) && finite(b.close));
-  if (!bars.length) throw new Error('Binance OHLCV serisi bos');
+  const bars = cryptoMarketData.normalizeKlines(data);
+  const observedAt = ctx.observedAt || new Date(Date.now()).toISOString();
+  const calendar = {provider:'binance',interval:ctx.interval,timeZone:'UTC',basis:'binance_klines_default_timezone'};
   return {
     market: ctx.market,
     symbol: ctx.symbol,
@@ -104,10 +115,12 @@ function normalizeBinanceKlines(data, ctx) {
     source: 'binance',
     interval: ctx.interval,
     range: null,
-    currency: 'USD',
+    currency: typeof ctx.sourceSymbol === 'string' && ctx.sourceSymbol.toUpperCase().endsWith('USDT') ? 'USDT' : null,
     name: ctx.symbol,
     bars,
-    fetchedAt: new Date().toISOString(),
+    fetchedAt: observedAt,
+    observedAt,
+    technicalData:{status:'fresh',source:'binance',fetchedAt:observedAt,calendar},
   };
 }
 
@@ -132,24 +145,27 @@ async function fetchAssetChart({ market, symbol, interval, range, limit }) {
   
   // 1. Supabase önbellek kontrolü (async — await şart; yoksa cache hiç tutmaz)
   const cachedEntry = await db.getCache(key);
-  if (cachedEntry && (Date.now() - cachedEntry.updatedAt) < ttlFor(defaults.interval)) {
+  const cachedAge = cachedEntry && Date.now() - cachedEntry.updatedAt;
+  if (cachedEntry && Number.isFinite(cachedAge) && cachedAge >= 0 && cachedAge < ttlFor(defaults.interval) &&
+      (!cachedEntry.value.technicalData || cachedEntry.value.technicalData.status !== 'stale')) {
     return Object.assign({}, cachedEntry.value, { cache: 'hit' });
   }
 
   let value;
   try {
     if (normalizedMarket === 'crypto') {
-      const url = 'https://data-api.binance.vision/api/v3/klines?symbol=' +
-        encodeURIComponent(sourceSymbol) + '&interval=' + encodeURIComponent(defaults.interval) +
-        '&limit=' + defaults.limit;
-      const data = await util.fetchJson(url, { retries: 2 });
-      if (data && data.__error) throw new Error(data.__error);
-      value = normalizeBinanceKlines(data, {
-        market: normalizedMarket,
-        symbol: displaySymbol,
-        sourceSymbol,
-        interval: defaults.interval,
-      });
+      const result = await cryptoMarketData.fetchBars(sourceSymbol, defaults.interval, defaults.limit);
+      value = {
+        market: normalizedMarket, symbol: displaySymbol, sourceSymbol,
+        source: 'binance',
+        interval: defaults.interval, range: null, currency: 'USDT', name: displaySymbol,
+        bars: result.bars, fetchedAt: result.technicalData.fetchedAt || null,
+        observedAt:result.technicalData.fetchedAt || null,
+        technicalData: result.technicalData,
+      };
+      if (result.technicalData.status === 'stale') {
+        return Object.assign({}, value, { cache: 'fallback', fallback: true });
+      }
     } else {
       const url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sourceSymbol) +
         '?interval=' + encodeURIComponent(defaults.interval) +
@@ -166,7 +182,7 @@ async function fetchAssetChart({ market, symbol, interval, range, limit }) {
     }
 
     // Supabase önbelleğe kaydet
-    await db.setCache(key, value);
+    if (normalizedMarket !== 'crypto' || value.technicalData.status !== 'stale') await db.setCache(key, value);
     return Object.assign({}, value, { cache: 'miss' });
     
   } catch (err) {

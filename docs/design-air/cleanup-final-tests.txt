@@ -1,0 +1,2128 @@
+
+> finans-otomasyonu@2.0.0 test
+> node test/decision.test.js && node test/chart-data.test.js && node test/ui-contract.test.js && node test/ui-ux.test.js && node test/desk-navigation.test.js && node test/desk-editor.test.js && node test/portfolio-ui-state.test.js && node test/forecast.test.js && node test/forecast-extended.test.js && node test/db-cache.test.js && node test/insights.test.js && node test/action-layer.test.js && node test/decision-auditor.test.js && node test/signal-overlay.test.js && node test/decision-journal.test.js && node test/indicators-regime.test.js && node test/analyze-regime.test.js && node test/costs.test.js && node test/market-regime.test.js && node test/prediction-resolver.test.js && node test/report-integrity.test.js && node test/journal-api.test.js && node test/report-generation.test.js && node test/db-write-integrity.test.js && node test/research.test.js && node test/windows-fetch.test.js && node test/research-api.test.js && node test/journal-ui-save.test.js && node test/portfolio-ui-save.test.js && node test/chart-accessibility.test.js && node test/ui-qa-server.test.js && node test/backtest-ui-state.test.js && node test/forecast-ui-state.test.js && node test/crypto-data.test.js && node test/crypto-ui-state.test.js && node test/report-pipeline.test.js && node test/research-progress-ui.test.js && node test/legacy-publication-adoption.test.js && node test/macro-events.test.js && node test/macro-sources.test.js && node test/intelligence.test.js && node test/macro-ui.test.js && node test/workspace-density.test.js && node test/macro-research-outcomes.test.js && node test/workspace-tabs.test.js && node test/spk-documents.test.js && node test/prediction-scorecard-ui.test.js && node test/official-market-feeds.test.js && node test/yahoo-series-integrity.test.js && node test/macro-calibration.test.js && node test/macro-consensus.test.js && node test/macro-consensus-integration.test.js && node test/spk-announcements.test.js && node test/kap-announcements.test.js && node test/cpi-sources.test.js && node test/cpi-events.test.js && node test/cpi-store.test.js && node test/cpi-ui.test.js && node test/cpi-integration.test.js && node test/cpi-model-research.test.js && node test/cpi-model-surface.test.js && node test/cpi-context.test.js && node test/macro-resilience-fixture.test.js && node test/macro-model-cache.test.js && node test/macro-layer-contract.test.js && node --test test/company-ir.test.js test/company-ir-store.test.js test/company-ir-ui.test.js && node test/server-resource-routing.test.js && node test/ui-first-load.test.js && node test/history-audit.test.js && node test/prediction-evidence.test.js && node test/workspace-layout.test.js && node test/research-expectations.test.js && node test/morning-expectations-ui.test.js && node test/overview-market-stats.test.js && node test/journal-ui-state.test.js && node test/forecast-input-integrity.test.js && node test/montecarlo-currency.test.js && node test/literacy-navigation.test.js && node test/daily-digest.test.js && node test/screener-focus.test.js && node test/stress-input-integrity.test.js && node test/correlation-integrity.test.js && node test/correlation-ui-state.test.js && node test/valuation-dcf-integrity.test.js && node test/valuation-income-models.test.js && node test/position-calculator-ui.test.js && node test/backtest-integrity.test.js && node test/literacy-archive.test.js && node test/asset-note-refresh.test.js && node test/market-status-ui.test.js && node test/ui-value-integrity.test.js && node test/research-draft-isolation.test.js && node test/daily-history.test.js && node test/ui-qa-live-draft.test.js
+
+decision tests passed
+chart data tests passed
+ui contract tests passed
+ui-ux behavioral tests passed
+Karar Masası deep links, compatibility and history tests passed
+Desk position draft, unavailable holding, timestamp and result provenance tests passed
+portfolio UI state tests passed
+🧪 Finansal Forecast Birim Testleri Başlatılıyor...
+
+1. DCF Hesaplama Matemetik Testi...
+   ✓ Başarılı: Adil Değer = 243.01, Güvenlik Marjı = %38.27
+2. DCF Hata Yönetimi Testi (WACC <= Terminal Büyüme)...
+   ✓ Başarılı: Hata beklendiği gibi yakalandı.
+3. Makro Stres Testi Senaryo Uygulama Testi...
+   ✓ Başarılı: Başlangıç Değeri (USD) = $33150
+   ✓ Stagflasyon Sonrası Değer (USD) = $21950 (Değişim: %-33.79)
+
+🎉 TÜM HESAPLAMA TESTLERİ BAŞARIYLA TAMAMLANDI!
+
+🧪 Genişletilmiş Finansal Forecast Birim Testleri Başlatılıyor...
+
+1. Benjamin Graham Değerleme Formülü Testi...
+   ✓ Başarılı: Graham Adil Değer = 162.07, Güvenlik Marjı = %7.45
+2. Graham Hata Yönetimi Testi (AAA Yield <= 0)...
+   ✓ Başarılı: Hata beklendiği gibi yakalandı.
+3. Temettü İndirgeme Modeli (DDM) Testi...
+   ✓ Başarılı: DDM Adil Değer = 73.5, Güvenlik Marjı = %-8.84
+4. DDM Hata Yönetimi Testi (WACC <= Temettü Büyüme)...
+   ✓ Başarılı: Hata beklendiği gibi yakalandı.
+5. Korelasyon Matrisi Boş/Tek Varlık Testi...
+   ✓ Başarılı: Korelasyon kenar durumları doğru yönetildi.
+
+🎉 TÜM GENİŞLETİLMİŞ HESAPLAMA TESTLERİ BAŞARIYLA TAMAMLANDI!
+
+🧪 Chart cache testleri (async Supabase) başlatılıyor...
+
+1. İlk istek MISS + cache yazımı...
+   ✓ Başarılı: ilk istek miss, network 1 kez çağrıldı.
+2. İkinci istek HIT (await düzeltmesinin kanıtı)...
+   ✓ Başarılı: ikinci istek cache hit, network çağrılmadı.
+3. Ağ hatasında FALLBACK (süresi dolmuş cache kurtarılır)...
+✔ [Fallback] EXPIREDTEST için önbellekten eski veri kurtarıldı.
+⚠️ [API Hatası] EXPIREDTEST için canlı veri çekilemedi: HTTP 404. Önbellek aranıyor...
+   ✓ Başarılı: ağ hatasında eski veri fallback ile kurtarıldı.
+
+🎉 Tüm chart cache testleri geçti.
+🧪 Insights (insancıl özet) testleri başlatılıyor...
+
+1. explainDecision — güçlü AL senaryosu...
+   ✓ Başarılı: headline + lehte/dikkat + plan + rejim/uygunluk/maliyet üretildi.
+1b. Maliyet kapısı küçük hedefi eliyor...
+   ✓ Başarılı: küçük hedef elendi, maliyet uyarısı öne alındı.
+2. explainDecision — çelişki en öne alınmalı...
+   ✓ Başarılı: çelişki öne alındı, plansız durum yönetildi.
+3. explainDecision — veri yoksa null...
+   ✓ Başarılı: skor yoksa null döndü.
+4. explainBacktest — al-tut’u geçen, isabetli strateji...
+   ✓ Başarılı: maxDD, isabet ve "çalışır/bozulur" anlatısı doğru.
+5. explainBacktest — hiç alım yoksa uyarı tonu...
+   ✓ Başarılı: alımsız senaryo uyarı olarak işaretlendi.
+6. buildExecutiveSummary — risk + aksiyon sentezi...
+   ✓ Başarılı: risk=Yüksek, 4 aksiyon.
+
+🎉 Tüm insights testleri geçti.
+Action layer tests starting...
+
+1. buildDailyChangeDigest ranks score changes...
+   ok
+6b. prediction cohorts keep markets, versions and legacy records separate...
+   ok
+2. buildPortfolioActions flags concentration and weak holding...
+   ok
+2b. portfolio valuation preserves native values and refuses missing FX/prices...
+   ok
+3. buildAssetThesis creates thesis, invalidation and catalyst...
+   ok
+4. buildReportTrust separates deterministic and AI data provenance...
+   ok
+5. buildAlertRules suggests actionable rules...
+   ok
+6. buildPredictionScorecard computes metrics...
+   ok
+7. calculatePosition calculates size and levels...
+   ok
+8. buildIdeaFunnel separates candidates from recommendations...
+   ok
+9. buildCatalystCalendar ranks decision pressure...
+   ok
+10. buildPortfolioRiskPlan names binding risk constraints...
+   ok
+11. buildCfoDecisionCockpit ranks ready, gated and blocked decisions...
+11b. candidate explanations use existing technical evidence without changing decisions...
+   ok
+12. buildDecisionLearningPanel and buildAssetLearningSnippet expose audit lessons...
+   ok
+13. buildCompanyTearsheet and buildCompsSnapshot produce evidence-aware snapshots...
+   ok
+14. buildInvestmentCommitteeMemo creates readiness verdicts...
+   ok
+
+Action layer tests passed.
+decision auditor tests starting...
+decision auditor tests passed
+Signal overlay tests starting...
+
+1. builds bounded overlay without mutating technical score...
+   ok
+2. total overlay adjustment clamps at +/-8...
+   ok
+3. attaches overlay to cloned snapshot and leaves analysis.score unchanged...
+   ok
+4. symbol catalysts do not leak to unrelated assets...
+   ok
+5. thesis, calibration and banking gaps are explicit components...
+   ok
+6. market macro and summary fields are present...
+   ok
+7. decision learning rules apply as bounded overlay components...
+   ok
+
+Signal overlay tests passed.
+decision journal tests passed
+🧪 Rejim/ADX/MFI indikatör testleri başlatılıyor...
+
+1. Yukarı trend → güçlü-trend (yukarı) + MFI=100...
+   ✓ ADX=100, regime=Güçlü trend (yukarı), MFI=100
+2. Aşağı trend → trend (aşağı) + MFI düşük...
+   ✓ regime=Güçlü trend (aşağı), MFI=0
+3. Testere piyasa → yatay rejim (düşük ADX)...
+   ✓ ADX=7.4, regime=Yatay
+4. classifyRegime eşikleri...
+   ✓ Eşikler ve yön doğru.
+
+🎉 Tüm rejim/indikatör testleri geçti.
+🧪 Rejim-farkında skorlama testleri başlatılıyor...
+
+1. RSI 25 — yatayda mean-reversion, trendde zayıflık...
+   ✓ yatay momentum=68 > trend momentum=27
+2. RSI 78 — yatayda cezalı, trendde normal...
+   ✓ trend momentum=61 > yatay momentum=21
+3. analysis.regime geçişi...
+   ✓ regime analysis çıktısında mevcut.
+4. MFI hacim alt-skorunu etkiliyor...
+   ✓ MFI90 hacim=69 > MFI10 hacim=45
+5. Rejimsiz geriye uyumluluk...
+   ✓ Rejim yoksa varsayılan skorlama çalışıyor, skor=76
+6. Top-risk scoring adjustment...
+   ✓ Top-risk adjustment decreases score by 8 points and attaches warning reason
+7. OBV artan / azalan / düz yönü ve eski veri belirsizliği...
+   ✓ Düz/eksik yön satış baskısı değil; mevcut puanlama korunuyor.
+
+🎉 Tüm rejim-farkında skorlama testleri geçti.
+🧪 Maliyet modeli testleri başlatılıyor...
+
+1. Piyasa-başı round-trip maliyet...
+   ✓ US %0.1 · BIST %0.4 · Kripto %0.2
+2. Maliyet kapısı — hedef < 2× maliyet → geç(me)...
+   ✓ Kapı doğru: küçük scalp hedefleri eleniyor, swing geçiyor.
+
+🎉 Tüm maliyet testleri geçti.
+🧪 Piyasa-seviye rejim testleri başlatılıyor...
+
+1. VIX sınıflandırması...
+   ✓ rehavet/normal/stres/panik eşikleri doğru.
+2. BIST SMA200 kapısı...
+   ✓ 200g üstü=long, altı=nakit (yasak uyarısı).
+3. BTC–Nasdaq korelasyon sınıfı...
+   ✓ bağlı/kopuş/karışık doğru.
+4. returnsCorrelation hizalama + Pearson...
+   ✓ korelasyon: aynı≈+1, ters≈−1.
+5. computeMarketRegimes birleşik...
+   ✓ us=calm, bist=long-ok, crypto=coupled.
+
+🎉 Tüm piyasa-rejim testleri geçti.
+🧪 prediction resolver tests starting...
+
+1. Testing target-hit...
+   ✓ Target-hit resolved correctly
+2. Testing stop-hit...
+   ✓ Stop-hit resolved correctly
+3. Testing ambiguous same-bar outcome...
+   ✓ Ambiguous bar has no directional outcome or return
+4. Testing expired-win...
+   ✓ Expired-win resolved correctly
+5. Testing expired-loss...
+   ✓ Expired-loss resolved correctly
+6. Testing still open (within horizon, no hit)...
+   ✓ Open state preserved correctly
+7. Testing buildPredictionScorecard with source, avgResultPct, and wins definition...
+   ✓ Scorecard metrics computed correctly
+8. Testing recordPrediction duplication check...
+9. Testing resolved prediction audit persistence...
+   ok
+   ✓ Duplication check blocks duplicate open predictions correctly
+
+🎉 All prediction resolver tests passed!
+Report integrity, directional evidence and publication tests passed
+Journal shared API, authorization, conflict and failure tests passed
+Temel rapor üretildi: 2026-10-04 | duyarlılık Temkinli (0)
+  Takvim: 0 ekonomik olay, 1 bilanço, 1 haber
+Report generation: provider isolation, provenance and frozen draft staging tests passed
+Database conditional write and competing writer tests passed
+Research: schema, lookahead, immutable forecasts, outcomes, baseline metrics, conflict retry and UI escaping passed
+Windows HTTPS transport: config quoting, HTTP headers, body and empty response passed
+Research API: authorization, human confirmation, immutable outcomes, rewrite and unavailable state passed
+journal UI save tests passed
+portfolio UI save tests passed
+chart accessibility tests passed
+UI QA fixture HTTP roundtrips, retry, session isolation, CAS, counters, and upstream write protection passed
+Backtest sample and confidence presentation tests passed
+Forecast mode and uncalculated result state tests passed
+Stress scenario empty-state, absence, failure-retention and race tests passed
+Valuation model group visibility tests passed
+crypto data tests passed
+crypto UI and pipeline state tests passed
+{"status":"published","model":"gpt-6.1-sol","runId":"r2","events":0,"forecasts":0,"signals":0}
+Atomic publication and injected daily pipeline tests passed
+research progress UI tests passed
+Legacy publication adoption preserves provenance and ledger fields
+Macro event ledger: chronology, deterministic methods, immutability, vintages, and honest scoring passed
+BLS macro sources: official schedule parsing, DST, archived first estimate and retrieval chronology passed
+Independent intelligence lifecycle tests passed
+macro UI rendering, vintage, escaping and request-race tests passed
+workspace density composition tests passed
+BLS model forecasts: provider validation, independent context and immutable first-release resolution passed
+overview task tab keyboard, focus, fallback and session-memory tests passed
+SPK bulletin documents: URL/header/date validation, PDF extraction, privacy filters, and resource limits passed
+Prediction scorecard separates methods, excludes invalid evidence, and preserves archive access
+official market feeds tests passed
+yahoo series integrity tests passed
+TAP version 13
+# Subtest: provider observation cut and regular-session boundaries are explicit and never synthesized by normalization
+ok 1 - provider observation cut and regular-session boundaries are explicit and never synthesized by normalization
+  ---
+  duration_ms: 1.4702
+  type: 'test'
+  ...
+# Subtest: daily date conversion follows New York DST and previous local date rather than a UTC date
+ok 2 - daily date conversion follows New York DST and previous local date rather than a UTC date
+  ---
+  duration_ms: 0.3384
+  type: 'test'
+  ...
+# Subtest: fetchSeries records the actual completed retrieval time rather than request-start or quote time
+ok 3 - fetchSeries records the actual completed retrieval time rather than request-start or quote time
+  ---
+  duration_ms: 1.895
+  type: 'test'
+  ...
+# Subtest: verified daily range requires positive ordered prices containing the close
+ok 4 - verified daily range requires positive ordered prices containing the close
+  ---
+  duration_ms: 1.2861
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 16.1319
+macro-calibration tests passed
+macro-consensus tests passed
+macro-consensus integration tests passed
+TAP version 13
+# Subtest: discovery only follows current-year official announcement detail URLs in main region
+ok 1 - discovery only follows current-year official announcement detail URLs in main region
+  ---
+  duration_ms: 3.0946
+  type: 'test'
+  ...
+# Subtest: supports current official SPK h3/tarih and liste markup shape
+ok 2 - supports current official SPK h3/tarih and liste markup shape
+  ---
+  duration_ms: 4.2333
+  type: 'test'
+  ...
+# Subtest: article parser uses article heading/date, strips tables, and keeps announcement distinct from legal effect
+ok 3 - article parser uses article heading/date, strips tables, and keeps announcement distinct from legal effect
+  ---
+  duration_ms: 17.9185
+  type: 'test'
+  ...
+# Subtest: future publication rejected and detail failure yields partial without discarding successes
+ok 4 - future publication rejected and detail failure yields partial without discarding successes
+  ---
+  duration_ms: 1.4744
+  type: 'test'
+  ...
+# Subtest: date-only publication uses Istanbul calendar day at late UTC hours
+ok 5 - date-only publication uses Istanbul calendar day at late UTC hours
+  ---
+  duration_ms: 0.7723
+  type: 'test'
+  ...
+# Subtest: obvious nonfinancial announcements are filtered
+ok 6 - obvious nonfinancial announcements are filtered
+  ---
+  duration_ms: 0.1561
+  type: 'test'
+  ...
+# Subtest: transport rejects redirects and caps streamed response size
+ok 7 - transport rejects redirects and caps streamed response size
+  ---
+  duration_ms: 17.3375
+  type: 'test'
+  ...
+# Subtest: changed official article content creates a distinct append-only observation
+ok 8 - changed official article content creates a distinct append-only observation
+  ---
+  duration_ms: 1.4383
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 57.3288
+TAP version 13
+# Subtest: KAP probe contract never turns a public shell into connected coverage
+ok 1 - KAP probe contract never turns a public shell into connected coverage
+  ---
+  duration_ms: 1.6372
+  type: 'test'
+  ...
+# Subtest: retrieved public shell without result links is explicit unavailable coverage
+ok 2 - retrieved public shell without result links is explicit unavailable coverage
+  ---
+  duration_ms: 0.2129
+  type: 'test'
+  ...
+# Subtest: collector normalizes injected timeout and timestamps completion after request
+ok 3 - collector normalizes injected timeout and timestamps completion after request
+  ---
+  duration_ms: 0.3325
+  type: 'test'
+  ...
+# Subtest: transport rejects redirects and non-KAP URLs
+ok 4 - transport rejects redirects and non-KAP URLs
+  ---
+  duration_ms: 17.2768
+  type: 'test'
+  ...
+# Subtest: streaming transport cancels oversized public response
+ok 5 - streaming transport cancels oversized public response
+  ---
+  duration_ms: 2.6143
+  type: 'test'
+  ...
+# Subtest: KAP health is monotonic and outage retains prior company records and evidence
+ok 6 - KAP health is monotonic and outage retains prior company records and evidence
+  ---
+  duration_ms: 3.1283
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 34.3707
+TAP version 13
+# Subtest: real Table A independently maps exact current month and annual cells
+ok 1 - real Table A independently maps exact current month and annual cells
+  ---
+  duration_ms: 21.2473
+  type: 'test'
+  ...
+# Subtest: explicit zero and negative current table values are preserved
+ok 2 - explicit zero and negative current table values are preserved
+  ---
+  duration_ms: 1.9173
+  type: 'test'
+  ...
+# Subtest: wrong table period or seasonal policy cannot supply monthly rates
+ok 3 - wrong table period or seasonal policy cannot supply monthly rates
+  ---
+  duration_ms: 1.3233
+  type: 'test'
+  ...
+# Subtest: December period stays in previous year when January publication is acquired
+ok 4 - December period stays in previous year when January publication is acquired
+  ---
+  duration_ms: 0.8067
+  type: 'test'
+  ...
+# Subtest: impossible dates and missing acquisition time fail instead of normalizing
+ok 5 - impossible dates and missing acquisition time fail instead of normalizing
+  ---
+  duration_ms: 1.0295
+  type: 'test'
+  ...
+# Subtest: disallowed URLs rejected before fetch and timeout signal aborts transport
+ok 6 - disallowed URLs rejected before fetch and timeout signal aborts transport
+  ---
+  duration_ms: 4.4943
+  type: 'test'
+  ...
+# Subtest: real archived fixture parses all four metrics
+ok 7 - real archived fixture parses all four metrics
+  ---
+  duration_ms: 0.6366
+  type: 'test'
+  ...
+# Subtest: schedule DST and dated archive URL
+ok 8 - schedule DST and dated archive URL
+  ---
+  duration_ms: 0.9502
+  type: 'test'
+  ...
+# Subtest: mutable URL and period mismatch rejected
+ok 9 - mutable URL and period mismatch rejected
+  ---
+  duration_ms: 0.5013
+  type: 'test'
+  ...
+# Subtest: publication chronology rejects prepublication acquisition
+ok 10 - publication chronology rejects prepublication acquisition
+  ---
+  duration_ms: 0.5951
+  type: 'test'
+  ...
+# Subtest: partial narrative reports missing metric without filling it
+ok 11 - partial narrative reports missing metric without filling it
+  ---
+  duration_ms: 0.5204
+  type: 'test'
+  ...
+# Subtest: unsupported header and invalid archive date fail safely
+ok 12 - unsupported header and invalid archive date fail safely
+  ---
+  duration_ms: 0.1438
+  type: 'test'
+  ...
+# Subtest: bounded transport rejects redirects and oversized fallback
+ok 13 - bounded transport rejects redirects and oversized fallback
+  ---
+  duration_ms: 17.24
+  type: 'test'
+  ...
+# Subtest: production source timestamps after archive fetch
+ok 14 - production source timestamps after archive fetch
+  ---
+  duration_ms: 1.0545
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 62.9496
+TAP version 13
+# Subtest: month arithmetic crosses calendar year
+ok 1 - month arithmetic crosses calendar year
+  ---
+  duration_ms: 1.5931
+  type: 'test'
+  ...
+# Subtest: valid observation accepts negative and zero
+ok 2 - valid observation accepts negative and zero
+  ---
+  duration_ms: 0.8795
+  type: 'test'
+  ...
+# Subtest: rejects weak hash
+ok 3 - rejects weak hash
+  ---
+  duration_ms: 0.1617
+  type: 'test'
+  ...
+# Subtest: rejects moving URL
+ok 4 - rejects moving URL
+  ---
+  duration_ms: 0.0934
+  type: 'test'
+  ...
+# Subtest: rejects wrong unit
+ok 5 - rejects wrong unit
+  ---
+  duration_ms: 0.091
+  type: 'test'
+  ...
+# Subtest: rejects revision
+ok 6 - rejects revision
+  ---
+  duration_ms: 0.1264
+  type: 'test'
+  ...
+# Subtest: rejects prepublication acquisition
+ok 7 - rejects prepublication acquisition
+  ---
+  duration_ms: 0.1085
+  type: 'test'
+  ...
+# Subtest: rejects missing actual
+ok 8 - rejects missing actual
+  ---
+  duration_ms: 0.0767
+  type: 'test'
+  ...
+# Subtest: future acquisition never enters forecast
+ok 9 - future acquisition never enters forecast
+  ---
+  duration_ms: 0.4673
+  type: 'test'
+  ...
+# Subtest: metric histories do not pool
+ok 10 - metric histories do not pool
+  ---
+  duration_ms: 0.3819
+  type: 'test'
+  ...
+# Subtest: three month method cannot skip missing month
+ok 11 - three month method cannot skip missing month
+  ---
+  duration_ms: 0.268
+  type: 'test'
+  ...
+# Subtest: three consecutive values average with immutable copied proof
+ok 12 - three consecutive values average with immutable copied proof
+  ---
+  duration_ms: 0.1948
+  type: 'test'
+  ...
+# Subtest: contested input produces abstention
+ok 13 - contested input produces abstention
+  ---
+  duration_ms: 0.3144
+  type: 'test'
+  ...
+# Subtest: empty scorecard has null metrics
+ok 14 - empty scorecard has null metrics
+  ---
+  duration_ms: 0.2086
+  type: 'test'
+  ...
+# Subtest: scorecard excludes contested and other metrics and uses actual minus estimate
+ok 15 - scorecard excludes contested and other metrics and uses actual minus estimate
+  ---
+  duration_ms: 0.1338
+  type: 'test'
+  ...
+# Subtest: rejects SA NSA or frequency mismatch
+ok 16 - rejects SA NSA or frequency mismatch
+  ---
+  duration_ms: 0.1024
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 19.8319
+TAP version 13
+# Subtest: post-fetch cutoff immediately freezes newly acquired inputs
+ok 1 - post-fetch cutoff immediately freezes newly acquired inputs
+  ---
+  duration_ms: 6.3888
+  type: 'test'
+  ...
+# Subtest: partial metric release preserves independent available metrics
+ok 2 - partial metric release preserves independent available metrics
+  ---
+  duration_ms: 0.779
+  type: 'test'
+  ...
+# Subtest: source correction retains immutable first observation and deduplicates reviews
+ok 3 - source correction retains immutable first observation and deduplicates reviews
+  ---
+  duration_ms: 3.1061
+  type: 'test'
+  ...
+# Subtest: failed schedule still retrieves saved due event and recovery retains data
+ok 4 - failed schedule still retrieves saved due event and recovery retains data
+  ---
+  duration_ms: 1.5168
+  type: 'test'
+  ...
+# Subtest: older failure cannot roll back entire source health
+ok 5 - older failure cannot roll back entire source health
+  ---
+  duration_ms: 1.2991
+  type: 'test'
+  ...
+# Subtest: fetch crossing event publication cannot backdate forecast
+ok 6 - fetch crossing event publication cannot backdate forecast
+  ---
+  duration_ms: 0.4535
+  type: 'test'
+  ...
+# Subtest: next event sorted chronologically and no consensus fabricated
+ok 7 - next event sorted chronologically and no consensus fabricated
+  ---
+  duration_ms: 0.3181
+  type: 'test'
+  ...
+# Subtest: first actual resolves once with injected acquisition chronology and errors isolated
+ok 8 - first actual resolves once with injected acquisition chronology and errors isolated
+  ---
+  duration_ms: 11.7273
+  type: 'test'
+  ...
+# Subtest: schedule correction keeps original date and blocks new forecast
+ok 9 - schedule correction keeps original date and blocks new forecast
+  ---
+  duration_ms: 0.831
+  type: 'test'
+  ...
+# Subtest: invalid archive actual cannot create outcome
+ok 10 - invalid archive actual cannot create outcome
+  ---
+  duration_ms: 1.4967
+  type: 'test'
+  ...
+# Subtest: CAS retry preserves concurrent newer health
+ok 11 - CAS retry preserves concurrent newer health
+  ---
+  duration_ms: 0.4722
+  type: 'test'
+  ...
+# Subtest: invalid schedule proof cannot freeze a forecast
+ok 12 - invalid schedule proof cannot freeze a forecast
+  ---
+  duration_ms: 0.3684
+  type: 'test'
+  ...
+# Subtest: older schedule acquisition cannot overwrite newer event proof
+ok 13 - older schedule acquisition cannot overwrite newer event proof
+  ---
+  duration_ms: 0.3548
+  type: 'test'
+  ...
+# Subtest: contested history preserves frozen record and earlier outcome but excludes score
+ok 14 - contested history preserves frozen record and earlier outcome but excludes score
+  ---
+  duration_ms: 2.3181
+  type: 'test'
+  ...
+# Subtest: unproven frozen forecast cannot become scored outcome
+ok 15 - unproven frozen forecast cannot become scored outcome
+  ---
+  duration_ms: 0.5135
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 44.9428
+CPI UI rendering and missing-source tests passed
+CPI additive API, bounded research context and refresh isolation passed
+TAP version 13
+# Subtest: typed CPI schema accepts all four fields and rejects mappings, archive paths, and undated-only evidence
+ok 1 - typed CPI schema accepts all four fields and rejects mappings, archive paths, and undated-only evidence
+  ---
+  duration_ms: 4.2114
+  type: 'test'
+  ...
+# Subtest: CPI resolver uses each typed observation, freezes first model forecasts, and is idempotent
+ok 2 - CPI resolver uses each typed observation, freezes first model forecasts, and is idempotent
+  ---
+  duration_ms: 8.1064
+  type: 'test'
+  ...
+# Subtest: CPI resolver refuses missing event proof, future acquisition, schedule conflicts, and contested actuals
+ok 3 - CPI resolver refuses missing event proof, future acquisition, schedule conflicts, and contested actuals
+  ---
+  duration_ms: 2.2954
+  type: 'test'
+  ...
+# Subtest: CPI store failure is isolated while NFP still resolves
+ok 4 - CPI store failure is isolated while NFP still resolves
+  ---
+  duration_ms: 1.613
+  type: 'test'
+  ...
+# Subtest: resolver reads only due family stores and does not touch NFP storage for CPI-only work
+ok 5 - resolver reads only due family stores and does not touch NFP storage for CPI-only work
+  ---
+  duration_ms: 0.6541
+  type: 'test'
+  ...
+# Subtest: shared research failure aborts resolution before any family read or outcome write
+ok 6 - shared research failure aborts resolution before any family read or outcome write
+  ---
+  duration_ms: 0.422
+  type: 'test'
+  ...
+# Subtest: later CPI reviews remain review-only and metric samples stay separate
+ok 7 - later CPI reviews remain review-only and metric samples stay separate
+  ---
+  duration_ms: 4.7277
+  type: 'test'
+  ...
+# Subtest: malformed stored CPI forecasts abstain without interrupting resolution
+ok 8 - malformed stored CPI forecasts abstain without interrupting resolution
+  ---
+  duration_ms: 6.9347
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 45.9485
+CPI model projection surface tests passed
+TAP version 13
+# Subtest: CPI model projection keeps freezes separate from reviews and groups a shared event scenario
+ok 1 - CPI model projection keeps freezes separate from reviews and groups a shared event scenario
+  ---
+  duration_ms: 36.7881
+  type: 'test'
+  ...
+# Subtest: CPI model policy accepts a dated monthly BLS calendar with null publication time
+ok 2 - CPI model policy accepts a dated monthly BLS calendar with null publication time
+  ---
+  duration_ms: 1.8513
+  type: 'test'
+  ...
+# Subtest: CPI model projection never borrows provenance from another run
+ok 3 - CPI model projection never borrows provenance from another run
+  ---
+  duration_ms: 1.026
+  type: 'test'
+  ...
+# Subtest: CPI projection excludes invalid, cross-period, cross-metric, and unproven model records
+ok 4 - CPI projection excludes invalid, cross-period, cross-metric, and unproven model records
+  ---
+  duration_ms: 1.6317
+  type: 'test'
+  ...
+# Subtest: CPI model outcomes stay visible but leave scorecards when the schedule conflicts
+ok 5 - CPI model outcomes stay visible but leave scorecards when the schedule conflicts
+  ---
+  duration_ms: 1.6699
+  type: 'test'
+  ...
+# Subtest: CPI model outcomes without actualId still honor correction-reviewed actuals
+ok 6 - CPI model outcomes without actualId still honor correction-reviewed actuals
+  ---
+  duration_ms: 1.0294
+  type: 'test'
+  ...
+# Subtest: CPI model review exclusions ignore unrelated NFP reviews
+ok 7 - CPI model review exclusions ignore unrelated NFP reviews
+  ---
+  duration_ms: 1.0722
+  type: 'test'
+  ...
+# Subtest: CPI model view does not create accuracy numbers without outcomes
+ok 8 - CPI model view does not create accuracy numbers without outcomes
+  ---
+  duration_ms: 1.1281
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 60.3629
+CPI typed research context: isolated families, completion cutoff, empty sample and prompt policy passed
+Macro failure fixture: session isolation, recovery, 503, mutation and upstream write guards passed
+TAP version 13
+# Subtest: research failure keeps same-event model cache and exposes older periods separately
+ok 1 - research failure keeps same-event model cache and exposes older periods separately
+  ---
+  duration_ms: 28.5537
+  type: 'test'
+  ...
+# Subtest: cached model scorecards become stale when a new correction arrives during research failure
+ok 2 - cached model scorecards become stale when a new correction arrives during research failure
+  ---
+  duration_ms: 3.9607
+  type: 'test'
+  ...
+# Subtest: research failure without a model cache is distinct from a healthy empty model set
+ok 3 - research failure without a model cache is distinct from a healthy empty model set
+  ---
+  duration_ms: 2.9399
+  type: 'test'
+  ...
+# Subtest: store failure stays scoped to NFP while CPI updates, and healthy empty research clears old models
+ok 4 - store failure stays scoped to NFP while CPI updates, and healthy empty research clears old models
+  ---
+  duration_ms: 5.245
+  type: 'test'
+  ...
+# Subtest: late research responses cannot mutate the newer model cache
+ok 5 - late research responses cannot mutate the newer model cache
+  ---
+  duration_ms: 2.2132
+  type: 'test'
+  ...
+# Subtest: store failures retain independent NFP and CPI source layers without borrowing periods
+ok 6 - store failures retain independent NFP and CPI source layers without borrowing periods
+  ---
+  duration_ms: 7.4009
+  type: 'test'
+  ...
+# Subtest: fresh model research keeps a cited schedule visible when the independent store fails cold
+ok 7 - fresh model research keeps a cited schedule visible when the independent store fails cold
+  ---
+  duration_ms: 2.4123
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 63.4637
+Macro backend/frontend contract: model-cited fallback, independent cache, cold failure, rollover and empty recovery passed
+TAP version 13
+# {"checkedAt":"2026-10-04T00:47:56.797Z","mode":"publication_preview","scope":"official_company_ir_disclosure_links_pilot","storageWritesRequested":false,"modelCalled":false,"documentBodiesFetched":0,"cacheKey":"market_sources_v1","before":{"allRecords":0,"companyRecords":0},"after":{"allRecords":76,"companyRecords":76,"visibleCompanyRecords":76},"sources":{"company_ir_ford_otosan":{"symbol":"FROTO","sourceUrl":"https://www.fordotosan.com.tr/tr/yatirimcilar/duyurular/ozel-durum-aciklamalari","status":"available","checkedAt":"2026-10-01T17:00:00.000Z","lastSuccessfulAt":"2026-10-01T17:00:00.000Z","lastCompletedAt":"2026-10-01T17:00:00.000Z","listingHash":"de1ec65ac7e5131f0964eb25d6ea21beff12c031dc8db18495802a348fc0c0e2","discoveredCount":20,"filteredCount":0,"conflictCount":0,"truncated":false,"scope":"official_company_ir_disclosure_links_pilot","listingScope":"latest_listing_page_only","reason":"Yalnız açıklama listesinin ilk sayfası izlenir; tam şirket arşivi değildir.","errorCode":null,"todayDateOnlyCount":0,"todayDateOnlyDate":"2026-10-01","latestPublishedDate":"2026-09-06","requestedAt":"2026-10-01T17:00:00.000Z","count":20,"retainedCount":20,"documentLinkCount":20,"listingVerifiedAt":"2026-10-01T17:00:00.000Z","todayDateOnlyAt":"2026-10-01T17:00:00.000Z"},"company_ir_tupras":{"symbol":"TUPRS","sourceUrl":"https://www.tupras.com.tr/tr/duyuru-ve-yayinlar","status":"partial","checkedAt":"2026-10-01T17:00:00.000Z","lastSuccessfulAt":null,"lastCompletedAt":"2026-10-01T17:00:00.000Z","listingHash":"ece9eab0daf320221e455df3f56128cdc10851755f70425f922cc95b512062c6","discoveredCount":56,"filteredCount":0,"conflictCount":2,"truncated":false,"scope":"official_company_ir_disclosure_links_pilot","listingScope":"selected_year_disclosure_section_only","reason":"Yalnız şirketin seçili yıl özel durum açıklamaları bölümü izlenir.","errorCode":"company_link_conflict","todayDateOnlyCount":0,"todayDateOnlyDate":"2026-10-01","latestPublishedDate":"2026-09-09","requestedAt":"2026-10-01T17:00:00.000Z","count":56,"retainedCount":56,"documentLinkCount":55,"listingVerifiedAt":"2026-10-01T17:00:00.000Z","todayDateOnlyAt":"2026-10-01T17:00:00.000Z"}}}
+# {"checkedAt":"2026-10-04T00:47:56.819Z","mode":"published_and_read_back","scope":"official_company_ir_disclosure_links_pilot","storageWritesRequested":true,"modelCalled":false,"documentBodiesFetched":0,"cacheKey":"market_sources_v1","before":{"allRecords":0,"companyRecords":0},"after":{"allRecords":76,"companyRecords":76,"visibleCompanyRecords":76},"sources":{"company_ir_ford_otosan":{"symbol":"FROTO","sourceUrl":"https://www.fordotosan.com.tr/tr/yatirimcilar/duyurular/ozel-durum-aciklamalari","status":"available","checkedAt":"2026-10-01T17:00:00.000Z","lastSuccessfulAt":"2026-10-01T17:00:00.000Z","lastCompletedAt":"2026-10-01T17:00:00.000Z","listingHash":"de1ec65ac7e5131f0964eb25d6ea21beff12c031dc8db18495802a348fc0c0e2","discoveredCount":20,"filteredCount":0,"conflictCount":0,"truncated":false,"scope":"official_company_ir_disclosure_links_pilot","listingScope":"latest_listing_page_only","reason":"Yalnız açıklama listesinin ilk sayfası izlenir; tam şirket arşivi değildir.","errorCode":null,"todayDateOnlyCount":0,"todayDateOnlyDate":"2026-10-01","latestPublishedDate":"2026-09-06","requestedAt":"2026-10-01T17:00:00.000Z","count":20,"retainedCount":20,"documentLinkCount":20,"listingVerifiedAt":"2026-10-01T17:00:00.000Z","todayDateOnlyAt":"2026-10-01T17:00:00.000Z"},"company_ir_tupras":{"symbol":"TUPRS","sourceUrl":"https://www.tupras.com.tr/tr/duyuru-ve-yayinlar","status":"partial","checkedAt":"2026-10-01T17:00:00.000Z","lastSuccessfulAt":null,"lastCompletedAt":"2026-10-01T17:00:00.000Z","listingHash":"ece9eab0daf320221e455df3f56128cdc10851755f70425f922cc95b512062c6","discoveredCount":56,"filteredCount":0,"conflictCount":2,"truncated":false,"scope":"official_company_ir_disclosure_links_pilot","listingScope":"selected_year_disclosure_section_only","reason":"Yalnız şirketin seçili yıl özel durum açıklamaları bölümü izlenir.","errorCode":"company_link_conflict","todayDateOnlyCount":0,"todayDateOnlyDate":"2026-10-01","latestPublishedDate":"2026-09-09","requestedAt":"2026-10-01T17:00:00.000Z","count":56,"retainedCount":56,"documentLinkCount":55,"listingVerifiedAt":"2026-10-01T17:00:00.000Z","todayDateOnlyAt":"2026-10-01T17:00:00.000Z"}}}
+# Subtest: scoped publication retains 76 descriptions, 75 document links and conflict evidence without touching other ledgers
+ok 1 - scoped publication retains 76 descriptions, 75 document links and conflict evidence without touching other ledgers
+  ---
+  duration_ms: 71.6313
+  type: 'test'
+  ...
+# Subtest: source outage preserves first records, last verified list and dated counts without inventing a new zero
+ok 2 - source outage preserves first records, last verified list and dated counts without inventing a new zero
+  ---
+  duration_ms: 21.0136
+  type: 'test'
+  ...
+# Subtest: title corrections append, repeated checks do not version unchanged records, and a publisher reversion is visible
+ok 3 - title corrections append, repeated checks do not version unchanged records, and a publisher reversion is visible
+  ---
+  duration_ms: 1.965
+  type: 'test'
+  ...
+# Subtest: two titles for one link/date in the same issuer list remain separately visible as a conflict
+ok 4 - two titles for one link/date in the same issuer list remain separately visible as a conflict
+  ---
+  duration_ms: 0.9027
+  type: 'test'
+  ...
+# Subtest: late old snapshot and cooldown are semantic no-ops; isolated successful source survives other source failure
+ok 5 - late old snapshot and cooldown are semantic no-ops; isolated successful source survives other source failure
+  ---
+  duration_ms: 41.4276
+  type: 'test'
+  ...
+# Subtest: daily market collector includes the pilot in aggregate health and keeps successful regulatory evidence
+ok 6 - daily market collector includes the pilot in aggregate health and keeps successful regulatory evidence
+  ---
+  duration_ms: 24.8556
+  type: 'test'
+  ...
+# Subtest: malformed collector records cannot insert unrelated symbols, URLs, IDs or unverifiable metadata
+ok 7 - malformed collector records cannot insert unrelated symbols, URLs, IDs or unverifiable metadata
+  ---
+  duration_ms: 0.8136
+  type: 'test'
+  ...
+# Subtest: research context contains bounded issuer references separately from regulatory entries and states their evidence limits
+ok 8 - research context contains bounded issuer references separately from regulatory entries and states their evidence limits
+  ---
+  duration_ms: 97.6413
+  type: 'test'
+  ...
+# Subtest: scoped CLI defaults to a source-backed preview; explicit publication verifies store state
+ok 9 - scoped CLI defaults to a source-backed preview; explicit publication verifies store state
+  ---
+  duration_ms: 42.1469
+  type: 'test'
+  ...
+# Subtest: company filter separates disclosure from regulation and model events without deleting either
+ok 10 - company filter separates disclosure from regulation and model events without deleting either
+  ---
+  duration_ms: 29.1631
+  type: 'test'
+  ...
+# Subtest: date-only precision, source coverage and KAP body boundary are visible with honest archival counts
+ok 11 - date-only precision, source coverage and KAP body boundary are visible with honest archival counts
+  ---
+  duration_ms: 1.7976
+  type: 'test'
+  ...
+# Subtest: conflicting references and retained outage records never receive verified document wording
+ok 12 - conflicting references and retained outage records never receive verified document wording
+  ---
+  duration_ms: 0.7876
+  type: 'test'
+  ...
+# Subtest: empty filter exposes recovery and company filters do not affect another market
+ok 13 - empty filter exposes recovery and company filters do not affect another market
+  ---
+  duration_ms: 0.5481
+  type: 'test'
+  ...
+# Subtest: real issuer fixtures: dated list membership, selected year and separate acquisition proof
+ok 14 - real issuer fixtures: dated list membership, selected year and separate acquisition proof
+  ---
+  duration_ms: 38.3854
+  type: 'test'
+  ...
+# Subtest: invalid calendar dates, future dates, missing anchors and unsafe links produce partial status
+ok 15 - invalid calendar dates, future dates, missing anchors and unsafe links produce partial status
+  ---
+  duration_ms: 0.9703
+  type: 'test'
+  ...
+# Subtest: host/path allowlists reject lookalikes, credentials, scripts and non-disclosure KAP links
+ok 16 - host/path allowlists reject lookalikes, credentials, scripts and non-disclosure KAP links
+  ---
+  duration_ms: 0.2387
+  type: 'test'
+  ...
+# Subtest: stable document identity preserves content-change evidence and rejects script pseudo-records
+ok 17 - stable document identity preserves content-change evidence and rejects script pseudo-records
+  ---
+  duration_ms: 1.6718
+  type: 'test'
+  ...
+# Subtest: unsupported/empty markup and oversized response are not healthy empty news
+ok 18 - unsupported/empty markup and oversized response are not healthy empty news
+  ---
+  duration_ms: 1.8985
+  type: 'test'
+  ...
+# Subtest: fetcher rejects redirects, byte overflow and untrusted configured source before network
+ok 19 - fetcher rejects redirects, byte overflow and untrusted configured source before network
+  ---
+  duration_ms: 21.4296
+  type: 'test'
+  ...
+# Subtest: post-fetch clocks and a company outage remain independent; no KAP request is made
+ok 20 - post-fetch clocks and a company outage remain independent; no KAP request is made
+  ---
+  duration_ms: 3.8684
+  type: 'test'
+  ...
+# Subtest: healthy daily cooldown and bounded outage retry do not pretend a new check occurred
+ok 21 - healthy daily cooldown and bounded outage retry do not pretend a new check occurred
+  ---
+  duration_ms: 9.9829
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 425.8262
+Node/Vercel resource routing: payload shape, methods, direct aliases and unchanged report passed
+Initial UI reads overlap and retain successful report content on partial failure
+Historical audit excludes ambiguous/unknown/open outcomes and preserves unknown measurements
+Technical result evidence gates chronology, versions, outcome provenance and cohort separation
+workspace layout: navigation and panel persistence, focus restoration, keyboard focus, storage failures, route changes, editing reveal and async remount passed
+Morning expectations: targeted coverage, explicit evidence gaps, deadlines, immutable samples and legacy compatibility passed
+TAP version 13
+# Subtest: morning report exposes model, consensus and difference as separate values with event time
+ok 1 - morning report exposes model, consensus and difference as separate values with event time
+  ---
+  duration_ms: 21.4879
+  type: 'test'
+  ...
+# Subtest: zero model estimates and zero consensus stay numeric, including a zero difference
+ok 2 - zero model estimates and zero consensus stay numeric, including a zero difference
+  ---
+  duration_ms: 0.7485
+  type: 'test'
+  ...
+# Subtest: unavailable independent calendar is visible beside model opinions and does not imply no future event
+ok 3 - unavailable independent calendar is visible beside model opinions and does not imply no future event
+  ---
+  duration_ms: 1.8548
+  type: 'test'
+  ...
+# Subtest: a deadline-crossing abstention preserves its pre-release context without becoming a forecast
+ok 4 - a deadline-crossing abstention preserves its pre-release context without becoming a forecast
+  ---
+  duration_ms: 0.8772
+  type: 'test'
+  ...
+# Subtest: an unchanged reassessment shows its own dated reason and sources alongside the stored opinion
+ok 5 - an unchanged reassessment shows its own dated reason and sources alongside the stored opinion
+  ---
+  duration_ms: 1.1597
+  type: 'test'
+  ...
+# Subtest: missing consensus never becomes zero or produces a fabricated numeric gap
+ok 6 - missing consensus never becomes zero or produces a fabricated numeric gap
+  ---
+  duration_ms: 2.7758
+  type: 'test'
+  ...
+# Subtest: percentage estimates retain percent units but their difference uses percentage points
+ok 7 - percentage estimates retain percent units but their difference uses percentage points
+  ---
+  duration_ms: 0.7164
+  type: 'test'
+  ...
+# Subtest: rationale and source labels are escaped; unsafe URLs do not turn into clickable evidence
+ok 8 - rationale and source labels are escaped; unsafe URLs do not turn into clickable evidence
+  ---
+  duration_ms: 0.6464
+  type: 'test'
+  ...
+# Subtest: unknown or imprecise capture/release times cannot imply an announcement-before forecast
+ok 9 - unknown or imprecise capture/release times cannot imply an announcement-before forecast
+  ---
+  duration_ms: 0.97
+  type: 'test'
+  ...
+# Subtest: numbers generated at or after release are not advertised as pre-release forecasts
+ok 10 - numbers generated at or after release are not advertised as pre-release forecasts
+  ---
+  duration_ms: 0.641
+  type: 'test'
+  ...
+# Subtest: contradictory row creation times cannot borrow an earlier report timestamp
+ok 11 - contradictory row creation times cannot borrow an earlier report timestamp
+  ---
+  duration_ms: 0.426
+  type: 'test'
+  ...
+# Subtest: captured pre-release opinion remains clearly historical once its release time passes
+ok 12 - captured pre-release opinion remains clearly historical once its release time passes
+  ---
+  duration_ms: 0.507
+  type: 'test'
+  ...
+# Subtest: abstention gives a visible reason, missing evidence and source without inventing a number
+ok 13 - abstention gives a visible reason, missing evidence and source without inventing a number
+  ---
+  duration_ms: 0.4812
+  type: 'test'
+  ...
+# Subtest: compact view presents at most two soonest events and links to the full report
+ok 14 - compact view presents at most two soonest events and links to the full report
+  ---
+  duration_ms: 1.7828
+  type: 'test'
+  ...
+# Subtest: empty or nonnumeric research has an honest readable state instead of a fake forecast
+ok 15 - empty or nonnumeric research has an honest readable state instead of a fake forecast
+  ---
+  duration_ms: 1.3032
+  type: 'test'
+  ...
+# Subtest: unchanged locked views remain visible without becoming new forecasts or borrowing later evidence
+ok 16 - unchanged locked views remain visible without becoming new forecasts or borrowing later evidence
+  ---
+  duration_ms: 2.2983
+  type: 'test'
+  ...
+# Subtest: separate CPI stored records keep their own units; system baselines never impersonate a model
+ok 17 - separate CPI stored records keep their own units; system baselines never impersonate a model
+  ---
+  duration_ms: 0.7354
+  type: 'test'
+  ...
+# Subtest: a pre-release stored opinion remains historical when an unchanged report finishes after release
+ok 18 - a pre-release stored opinion remains historical when an unchanged report finishes after release
+  ---
+  duration_ms: 1.474
+  type: 'test'
+  ...
+# Subtest: post-release raw numbers cannot borrow the validity of a separate stored opinion
+ok 19 - post-release raw numbers cannot borrow the validity of a separate stored opinion
+  ---
+  duration_ms: 1.2675
+  type: 'test'
+  ...
+# Subtest: stored history refuses imprecise, late or contradictory record and evidence cutoffs
+ok 20 - stored history refuses imprecise, late or contradictory record and evidence cutoffs
+  ---
+  duration_ms: 2.717
+  type: 'test'
+  ...
+# Subtest: an untimed official release calendar supports timing alongside dated numeric evidence
+ok 21 - an untimed official release calendar supports timing alongside dated numeric evidence
+  ---
+  duration_ms: 0.7048
+  type: 'test'
+  ...
+# Subtest: retained consensus has its own immutable source cutoff without hiding a valid model opinion
+ok 22 - retained consensus has its own immutable source cutoff without hiding a valid model opinion
+  ---
+  duration_ms: 8.2795
+  type: 'test'
+  ...
+# Subtest: historical latest review preserves the first value and matches reassessment by exact release identity
+ok 23 - historical latest review preserves the first value and matches reassessment by exact release identity
+  ---
+  duration_ms: 1.7812
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 69.9622
+Per-market averages, honest denominators, zero values, missing coverage and immutable input passed
+journal UI source-state tests passed
+TAP version 13
+# Subtest: simulation normalizes BIST amounts with the sourced rate and records the FX snapshot
+ok 1 - simulation normalizes BIST amounts with the sourced rate and records the FX snapshot
+  ---
+  duration_ms: 3.1989
+  type: 'test'
+  ...
+# Subtest: missing, stale, unidentified and date-only FX stop BIST simulations
+ok 2 - missing, stale, unidentified and date-only FX stop BIST simulations
+  ---
+  duration_ms: 1.7438
+  type: 'test'
+  ...
+# Subtest: USD-only portfolios need no FX and never use purchase cost as a missing market quote
+ok 3 - USD-only portfolios need no FX and never use purchase cost as a missing market quote
+  ---
+  duration_ms: 1.0143
+  type: 'test'
+  ...
+# Subtest: secondary analyses run only after their disclosure opens
+ok 4 - secondary analyses run only after their disclosure opens
+  ---
+  duration_ms: 2.4535
+  type: 'test'
+  ...
+# Subtest: blocked BIST simulation reports a local reason, retains the completed result and makes no request
+ok 5 - blocked BIST simulation reports a local reason, retains the completed result and makes no request
+  ---
+  duration_ms: 1.4951
+  type: 'test'
+  ...
+# Subtest: successful simulation sends USD prices and an explicit zero USD saving amount
+ok 6 - successful simulation sends USD prices and an explicit zero USD saving amount
+  ---
+  duration_ms: 1.1294
+  type: 'test'
+  ...
+# Subtest: valuation clears fabricated financial values and shows observed price separately from sample assumptions
+ok 7 - valuation clears fabricated financial values and shows observed price separately from sample assumptions
+  ---
+  duration_ms: 0.9859
+  type: 'test'
+  ...
+# Subtest: each model blocks missing financial inputs before any network request
+ok 8 - each model blocks missing financial inputs before any network request
+  ---
+  duration_ms: 1.3403
+  type: 'test'
+  ...
+# Subtest: DCF requires an explicit debt assumption and preserves zero when supplied
+ok 9 - DCF requires an explicit debt assumption and preserves zero when supplied
+  ---
+  duration_ms: 1.3283
+  type: 'test'
+  ...
+# Subtest: market quote absence blocks a manually completed valuation without presenting a fabricated price
+ok 10 - market quote absence blocks a manually completed valuation without presenting a fabricated price
+  ---
+  duration_ms: 0.9964
+  type: 'test'
+  ...
+# Subtest: stale and conflicting-currency quotes block valuation without a request
+ok 11 - stale and conflicting-currency quotes block valuation without a request
+  ---
+  duration_ms: 2.2397
+  type: 'test'
+  ...
+# Subtest: undefined model margin and sensitivity cells stay missing instead of becoming buy states
+ok 12 - undefined model margin and sensitivity cells stay missing instead of becoming buy states
+  ---
+  duration_ms: 1.1709
+  type: 'test'
+  ...
+# Subtest: result descriptions use the captured data and FX time and flag a portfolio change during calculation
+ok 13 - result descriptions use the captured data and FX time and flag a portfolio change during calculation
+  ---
+  duration_ms: 1.7236
+  type: 'test'
+  ...
+# Subtest: static form exposes USD saving units and contains no initial fabricated financial observations
+ok 14 - static form exposes USD saving units and contains no initial fabricated financial observations
+  ---
+  duration_ms: 0.5201
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 35.8448
+TAP version 13
+# Subtest: mixed USD and TRY positions use normalized USD weights and native historical returns
+ok 1 - mixed USD and TRY positions use normalized USD weights and native historical returns
+  ---
+  duration_ms: 22.5167
+  type: 'test'
+  ...
+# Subtest: US and crypto positions use USD valuation and savings with the native historical currency disclosed
+ok 2 - US and crypto positions use USD valuation and savings with the native historical currency disclosed
+  ---
+  duration_ms: 2.6778
+  type: 'test'
+  ...
+# Subtest: non-overlapping leading and trailing history is excluded, never filled with a future or USD quote
+ok 3 - non-overlapping leading and trailing history is excluded, never filled with a future or USD quote
+  ---
+  duration_ms: 1.7877
+  type: 'test'
+  ...
+# Subtest: return calibration is restricted to the overlap without inserting later first quotes into earlier history
+ok 4 - return calibration is restricted to the overlap without inserting later first quotes into earlier history
+  ---
+  duration_ms: 1.814
+  type: 'test'
+  ...
+# Subtest: stock-only calibration uses calendar days, disclosed carried quotes and 365-day annualization
+ok 5 - stock-only calibration uses calendar days, disclosed carried quotes and 365-day annualization
+  ---
+  duration_ms: 8.6688
+  type: 'test'
+  ...
+# Subtest: a 365-day zero-return path receives exactly 12 monthly USD savings contributions
+ok 6 - a 365-day zero-return path receives exactly 12 monthly USD savings contributions
+  ---
+  duration_ms: 7.2647
+  type: 'test'
+  ...
+# Subtest: mixed stock/crypto history has one calendar-day basis with per-asset observed-gap counts
+ok 7 - mixed stock/crypto history has one calendar-day basis with per-asset observed-gap counts
+  ---
+  duration_ms: 2.124
+  type: 'test'
+  ...
+# Subtest: non-overlapping or sparsely observed common history fails instead of creating backward-filled returns
+ok 8 - non-overlapping or sparsely observed common history fails instead of creating backward-filled returns
+  ---
+  duration_ms: 4.3994
+  type: 'test'
+  ...
+# Subtest: missing or conflicting currency is rejected before historical data is fetched
+ok 9 - missing or conflicting currency is rejected before historical data is fetched
+  ---
+  duration_ms: 1.1575
+  type: 'test'
+  ...
+# Subtest: every BIST position requires a positive explicit exchange-rate proof and a zoned quote timestamp
+ok 10 - every BIST position requires a positive explicit exchange-rate proof and a zoned quote timestamp
+  ---
+  duration_ms: 1.7205
+  type: 'test'
+  ...
+# Subtest: BIST accepts exact USD conversion with an explicit timezone offset
+ok 11 - BIST accepts exact USD conversion with an explicit timezone offset
+  ---
+  duration_ms: 1.8383
+  type: 'test'
+  ...
+# Subtest: invalid amounts and current prices cannot fall back to history or accept numeric strings
+ok 12 - invalid amounts and current prices cannot fall back to history or accept numeric strings
+  ---
+  duration_ms: 2.2406
+  type: 'test'
+  ...
+# Subtest: simulation work and savings inputs have strict finite numeric bounds
+ok 13 - simulation work and savings inputs have strict finite numeric bounds
+  ---
+  duration_ms: 1.3454
+  type: 'test'
+  ...
+# Subtest: one unavailable holding rejects the entire portfolio instead of silently dropping it
+ok 14 - one unavailable holding rejects the entire portfolio instead of silently dropping it
+  ---
+  duration_ms: 1.281
+  type: 'test'
+  ...
+# Subtest: missing, insufficient, duplicate-only and corrupt history all reject a complete portfolio
+ok 15 - missing, insufficient, duplicate-only and corrupt history all reject a complete portfolio
+  ---
+  duration_ms: 8.5003
+  type: 'test'
+  ...
+# Subtest: five completed prices plus a current open Binance day cannot satisfy the six-price minimum
+ok 16 - five completed prices plus a current open Binance day cannot satisfy the six-price minimum
+  ---
+  duration_ms: 1.0031
+  type: 'test'
+  ...
+# Subtest: Binance calibration ends at the last completed day and cached observations never mature as the clock advances
+ok 17 - Binance calibration ends at the last completed day and cached observations never mature as the clock advances
+  ---
+  duration_ms: 1.1285
+  type: 'test'
+  ...
+# Subtest: Yahoo regular-session evidence excludes its current open day even after that cached snapshot ages
+ok 18 - Yahoo regular-session evidence excludes its current open day even after that cached snapshot ages
+  ---
+  duration_ms: 1.6188
+  type: 'test'
+  ...
+# Subtest: the Monte Carlo calculation cutoff stays fixed while its awaited fetch advances the clock
+ok 19 - the Monte Carlo calculation cutoff stays fixed while its awaited fetch advances the clock
+  ---
+  duration_ms: 0.9236
+  type: 'test'
+  ...
+# Subtest: unattested source contracts reject otherwise sufficient daily prices
+ok 20 - unattested source contracts reject otherwise sufficient daily prices
+  ---
+  duration_ms: 8.1928
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 100.1825
+literacy navigation: actual topics, complete reading flow, focus, motion, draft retention and repeat entry passed
+daily digest: no comparison versus zero movement, finite evidence, coverage, ranking and UI copy passed
+screener focus: filters, clear, pagination, disabled and removed fallback, outside focus, search caret and sorting passed
+TAP version 13
+# Subtest: stress values each holding in its own market and keeps source snapshot metadata
+ok 1 - stress values each holding in its own market and keeps source snapshot metadata
+  ---
+  duration_ms: 5.2774
+  type: 'test'
+  ...
+# Subtest: USD-only stress preserves the native total and uses null for unsupported TRY conversion
+ok 2 - USD-only stress preserves the native total and uses null for unsupported TRY conversion
+  ---
+  duration_ms: 0.3584
+  type: 'test'
+  ...
+# Subtest: TRY-only stress preserves native values and derives percent change without inventing dollars
+ok 3 - TRY-only stress preserves native values and derives percent change without inventing dollars
+  ---
+  duration_ms: 1.2761
+  type: 'test'
+  ...
+# Subtest: a mixed portfolio needs an identified dated rate; no bare 38 or caller override is used
+ok 4 - a mixed portfolio needs an identified dated rate; no bare 38 or caller override is used
+  ---
+  duration_ms: 1.0781
+  type: 'test'
+  ...
+# Subtest: missing or stale active prices reject the entire stress calculation, never use avgPrice
+ok 5 - missing or stale active prices reject the entire stress calculation, never use avgPrice
+  ---
+  duration_ms: 0.5872
+  type: 'test'
+  ...
+# Subtest: purchase-cost absence does not block a scenario based on observed market prices
+ok 6 - purchase-cost absence does not block a scenario based on observed market prices
+  ---
+  duration_ms: 0.2065
+  type: 'test'
+  ...
+# Subtest: a source quote in a conflicting currency cannot be relabeled as the market currency
+ok 7 - a source quote in a conflicting currency cannot be relabeled as the market currency
+  ---
+  duration_ms: 0.2371
+  type: 'test'
+  ...
+# Subtest: known empty portfolios and zero-size holdings have no scenarios or fabricated percentage change
+ok 8 - known empty portfolios and zero-size holdings have no scenarios or fabricated percentage change
+  ---
+  duration_ms: 0.6931
+  type: 'test'
+  ...
+# Subtest: unavailable portfolio and malformed amounts are distinct from a known empty portfolio
+ok 9 - unavailable portfolio and malformed amounts are distinct from a known empty portfolio
+  ---
+  duration_ms: 0.6067
+  type: 'test'
+  ...
+# Subtest: stress input objects stay unchanged and unknown quote time is not fabricated
+ok 10 - stress input objects stay unchanged and unknown quote time is not fabricated
+  ---
+  duration_ms: 0.5127
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 22.9095
+TAP version 13
+# Subtest: 30 matching observed return intervals produce a symmetric correlation matrix and provenance
+ok 1 - 30 matching observed return intervals produce a symmetric correlation matrix and provenance
+  ---
+  duration_ms: 25.0134
+  type: 'test'
+  ...
+# Subtest: future/current prices and position quantities never change historical correlation
+ok 2 - future/current prices and position quantities never change historical correlation
+  ---
+  duration_ms: 5.2476
+  type: 'test'
+  ...
+# Subtest: identical symbols in separate markets remain separate identified series
+ok 3 - identical symbols in separate markets remain separate identified series
+  ---
+  duration_ms: 3.0086
+  type: 'test'
+  ...
+# Subtest: different trading calendars compare only exact observed endpoint pairs
+ok 4 - different trading calendars compare only exact observed endpoint pairs
+  ---
+  duration_ms: 2.9749
+  type: 'test'
+  ...
+# Subtest: matching multi-day observed intervals are retained and disclosed when both markets share them
+ok 5 - matching multi-day observed intervals are retained and disclosed when both markets share them
+  ---
+  duration_ms: 2.859
+  type: 'test'
+  ...
+# Subtest: unobserved or malformed history fails the entire requested matrix
+ok 6 - unobserved or malformed history fails the entire requested matrix
+  ---
+  duration_ms: 28.6848
+  type: 'test'
+  ...
+# Subtest: zero variance is unknown instead of a fabricated zero correlation
+ok 7 - zero variance is unknown instead of a fabricated zero correlation
+  ---
+  duration_ms: 2.9747
+  type: 'test'
+  ...
+# Subtest: numerical noise in constant compounded returns does not create a spurious relation
+ok 8 - numerical noise in constant compounded returns does not create a spurious relation
+  ---
+  duration_ms: 2.911
+  type: 'test'
+  ...
+# Subtest: 29 common intervals are explicitly insufficient even when both histories have 31 endpoints
+ok 9 - 29 common intervals are explicitly insufficient even when both histories have 31 endpoints
+  ---
+  duration_ms: 2.8153
+  type: 'test'
+  ...
+# Subtest: 29 completed return intervals plus an open current-day bar cannot satisfy the threshold
+ok 10 - 29 completed return intervals plus an open current-day bar cannot satisfy the threshold
+  ---
+  duration_ms: 3.7797
+  type: 'test'
+  ...
+# Subtest: sufficient history excludes the open current day and ends on the last completed date
+ok 11 - sufficient history excludes the open current day and ends on the last completed date
+  ---
+  duration_ms: 4.7146
+  type: 'test'
+  ...
+# Subtest: advancing the calculation clock never promotes an open bar from an old cached observation
+ok 12 - advancing the calculation clock never promotes an open bar from an old cached observation
+  ---
+  duration_ms: 9.9424
+  type: 'test'
+  ...
+# Subtest: non-overlapping histories reject an empty intersection instead of manufacturing aligned prices
+ok 13 - non-overlapping histories reject an empty intersection instead of manufacturing aligned prices
+  ---
+  duration_ms: 3.3151
+  type: 'test'
+  ...
+# Subtest: empty, single, duplicate and invalid identities fail before fetching data
+ok 14 - empty, single, duplicate and invalid identities fail before fetching data
+  ---
+  duration_ms: 1.2654
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 113.8692
+Correlation UI identity, missing values, keyboard surface, failure and race tests passed
+TAP version 13
+# Subtest: DCF uses the unrounded terminal cash flow and matches a constant-cash perpetuity identity
+ok 1 - DCF uses the unrounded terminal cash flow and matches a constant-cash perpetuity identity
+  ---
+  duration_ms: 2.3674
+  type: 'test'
+  ...
+# Subtest: DCF is invariant to a consistent currency conversion and never treats money amounts as millions
+ok 2 - DCF is invariant to a consistent currency conversion and never treats money amounts as millions
+  ---
+  duration_ms: 1.854
+  type: 'test'
+  ...
+# Subtest: zero first-period growth does not erase the explicitly supplied second-period growth in sensitivity
+ok 3 - zero first-period growth does not erase the explicitly supplied second-period growth in sensitivity
+  ---
+  duration_ms: 0.8939
+  type: 'test'
+  ...
+# Subtest: sensitivity varies its declared input only and never invents -120% second-period revenue growth
+ok 4 - sensitivity varies its declared input only and never invents -120% second-period revenue growth
+  ---
+  duration_ms: 0.4304
+  type: 'test'
+  ...
+# Subtest: DCF rejects missing, blank, string, nonfinite and nonpositive required numbers
+ok 5 - DCF rejects missing, blank, string, nonfinite and nonpositive required numbers
+  ---
+  duration_ms: 1.5769
+  type: 'test'
+  ...
+# Subtest: DCF rejects domains that imply negative revenue or undefined discount factors
+ok 6 - DCF rejects domains that imply negative revenue or undefined discount factors
+  ---
+  duration_ms: 0.4068
+  type: 'test'
+  ...
+# Subtest: nonpositive equity is preserved mathematically with an unavailable safety margin
+ok 7 - nonpositive equity is preserved mathematically with an unavailable safety margin
+  ---
+  duration_ms: 0.4769
+  type: 'test'
+  ...
+# Subtest: negative net debt, loss margins and working-capital release remain permitted assumptions
+ok 8 - negative net debt, loss margins and working-capital release remain permitted assumptions
+  ---
+  duration_ms: 0.8624
+  type: 'test'
+  ...
+# Subtest: invalid sensitivity discount or growth combinations are unavailable cells, not zero prices
+ok 9 - invalid sensitivity discount or growth combinations are unavailable cells, not zero prices
+  ---
+  duration_ms: 0.7462
+  type: 'test'
+  ...
+# Subtest: all applied cash-flow assumptions are returned in normalized parameters
+ok 10 - all applied cash-flow assumptions are returned in normalized parameters
+  ---
+  duration_ms: 0.51
+  type: 'test'
+  ...
+# Subtest: finite inputs that overflow the model fail explicitly instead of publishing Infinity or serialized null
+ok 11 - finite inputs that overflow the model fail explicitly instead of publishing Infinity or serialized null
+  ---
+  duration_ms: 0.3272
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 21.7852
+TAP version 13
+# Subtest: Graham retains percentage-point growth and yield units and its current coefficients
+ok 1 - Graham retains percentage-point growth and yield units and its current coefficients
+  ---
+  duration_ms: 1.7134
+  type: 'test'
+  ...
+# Subtest: DDM values the next annual per-share dividend from the most recent annual dividend
+ok 2 - DDM values the next annual per-share dividend from the most recent annual dividend
+  ---
+  duration_ms: 0.3262
+  type: 'test'
+  ...
+# Subtest: changing the monetary unit scales income-model values and leaves their margin unchanged
+ok 3 - changing the monetary unit scales income-model values and leaves their margin unchanged
+  ---
+  duration_ms: 0.1883
+  type: 'test'
+  ...
+# Subtest: income models reject absent required inputs and every nonnumeric or nonfinite supplied input
+ok 4 - income models reject absent required inputs and every nonnumeric or nonfinite supplied input
+  ---
+  duration_ms: 0.8781
+  type: 'test'
+  ...
+# Subtest: optional defaults remain numeric and are included in captured parameters
+ok 5 - optional defaults remain numeric and are included in captured parameters
+  ---
+  duration_ms: 0.2274
+  type: 'test'
+  ...
+# Subtest: income models require positive price and income and Graham requires a positive AAA yield
+ok 6 - income models require positive price and income and Graham requires a positive AAA yield
+  ---
+  duration_ms: 0.349
+  type: 'test'
+  ...
+# Subtest: a nonpositive Graham result retains its mathematical value and has no security margin
+ok 7 - a nonpositive Graham result retains its mathematical value and has no security margin
+  ---
+  duration_ms: 0.9355
+  type: 'test'
+  ...
+# Subtest: Graham sensitivity marks invalid yields unavailable without clamping negative formula values
+ok 8 - Graham sensitivity marks invalid yields unavailable without clamping negative formula values
+  ---
+  duration_ms: 0.7522
+  type: 'test'
+  ...
+# Subtest: DDM checks both perpetuity-domain boundaries and rejects equal or lower discount rates
+ok 9 - DDM checks both perpetuity-domain boundaries and rejects equal or lower discount rates
+  ---
+  duration_ms: 0.4494
+  type: 'test'
+  ...
+# Subtest: DDM sensitivity distinguishes invalid growth and discount scenarios from zero valuations
+ok 10 - DDM sensitivity distinguishes invalid growth and discount scenarios from zero valuations
+  ---
+  duration_ms: 0.4397
+  type: 'test'
+  ...
+# Subtest: finite inputs that overflow a main calculation are rejected instead of producing JSON null
+ok 11 - finite inputs that overflow a main calculation are rejected instead of producing JSON null
+  ---
+  duration_ms: 0.2281
+  type: 'test'
+  ...
+# Subtest: overflow confined to a sensitivity scenario leaves the main model intact and marks that cell unavailable
+ok 12 - overflow confined to a sensitivity scenario leaves the main model intact and marks that cell unavailable
+  ---
+  duration_ms: 0.2593
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17.4145
+Position calculator UI missing input, capital cap, quote precision and fractional amount tests passed
+TAP version 13
+# Subtest: small gross gain becomes a net loss after both costs and never counts as a win
+ok 1 - small gross gain becomes a net loss after both costs and never counts as a win
+  ---
+  duration_ms: 22.4114
+  type: 'test'
+  ...
+# Subtest: forced final liquidation includes both costs and updates the last equity observation
+ok 2 - forced final liquidation includes both costs and updates the last equity observation
+  ---
+  duration_ms: 1.6132
+  type: 'test'
+  ...
+# Subtest: each closed trade measures net return from its own pre-entry capital
+ok 3 - each closed trade measures net return from its own pre-entry capital
+  ---
+  duration_ms: 1.9853
+  type: 'test'
+  ...
+# Subtest: cash-only strategy has no measured trade success and no artificial Sharpe
+ok 4 - cash-only strategy has no measured trade success and no artificial Sharpe
+  ---
+  duration_ms: 1.356
+  type: 'test'
+  ...
+# Subtest: 50 warm-up observations alone cannot produce a test; one valid test day can
+ok 5 - 50 warm-up observations alone cannot produce a test; one valid test day can
+  ---
+  duration_ms: 2.949
+  type: 'test'
+  ...
+# Subtest: missing, non-positive or non-finite prices and computed scores are rejected
+ok 6 - missing, non-positive or non-finite prices and computed scores are rejected
+  ---
+  duration_ms: 9.5671
+  type: 'test'
+  ...
+# Subtest: invalid controls fail before fetching, including partial numeric strings and unsupported markets
+ok 7 - invalid controls fail before fetching, including partial numeric strings and unsupported markets
+  ---
+  duration_ms: 5.6683
+  type: 'test'
+  ...
+# Subtest: crypto risk metrics annualize observations with 365 rather than the exchange assumption of 252
+ok 8 - crypto risk metrics annualize observations with 365 rather than the exchange assumption of 252
+  ---
+  duration_ms: 1.633
+  type: 'test'
+  ...
+# Subtest: execution price is excluded from the signal calculation and stop triggers execute one observation later
+ok 9 - execution price is excluded from the signal calculation and stop triggers execute one observation later
+  ---
+  duration_ms: 2.5825
+  type: 'test'
+  ...
+# Subtest: aligned source dates annotate signal and execution separately, while corrupt date order is rejected
+ok 10 - aligned source dates annotate signal and execution separately, while corrupt date order is rejected
+  ---
+  duration_ms: 3.6672
+  type: 'test'
+  ...
+# Subtest: an open final daily candle cannot turn 50 completed warm-up bars into a backtest day
+ok 11 - an open final daily candle cannot turn 50 completed warm-up bars into a backtest day
+  ---
+  duration_ms: 2.6486
+  type: 'test'
+  ...
+# Subtest: the public crypto series adapter carries provider closure times, observation cut and quote currency
+ok 12 - the public crypto series adapter carries provider closure times, observation cut and quote currency
+  ---
+  duration_ms: 2.5459
+  type: 'test'
+  ...
+# Subtest: completed provider candles produce a dated result while the open candle is excluded with provenance
+ok 13 - completed provider candles produce a dated result while the open candle is excluded with provenance
+  ---
+  duration_ms: 1.269
+  type: 'test'
+  ...
+# Subtest: UTC daily calendar inference is explicit and unavailable for unattested legacy timestamps
+ok 14 - UTC daily calendar inference is explicit and unavailable for unattested legacy timestamps
+  ---
+  duration_ms: 2.3239
+  type: 'test'
+  ...
+# Subtest: cached and stale provider snapshots retain closure evidence without promoting their formerly open candle
+ok 15 - cached and stale provider snapshots retain closure evidence without promoting their formerly open candle
+  ---
+  duration_ms: 4.4381
+  type: 'test'
+  ...
+# Subtest: unattested legacy local cache remains historical fallback but cannot prove completed backtest execution
+ok 16 - unattested legacy local cache remains historical fallback but cannot prove completed backtest execution
+  ---
+  duration_ms: 1.3874
+  type: 'test'
+  ...
+# Subtest: source currency is preserved without silent dollar substitution
+ok 17 - source currency is preserved without silent dollar substitution
+  ---
+  duration_ms: 4.6852
+  type: 'test'
+  ...
+# Subtest: imputed range or volume cannot silently influence signals, while measured zero volume remains valid
+ok 18 - imputed range or volume cannot silently influence signals, while measured zero volume remains valid
+  ---
+  duration_ms: 5.5599
+  type: 'test'
+  ...
+# Subtest: Yahoo current session at 15:00 cannot supply the 51st completed bar, and observed post-close data can
+ok 19 - Yahoo current session at 15:00 cannot supply the 51st completed bar, and observed post-close data can
+  ---
+  duration_ms: 2.8633
+  type: 'test'
+  ...
+# Subtest: a cached intraday Yahoo snapshot never gains a completed bar merely because run time passes close or midnight
+ok 20 - a cached intraday Yahoo snapshot never gains a completed bar merely because run time passes close or midnight
+  ---
+  duration_ms: 5.5497
+  type: 'test'
+  ...
+# Subtest: Yahoo current-day closure without matching provider regular-session evidence stays unknown
+ok 21 - Yahoo current-day closure without matching provider regular-session evidence stays unknown
+  ---
+  duration_ms: 5.7648
+  type: 'test'
+  ...
+# Subtest: Yahoo missing date basis, invalid timezone, missing observation cut and unattested dates cannot masquerade as completed history
+ok 22 - Yahoo missing date basis, invalid timezone, missing observation cut and unattested dates cannot masquerade as completed history
+  ---
+  duration_ms: 5.3088
+  type: 'test'
+  ...
+# Subtest: Yahoo local cutoff and regular end evidence follow DST and midnight rather than a UTC calendar
+ok 23 - Yahoo local cutoff and regular end evidence follow DST and midnight rather than a UTC calendar
+  ---
+  duration_ms: 4.8597
+  type: 'test'
+  ...
+# Subtest: excluding a Yahoo open bar keeps all OHLCV, dates and verification fields aligned
+ok 24 - excluding a Yahoo open bar keeps all OHLCV, dates and verification fields aligned
+  ---
+  duration_ms: 2.6132
+  type: 'test'
+  ...
+# Subtest: crypto original OHLCV and provenance lengths are checked before the open bar is excluded
+ok 25 - crypto original OHLCV and provenance lengths are checked before the open bar is excluded
+  ---
+  duration_ms: 4.1012
+  type: 'test'
+  ...
+# Subtest: a provider 01:00 closeTime is not a completed UTC 1d candle and never falls back to inferred proof
+ok 26 - a provider 01:00 closeTime is not a completed UTC 1d candle and never falls back to inferred proof
+  ---
+  duration_ms: 2.5007
+  type: 'test'
+  ...
+# Subtest: daily crypto closure requires the matching real UTC midnight open and calendar date
+ok 27 - daily crypto closure requires the matching real UTC midnight open and calendar date
+  ---
+  duration_ms: 7.3594
+  type: 'test'
+  ...
+# Subtest: malformed explicit closeTime stays explicit through normalization and cache instead of becoming legacy missing proof
+ok 28 - malformed explicit closeTime stays explicit through normalization and cache instead of becoming legacy missing proof
+  ---
+  duration_ms: 6.4229
+  type: 'test'
+  ...
+# Subtest: malformed Yahoo high/low cannot carry verified range into a backtest signal
+ok 29 - malformed Yahoo high/low cannot carry verified range into a backtest signal
+  ---
+  duration_ms: 8.431
+  type: 'test'
+  ...
+1..29
+# tests 29
+# suites 0
+# pass 29
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 166.9004
+Literacy archive: closed entries, truthful failure/empty states, original encoding and safe text passed
+TAP version 13
+# Subtest: saving a selected-asset note refreshes its saved summary and research gaps without rebuilding the form
+ok 1 - saving a selected-asset note refreshes its saved summary and research gaps without rebuilding the form
+  ---
+  duration_ms: 32.0643
+  type: 'test'
+  ...
+# Subtest: editing during the save retains the new draft, focused textarea selection, active tab and open panel
+ok 2 - editing during the save retains the new draft, focused textarea selection, active tab and open panel
+  ---
+  duration_ms: 13.1296
+  type: 'test'
+  ...
+# Subtest: a failed note save refreshes risk readouts from saved truth and keeps the newest draft
+ok 3 - a failed note save refreshes risk readouts from saved truth and keeps the newest draft
+  ---
+  duration_ms: 15.0433
+  type: 'test'
+  ...
+# Subtest: a readout refresh for another asset preserves the selected asset draft and alert choice
+ok 4 - a readout refresh for another asset preserves the selected asset draft and alert choice
+  ---
+  duration_ms: 7.0415
+  type: 'test'
+  ...
+# Subtest: the journal readout refresh reaches every matching note wrapper and leaves each editor intact
+ok 5 - the journal readout refresh reaches every matching note wrapper and leaves each editor intact
+  ---
+  duration_ms: 11.769
+  type: 'test'
+  ...
+# Subtest: a changed stop adds the new suggestion and preserves an enabled old rule with explicit previous context
+ok 6 - a changed stop adds the new suggestion and preserves an enabled old rule with explicit previous context
+  ---
+  duration_ms: 6.9623
+  type: 'test'
+  ...
+# Subtest: unchanged matching rules retain node state and obsolete inactive untouched rules are removed
+ok 7 - unchanged matching rules retain node state and obsolete inactive untouched rules are removed
+  ---
+  duration_ms: 9.3483
+  type: 'test'
+  ...
+# Subtest: an obsolete focused or locally changed rule remains a previous suggestion without losing its checkbox
+ok 8 - an obsolete focused or locally changed rule remains a previous suggestion without losing its checkbox
+  ---
+  duration_ms: 11.8968
+  type: 'test'
+  ...
+# Subtest: a successful journal GET refreshes saved readouts and research while retaining dirty text, selection, tabs and alarm choice
+ok 9 - a successful journal GET refreshes saved readouts and research while retaining dirty text, selection, tabs and alarm choice
+  ---
+  duration_ms: 22.155
+  type: 'test'
+  ...
+# Subtest: a journal GET without local alarm changes uses server truth and refreshes every existing asset note wrapper
+ok 10 - a journal GET without local alarm changes uses server truth and refreshes every existing asset note wrapper
+  ---
+  duration_ms: 7.9536
+  type: 'test'
+  ...
+# Subtest: a cleared note draft does not borrow the technical suggestion under a user-draft heading
+ok 11 - a cleared note draft does not borrow the technical suggestion under a user-draft heading
+  ---
+  duration_ms: 7.3147
+  type: 'test'
+  ...
+# Subtest: a saved obsolete alarm remains visible when a note surface is created anew
+ok 12 - a saved obsolete alarm remains visible when a note surface is created anew
+  ---
+  duration_ms: 4.307
+  type: 'test'
+  ...
+# Subtest: a journal reread adds a remote saved obsolete alarm once and allows it to be disabled by its original ID
+ok 13 - a journal reread adds a remote saved obsolete alarm once and allows it to be disabled by its original ID
+  ---
+  duration_ms: 15.5303
+  type: 'test'
+  ...
+# Subtest: current technical alert templates and saved rule text have distinct provenance without rewriting saved text
+ok 14 - current technical alert templates and saved rule text have distinct provenance without rewriting saved text
+  ---
+  duration_ms: 6.6093
+  type: 'test'
+  ...
+# Subtest: saving a technical alert changes its visible provenance while preserving the dirty note and checkbox node
+ok 15 - saving a technical alert changes its visible provenance while preserving the dirty note and checkbox node
+  ---
+  duration_ms: 9.0925
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 204.6437
+TAP version 13
+# Subtest: NYSE winter session uses 09:30–16:00 America/New_York rather than a summer UTC offset
+ok 1 - NYSE winter session uses 09:30–16:00 America/New_York rather than a summer UTC offset
+  ---
+  duration_ms: 18.8565
+  type: 'test'
+  ...
+# Subtest: NYSE summer session shifts UTC boundaries while preserving the same local session hours
+ok 2 - NYSE summer session shifts UTC boundaries while preserving the same local session hours
+  ---
+  duration_ms: 1.0294
+  type: 'test'
+  ...
+# Subtest: weekends are evaluated in the exchange timezone, not the UTC weekday
+ok 3 - weekends are evaluated in the exchange timezone, not the UTC weekday
+  ---
+  duration_ms: 0.8189
+  type: 'test'
+  ...
+# Subtest: Istanbul BIST boundaries remain 10:00–18:00 in both winter and summer
+ok 4 - Istanbul BIST boundaries remain 10:00–18:00 in both winter and summer
+  ---
+  duration_ms: 1.7565
+  type: 'test'
+  ...
+# Subtest: normal session labels disclose unverified holidays instead of claiming an official open status
+ok 5 - normal session labels disclose unverified holidays instead of claiming an official open status
+  ---
+  duration_ms: 0.9391
+  type: 'test'
+  ...
+# Subtest: crypto continuous trading hours never claim a live price feed
+ok 6 - crypto continuous trading hours never claim a live price feed
+  ---
+  duration_ms: 0.6487
+  type: 'test'
+  ...
+# Subtest: an error-only market is unavailable in both status surfaces despite array length and cached metadata
+ok 7 - an error-only market is unavailable in both status surfaces despite array length and cached metadata
+  ---
+  duration_ms: 1.776
+  type: 'test'
+  ...
+# Subtest: zero, nonfinite, negative and nonnumeric price records cannot establish a market quote
+ok 8 - zero, nonfinite, negative and nonnumeric price records cannot establish a market quote
+  ---
+  duration_ms: 0.9418
+  type: 'test'
+  ...
+# Subtest: explicit provider error markers cannot supply quote evidence through a positive cached price
+ok 9 - explicit provider error markers cannot supply quote evidence through a positive cached price
+  ---
+  duration_ms: 6.8743
+  type: 'test'
+  ...
+# Subtest: a stale historical price remains dated without claiming a live source
+ok 10 - a stale historical price remains dated without claiming a live source
+  ---
+  duration_ms: 1.327
+  type: 'test'
+  ...
+# Subtest: a genuine positive quoted price retains its quote timestamp separately from the data snapshot
+ok 11 - a genuine positive quoted price retains its quote timestamp separately from the data snapshot
+  ---
+  duration_ms: 0.9857
+  type: 'test'
+  ...
+# Subtest: a positive price without quote evidence cannot borrow generatedAt or marketAsOf as a quote time
+ok 12 - a positive price without quote evidence cannot borrow generatedAt or marketAsOf as a quote time
+  ---
+  duration_ms: 1.0271
+  type: 'test'
+  ...
+# Subtest: unrelated marketAsOf timestamps cannot override actual asset quote evidence
+ok 13 - unrelated marketAsOf timestamps cannot override actual asset quote evidence
+  ---
+  duration_ms: 0.916
+  type: 'test'
+  ...
+# Subtest: mixed quote ages show their range and missing timestamp coverage without a marketwide freshness claim
+ok 14 - mixed quote ages show their range and missing timestamp coverage without a marketwide freshness claim
+  ---
+  duration_ms: 0.7382
+  type: 'test'
+  ...
+# Subtest: date-only, timezone-less and invalid calendar timestamps remain unverified
+ok 15 - date-only, timezone-less and invalid calendar timestamps remain unverified
+  ---
+  duration_ms: 0.6593
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 51.7949
+Financial formatting preserves observed zero, rejects missing/non-finite data and separates OBV directions
+Research draft isolation: rejected live-response diagnostics preserve the production file and actual cutoff
+TAP version 13
+# Subtest: daily financial history filters open Yahoo bars while preserving live chart bars and explicit session proof
+ok 1 - daily financial history filters open Yahoo bars while preserving live chart bars and explicit session proof
+  ---
+  duration_ms: 20.9917
+  type: 'test'
+  ...
+# Subtest: old intraday Yahoo and Binance snapshots do not gain closed bars when calculation time advances
+ok 2 - old intraday Yahoo and Binance snapshots do not gain closed bars when calculation time advances
+  ---
+  duration_ms: 6.8286
+  type: 'test'
+  ...
+# Subtest: legacy charts with unknown currency, time basis or observation cut remain visible but cannot calibrate returns
+ok 3 - legacy charts with unknown currency, time basis or observation cut remain visible but cannot calibrate returns
+  ---
+  duration_ms: 1.7632
+  type: 'test'
+  ...
+# Subtest: return history needs verified closing prices but does not fabricate a requirement for missing OHLC observations
+ok 4 - return history needs verified closing prices but does not fabricate a requirement for missing OHLC observations
+  ---
+  duration_ms: 1.6114
+  type: 'test'
+  ...
+# Subtest: completed source dates use the IANA exchange-local date instead of the UTC date
+ok 5 - completed source dates use the IANA exchange-local date instead of the UTC date
+  ---
+  duration_ms: 0.6341
+  type: 'test'
+  ...
+# Subtest: a malformed explicit crypto close time never becomes inferred proof in the chart adapter
+ok 6 - a malformed explicit crypto close time never becomes inferred proof in the chart adapter
+  ---
+  duration_ms: 1.432
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 50.5273
+Live draft QA verifies frozen inputs, rejects altered/rejected reports and preserves real automation state without writes

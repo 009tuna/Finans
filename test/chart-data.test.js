@@ -36,10 +36,12 @@ assert.equal(yahooBars.currency, 'USD');
 assert.equal(yahooBars.bars.length, 2);
 assert.deepEqual(yahooBars.bars[0], {
   time: 1717372800,
+  sourceTime: 1717372800,
   open: 100,
   high: 104,
   low: 99,
   close: 103,
+  closeVerified: true,
   volume: 1000,
 });
 
@@ -54,7 +56,9 @@ const binanceBars = normalizeBinanceKlines([
 });
 
 assert.equal(binanceBars.source, 'binance');
-assert.equal(binanceBars.currency, 'USD');
+assert.equal(binanceBars.currency, 'USDT');
+assert.equal(binanceBars.technicalData.calendar.provider, 'binance');
+assert.equal(binanceBars.technicalData.calendar.timeZone, 'UTC');
 assert.equal(binanceBars.bars.length, 2);
 assert.equal(binanceBars.bars[0].time, 1717372800);
 assert.equal(binanceBars.bars[0].close, 67850.25);

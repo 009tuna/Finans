@@ -8,14 +8,28 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="/macro.css" />
+  <link rel="stylesheet" href="/workspace.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>" />
   <script src="vendor/chart.umd.min.js"></script>
   <script src="vendor/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
+  <script>
+    try {
+      if (localStorage.getItem('finans-design-version') !== 'air-1') {
+        localStorage.setItem('finans-theme', 'mist');
+        localStorage.setItem('finans-design-version', 'air-1');
+      }
+      document.documentElement.dataset.theme = localStorage.getItem('finans-theme') || 'mist';
+      document.documentElement.dataset.navCompact = localStorage.getItem('finans-nav-compact') === 'true' ? 'true' : 'false';
+    } catch (_) { document.documentElement.dataset.theme = 'mist'; }
+  </script>
+  <button id="navBackdrop" class="nav-backdrop" type="button" tabindex="-1" aria-label="Menüyü kapat"></button>
   <div class="app">
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="navigationPanel" aria-label="Ana menü">
+      <button id="navClose" class="nav-close" type="button" aria-label="Menüyü kapat">Kapat</button>
       <div class="brand">
         <span class="brand-logo">
           <svg class="logo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -32,8 +46,9 @@
           <span>Otomasyonu</span>
         </div>
       </div>
-      <nav class="nav">
-        <button class="navitem active" data-view="overview">
+      <nav class="nav" id="mainNavigation">
+        <div class="nav-sep">ÇALIŞMA ALANI</div>
+        <button class="navitem active" data-view="overview" aria-current="page">
           <span class="ni">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="3" class="ov-border" stroke-width="1.2" stroke-opacity="0.3" stroke-dasharray="2 2" />
@@ -46,6 +61,22 @@
           </span>
           Genel Bakış
         </button>
+        <button class="navitem" data-view="portfolio" data-nav-order="workspace">
+          <span class="ni">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="4" class="pf-safe-body" stroke-width="1.6" />
+              <circle cx="12" cy="12" r="6.5" class="pf-dial-outer" stroke-width="1" stroke-dasharray="1.5 1.5" stroke-opacity="0.6" />
+              <circle cx="12" cy="12" r="4" class="pf-dial" stroke-width="1.6" />
+              <line x1="12" y1="4.5" x2="12" y2="6" class="pf-tick pf-tick-t" stroke-width="1.4" />
+              <line x1="12" y1="18" x2="12" y2="19.5" class="pf-tick pf-tick-b" stroke-width="1.4" />
+              <line x1="4.5" y1="12" x2="6" y2="12" class="pf-tick pf-tick-l" stroke-width="1.4" />
+              <line x1="18" y1="12" x2="19.5" y2="12" class="pf-tick pf-tick-r" stroke-width="1.4" />
+              <circle cx="12" cy="12" r="1" class="pf-lock-core" fill="currentColor" stroke="none" />
+            </svg>
+          </span>
+          Portföyüm
+        </button>
+        <div class="nav-sep">PİYASALAR</div>
         <button class="navitem" data-view="us">
           <span class="ni">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -88,22 +119,6 @@
           </span>
           Kripto
         </button>
-        <div class="nav-sep">PORTFÖY & ANALİZ</div>
-        <button class="navitem" data-view="portfolio">
-          <span class="ni">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="4" class="pf-safe-body" stroke-width="1.6" />
-              <circle cx="12" cy="12" r="6.5" class="pf-dial-outer" stroke-width="1" stroke-dasharray="1.5 1.5" stroke-opacity="0.6" />
-              <circle cx="12" cy="12" r="4" class="pf-dial" stroke-width="1.6" />
-              <line x1="12" y1="4.5" x2="12" y2="6" class="pf-tick pf-tick-t" stroke-width="1.4" />
-              <line x1="12" y1="18" x2="12" y2="19.5" class="pf-tick pf-tick-b" stroke-width="1.4" />
-              <line x1="4.5" y1="12" x2="6" y2="12" class="pf-tick pf-tick-l" stroke-width="1.4" />
-              <line x1="18" y1="12" x2="19.5" y2="12" class="pf-tick pf-tick-r" stroke-width="1.4" />
-              <circle cx="12" cy="12" r="1" class="pf-lock-core" fill="currentColor" stroke="none" />
-            </svg>
-          </span>
-          Portföyüm
-        </button>
         <button class="navitem" data-view="screener">
           <span class="ni">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -118,6 +133,7 @@
           </span>
           Teknik Tarayıcı
         </button>
+        <div class="nav-sep">ANALİZ</div>
         <button class="navitem" data-view="backtest">
           <span class="ni">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -146,7 +162,7 @@
           </span>
           Finansal Projeksiyon
         </button>
-        <div class="nav-sep">RAPORLAMA</div>
+        <div class="nav-sep">ARAŞTIRMA</div>
         <button class="navitem" data-view="report">
           <span class="ni">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -186,20 +202,30 @@
     <div class="main">
       <header class="topbar">
         <div class="topbar-left">
+          <button id="navToggle" class="mobile-menu-toggle" type="button" aria-label="Menüyü aç" aria-expanded="false" aria-controls="mainNavigation">Menü</button>
+          <button id="navCollapse" class="panel-control desktop-panel-control" type="button" aria-label="Sol menüyü daralt" aria-expanded="true" aria-controls="navigationPanel" title="Sol menüyü daralt">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16m7-11-3 3 3 3"/></svg>
+          </button>
+          <div class="page-heading">
           <h1 id="viewTitle">Genel Bakış</h1>
           <p id="viewSub" class="viewsub">Tüm pazarların özeti ve öne çıkan fırsatlar</p>
+          </div>
         </div>
-        <div class="topbar-right" style="display: flex; align-items: center; gap: 12px;">
+        <div class="topbar-right">
           <span id="updated" class="updated"><span class="fresh"><span class="dot"></span>Yükleniyor…</span></span>
           
           <!-- Tema Seçici -->
-          <div class="theme-selector" style="display: flex; gap: 6px; align-items: center; background: var(--bg-2); border: 1px solid var(--border); padding: 5px 8px; border-radius: 20px;">
-            <button class="theme-btn active" data-theme="carbon" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--text); background: #1a1e26; cursor: pointer; padding: 0;" title="Karbon Siyah"></button>
-            <button class="theme-btn" data-theme="silver" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid transparent; background: #e2e8f0; cursor: pointer; padding: 0;" title="Titanyum Gümüş"></button>
-            <button class="theme-btn" data-theme="amber" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid transparent; background: #d97706; cursor: pointer; padding: 0;" title="Retro Kehribar"></button>
-            <button class="theme-btn" data-theme="green" style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid transparent; background: #059669; cursor: pointer; padding: 0;" title="Matrix Yeşil"></button>
-          </div>
-
+          <details class="appearance-menu">
+            <summary class="theme-label">Görünüm</summary>
+            <div class="appearance-options" role="group" aria-label="Tema seçimi">
+              <button class="theme-btn active" data-theme="mist" type="button" aria-pressed="true" title="Açık zemin ve petrol vurgusu">Açık</button>
+              <button class="theme-btn" data-theme="carbon" type="button" aria-pressed="false" title="Karbon Siyah">Karbon</button>
+              <button class="theme-btn" data-theme="silver" type="button" aria-pressed="false" title="Titanyum Gümüş">Gümüş</button>
+              <button class="theme-btn" data-theme="amber" type="button" aria-pressed="false" title="Retro Kehribar">Kehribar</button>
+              <button class="theme-btn" data-theme="green" type="button" aria-pressed="false" title="Matrix Yeşil">Yeşil</button>
+            </div>
+          </details>
+          <button id="focusWorkspace" class="workspace-focus btn btn-secondary" type="button" aria-pressed="false" title="Yan panelleri daralt">Odaklan</button>
           <button id="refreshBtn" class="btn"><span class="btn-ic">↻</span> Yenile</button>
         </div>
       </header>
@@ -207,71 +233,140 @@
       <main class="content" id="content">
         <!-- GENEL BAKIŞ -->
         <section class="view" id="view-overview">
-          <div id="overviewBriefing"></div>
-          <div id="execSummary"></div>
-          <div id="dailyDigest"></div>
-          <div id="overviewRoutes"></div>
-          <details class="overview-advanced reveal">
-            <summary><span>Detayli karar katmanlari</span><em>Kokpit, ogrenme, makro overlay ve teknik ekler</em></summary>
-            <div class="advanced-stack">
-              <div id="cfoDecisionCockpit"></div>
-          <div id="predictionScorecard"></div>
-          <div id="decisionLearningPanel"></div>
-          <div id="signalOverlayPanel"></div>
-          <div id="ideaFunnel"></div>
-          <div id="catalystCalendar"></div>
-          <div id="kpis" class="kpis"></div>
+          <div class="overview-workspace">
+            <div class="overview-task-toolbar overview-span-all">
+              <div class="overview-task-tabs" role="tablist" aria-label="Genel bakış çalışma alanı">
+                <button id="overview-tab-decisions" class="overview-task-tab" type="button" role="tab" aria-selected="true" aria-controls="overview-panel-decisions" tabindex="0" data-overview-tab="decisions">Piyasa adayları</button>
+                <button id="overview-tab-forecasts" class="overview-task-tab" type="button" role="tab" aria-selected="false" aria-controls="overview-panel-forecasts" tabindex="-1" data-overview-tab="forecasts">Açıklama beklentileri</button>
+                <button id="overview-tab-signals" class="overview-task-tab" type="button" role="tab" aria-selected="false" aria-controls="overview-panel-signals" tabindex="-1" data-overview-tab="signals">Sinyal değişimleri</button>
+              </div>
+            </div>
+            <div id="overviewWorkspaceStatus" class="workspace-status overview-span-all" role="status" aria-live="polite"></div>
+            <div id="overviewPortfolioSummary" class="overview-portfolio-summary overview-span-all"></div>
+            <section class="workspace-core" aria-label="Karar çalışma alanı">
+              <section id="overview-panel-decisions" class="overview-task-panel" role="tabpanel" aria-labelledby="overview-tab-decisions" tabindex="0">
+                <div id="cfoDecisionCockpit"></div>
+                <div id="signalOverlayPanel"></div>
+                <details class="decision-funnel-disclosure">
+                  <summary>Adayların araştırma ve izleme durumları</summary>
+                  <div id="ideaFunnel"></div>
+                </details>
+              </section>
+              <section id="overview-panel-forecasts" class="overview-task-panel macro-context" role="tabpanel" aria-labelledby="overview-tab-forecasts" tabindex="0" hidden>
+                <div id="morningExpectations"></div>
+                <div id="macroWorkspace" class="macro-workspace" role="status" aria-live="polite">Makro çalışma alanı yükleniyor…</div>
+              </section>
+              <section id="overview-panel-signals" class="overview-task-panel" role="tabpanel" aria-labelledby="overview-tab-signals" tabindex="0" hidden>
+                <div id="dailyDigest" class="workspace-signals"></div>
+              </section>
+            </section>
+            <aside class="overview-context" aria-label="Piyasa ve araştırma bağlamı">
+              <div class="overview-context-tabs" role="tablist" aria-label="Piyasa bağlamı bölümleri">
+                <button id="overview-context-tab-markets" type="button" role="tab" aria-selected="true" aria-controls="overview-context-panel-markets" tabindex="0" data-overview-context-tab="markets">Piyasalar</button>
+                <button id="overview-context-tab-news" type="button" role="tab" aria-selected="false" aria-controls="overview-context-panel-news" tabindex="-1" data-overview-context-tab="news">Haberler</button>
+                <button id="overview-context-tab-calendar" type="button" role="tab" aria-selected="false" aria-controls="overview-context-panel-calendar" tabindex="-1" data-overview-context-tab="calendar">Takvim</button>
+              </div>
+              <section id="overview-context-panel-markets" class="overview-context-panel" role="tabpanel" aria-labelledby="overview-context-tab-markets" tabindex="0">
+                <h2 id="overviewMarketTitle">Takip listelerinin durumu</h2>
+                <div id="kpis" class="kpis workspace-market-kpis"></div>
+                <details class="context-briefing-disclosure"><summary>Günlük piyasa yorumu</summary><div class="workspace-briefing" aria-label="Araştırma ve haber bağlamı"><div id="overviewBriefing"></div></div></details>
+              </section>
+              <section id="overview-context-panel-news" class="overview-context-panel market-news-overview-block" role="tabpanel" aria-labelledby="overview-context-tab-news" tabindex="0" hidden>
+                <h2 id="marketNewsOverviewTitle">Kaynaklı piyasa haberleri</h2>
+                <div id="marketNewsOverview" class="market-news-overview" role="region" aria-label="Kaynaklı piyasa haberleri">Haber akışı yükleniyor…</div>
+              </section>
+              <section id="overview-context-panel-calendar" class="overview-context-panel" role="tabpanel" aria-labelledby="overview-context-tab-calendar" tabindex="0" hidden>
+                <h2>Yaklaşan katalizörler</h2>
+                <div id="catalystCalendar"></div>
+              </section>
+            </aside>
+            <details class="overview-advanced overview-span-all" aria-labelledby="overviewPerformanceTitle">
+              <summary><span id="overviewPerformanceTitle">Sonuçlar ve ek analizler</span><em>Tahmin ölçümü, örnek portföy, piyasa rejimi ve dövizler</em></summary>
+              <div class="advanced-stack">
+              <div id="execSummary"></div>
+              <div id="predictionScorecard"></div>
+              <div id="decisionLearningPanel"></div>
           <div class="grid-2">
-            <div class="card reveal">
-              <div class="card-head"><h2>⭐ Bugün Öne Çıkanlar</h2><span class="card-sub">Tüm pazarlardan en yüksek puanlı fırsatlar</span></div>
+          <div class="card reveal">
+              <div class="card-head"><h2>Teknik puanda öne çıkanlar</h2><span class="card-sub">Puan sıralaması · araştırma adaylarından ayrı</span></div>
               <div id="topPicks" class="picks"></div>
             </div>
             <div class="card reveal">
-              <div class="card-head"><h2>🥧 Önerilen Dağılım</h2><span class="card-sub">Puana orantılı örnek ağırlık</span></div>
+              <div class="card-head"><h2>Model portföyü</h2><span class="card-sub">Gerçek portföyden ayrı, puana orantılı örnek ağırlık</span></div>
               <div class="chart-box"><canvas id="allocChart"></canvas></div>
             </div>
           </div>
           <div class="card reveal">
-            <div class="card-head"><h2>🧭 Piyasa Rejimi</h2><span class="card-sub">Hangi piyasada hangi strateji uygun · VIX / BTC-Nasdaq / BIST SMA200</span></div>
+            <div class="card-head"><h2>Piyasa rejimi</h2><span class="card-sub">Hangi piyasada hangi strateji uygun · VIX / BTC-Nasdaq / BIST SMA200</span></div>
             <div id="marketRegime" class="regime-grid"></div>
           </div>
           <div class="card reveal">
-            <div class="card-head"><h2>📊 En İyi Fırsatlar (tüm pazarlar)</h2><span class="card-sub">Bileşik teknik puana göre ilk 12</span></div>
+            <div class="card-head"><h2>Teknik puan karşılaştırması</h2><span class="card-sub">Bileşik teknik puana göre ilk 12</span></div>
             <div class="chart-box tall"><canvas id="moversChart"></canvas></div>
           </div>
           <!-- Döviz Kurları Widget -->
           <div class="card reveal">
-            <div class="card-head"><h2>💱 Döviz Kurları</h2><span class="card-sub">Yahoo Finance • Anlık</span></div>
+            <div class="card-head"><h2>Döviz kurları</h2><span class="card-sub">Yahoo Finance · son veri anı</span></div>
             <div id="fxWidget" class="fx-grid"></div>
           </div>
-            </div>
-          </details>
+              </div>
+            </details>
+          </div>
         </section>
 
         <!-- PAZAR GÖRÜNÜMÜ (us/bist/crypto) -->
         <section class="view" id="view-market" hidden>
-          <div id="marketStatus" class="mstatus reveal"></div>
-          <div class="card reveal trading-desk" id="assetDesk">
+          <header class="market-workspace-head reveal">
+            <div><span class="brief-kicker">Piyasa çalışma alanı</span><h2 id="marketWorkspaceTitle">Piyasa seçimi ve varlık detayı</h2></div>
+            <p id="marketStatusCopy" class="market-status-copy" role="status" aria-live="polite"></p>
+          </header>
+          <div class="market-workspace">
+            <div class="market-list-pane">
+              <div id="marketStatus" class="mstatus"></div>
+              <div class="market-toolbar">
+                <label class="market-toolbar-label" for="marketSearch">Ara
+                  <input id="marketSearch" type="search" autocomplete="off" placeholder="Sembol veya isim" />
+                </label>
+                <label class="sortlbl market-toolbar-label">Sırala:
+                  <select id="sortSel">
+                    <option value="score">Puan</option>
+                    <option value="changePct">Günlük %</option>
+                    <option value="rsi">RSI</option>
+                    <option value="name">İsim</option>
+                  </select>
+                </label>
+              </div>
+              <div class="card">
+                <div id="tableTimestamp" class="table-timestamp"></div>
+                <div id="tableWrap" class="table-wrap"></div>
+              </div>
+              <details id="errorsBox" class="card errors" hidden>
+                <summary>Kaynak durumları</summary><ul id="errorsList"></ul>
+              </details>
+            </div>
+            <div class="market-detail-pane">
+              <button id="assetReturnBtn" class="asset-return-btn" type="button">Listeye dön</button>
+              <div class="card trading-desk" id="assetDesk">
             <div class="desk-head">
               <div>
                 <h2 id="deskTitle">Varlık Grafiği</h2>
                 <span id="deskMeta" class="card-sub">Sembol seçildiğinde OHLCV grafiği yüklenir</span>
               </div>
-              <div class="desk-controls" style="display: flex; gap: 8px; align-items: center;">
+              <div class="desk-controls">
                 <div class="segmented" aria-label="Grafik tipi">
                   <button type="button" class="seg active" data-desk-mode="candles">Mum</button>
                   <button type="button" class="seg" data-desk-mode="line">Çizgi</button>
                 </div>
                 
-                <button type="button" class="btn" id="deskSmaToggleBtn" style="padding: 6px 10px; font-size: 11px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;" data-active="false">
+                <button type="button" class="btn" id="deskSmaToggleBtn" data-active="false">
                   SMA 20/50: <span id="deskSmaStatusText" style="font-weight:700; color:var(--muted);">KAPALI</span>
                 </button>
 
-                <button type="button" class="btn" id="deskRsiToggleBtn" style="padding: 6px 10px; font-size: 11px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;" data-active="false">
+                <button type="button" class="btn" id="deskRsiToggleBtn" data-active="false">
                   RSI: <span id="deskRsiStatusText" style="font-weight:700; color:var(--muted);">KAPALI</span>
                 </button>
 
-                <button type="button" class="btn" id="deskMacdToggleBtn" style="padding: 6px 10px; font-size: 11px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;" data-active="false">
+                <button type="button" class="btn" id="deskMacdToggleBtn" data-active="false">
                   MACD: <span id="deskMacdStatusText" style="font-weight:700; color:var(--muted);">KAPALI</span>
                 </button>
 
@@ -285,7 +380,7 @@
               <div id="assetChart" class="asset-chart"></div>
               
               <!-- Technical Indicators Overlay Panel -->
-              <div id="desk-indicators-panel" style="position: absolute; top: 12px; left: 12px; z-index: 10; background: oklch(14.5% 0.012 250 / 0.85); backdrop-filter: blur(4px); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-family: monospace; font-size: 11.5px; display: flex; flex-direction: column; gap: 4px; pointer-events: none; transition: opacity 150ms var(--ease-out); opacity: 0; min-width: 140px;">
+              <div id="desk-indicators-panel" class="desk-indicators-panel">
                 <div style="display:flex; justify-content:space-between; gap:16px;"><span>RSI (14):</span><b id="ind-rsi-val" style="color:var(--text);">–</b></div>
                 <div style="display:flex; justify-content:space-between; gap:16px;"><span>MACD:</span><b id="ind-macd-val" style="color:var(--text);">–</b></div>
                 <div style="display:flex; justify-content:space-between; gap:16px;"><span>SMA 20:</span><b id="ind-sma20-val" style="color:var(--text);">–</b></div>
@@ -294,27 +389,14 @@
             </div>
             
             <div id="assetChartNote" class="desk-note"></div>
-          </div>
-          <div class="card reveal">
+              </div>
+              <div id="selectedAssetDetail" class="selected-asset-detail"></div>
+              <div class="card">
             <div class="card-head"><h2 id="marketChartTitle">Yatırım Puanları</h2>
-              <label class="sortlbl">Sırala:
-                <select id="sortSel">
-                  <option value="score">Puan</option>
-                  <option value="changePct">Günlük %</option>
-                  <option value="rsi">RSI</option>
-                  <option value="name">İsim</option>
-                </select>
-              </label>
             </div>
             <div class="chart-box tall"><canvas id="scoreChart"></canvas></div>
-          </div>
-          <div class="card reveal">
-            <div id="tableTimestamp" class="table-timestamp" style="font-size: 11.5px; color: var(--muted); margin-bottom: 12px; font-family: monospace; display: flex; align-items: center; gap: 6px;"></div>
-            <div id="tableWrap" class="table-wrap"></div>
-          </div>
-          <div id="errorsBox" class="card errors reveal" hidden>
-            <h2>⚠️ Uyarılar</h2>
-            <ul id="errorsList"></ul>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -325,20 +407,33 @@
 
         <!-- PORTFÖYÜM -->
         <section class="view" id="view-portfolio" hidden>
+          <header class="portfolio-workspace-head reveal">
+            <div><span class="brief-kicker">Portföy çalışma alanı</span><h2>Pozisyonlar ve risk</h2><p class="portfolio-state-note">Değerler, son veri anlık görüntüsündeki fiyatlarla hesaplanır.</p></div>
+            <div class="portfolio-summary-actions"><button class="btn btn-secondary" type="button" onclick="setView('overview')">Çalışma alanına dön</button></div>
+          </header>
+          <div id="portfolioLoadState" class="ui-state" role="status" aria-live="polite"></div>
           <div class="kpis" id="portfolio-kpis"></div>
-          <div id="portfolioActions"></div>
-          <div id="portfolioRiskPlan"></div>
-          <div class="grid-2">
-            <div class="card reveal">
-              <div class="card-head">
-                <h2>🥧 Portföy Dağılımı</h2>
-                <span class="card-sub">Varlık sınıfları ve ağırlıkları</span>
-              </div>
-              <div class="chart-box"><canvas id="portAllocChart"></canvas></div>
+          <div class="grid-2 portfolio-primary-grid">
+          <div class="card reveal portfolio-holdings">
+            <div class="card-head">
+              <h2>Portföy varlıkları</h2>
+                <span class="card-sub">Kaynak fiyatıyla maliyet karşılaştırması</span>
             </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sembol</th><th>Adet</th><th>Maliyet</th><th>Fiyat</th><th>Değer</th><th>Kâr / Zarar</th><th data-weight-head="true">Ağırlık</th><th>Teknik Puan</th><th>Öneri</th><th>Aktif Uyarılar</th><th>İşlem</th>
+                  </tr>
+                </thead>
+                <tbody id="portfolio-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+
             <div class="card reveal">
               <div class="card-head">
-                <h2>➕ Yeni Varlık Ekle / Düzenle</h2>
+                <h2>Yeni varlık ekle / düzenle</h2>
                 <span class="card-sub">Portföyünüze varlık ekleyin veya güncelleyin</span>
               </div>
               <form id="portfolio-form" class="port-form">
@@ -364,34 +459,22 @@
                     <input type="number" id="port-price-input" step="any" min="0.000001" placeholder="Birim fiyat" required />
                   </label>
                 </div>
-                <button type="submit" class="btn"><span class="btn-ic">✓</span> Portföye Ekle</button>
+                <button type="submit" class="btn"><span class="btn-ic">✓</span> Pozisyonu Kaydet</button>
+                <p id="portfolioStatus" class="field-status" role="status" aria-live="polite"></p>
               </form>
             </div>
           </div>
-          <div class="card reveal">
-            <div class="card-head">
-              <h2>💼 Portföy Varlıkları</h2>
-              <span class="card-sub">Maliyet ve anlık kâr/zarar durumu</span>
+          <div id="portfolioActions"></div>
+          <div id="portfolioRiskPlan"></div>
+          <div class="portfolio-allocation-section">
+            <div class="card reveal">
+              <div class="card-head">
+                <h2>Portföy dağılımı</h2>
+                <span class="card-sub">Varlık sınıfları ve ağırlıkları</span>
+              </div>
+              <div class="chart-box"><canvas id="portAllocChart"></canvas></div>
             </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Sembol</th>
-                    <th>Adet</th>
-                    <th>Maliyet</th>
-                    <th>Fiyat</th>
-                    <th>Değer</th>
-                    <th>Kâr / Zarar</th>
-                    <th>Teknik Puan</th>
-                    <th>Öneri</th>
-                    <th>Aktif Uyarılar</th>
-                    <th>İşlem</th>
-                  </tr>
-                </thead>
-                <tbody id="portfolio-table-body"></tbody>
-              </table>
-            </div>
+
           </div>
         </section>
 
@@ -400,35 +483,35 @@
           <div class="screener-grid reveal">
             <div class="screener-card">
               <div class="screener-card-head screener-green">
-                <h3>🟢 Dönüş Yakın (Aşırı Satım)</h3>
+                <h3>Dönüş yakın · Aşırı satım</h3>
                 <span class="screener-desc">RSI ≤ 35 veya Bollinger Alt Bandı altındakiler</span>
               </div>
               <ul class="screener-list" id="screen-oversold"></ul>
             </div>
             <div class="screener-card">
               <div class="screener-card-head screener-red">
-                <h3>🔴 Tepe Riski (Aşırı Alım)</h3>
+                <h3>Tepe riski · Aşırı alım</h3>
                 <span class="screener-desc">RSI ≥ 68 veya Bollinger Üst Bandı üstündekiler</span>
               </div>
               <ul class="screener-list" id="screen-overbought"></ul>
             </div>
             <div class="screener-card">
               <div class="screener-card-head screener-blue">
-                <h3>⚡ Hacimli Kırılımlar</h3>
+                <h3>Hacimli kırılımlar</h3>
                 <span class="screener-desc">Hacim Patlaması (≥1.5x) ve RSI > 50</span>
               </div>
               <ul class="screener-list" id="screen-volume"></ul>
             </div>
             <div class="screener-card">
               <div class="screener-card-head screener-yellow">
-                <h3>💀 Trend Kırılımı / Ayı</h3>
+                <h3>Trend kırılımı · Ayı</h3>
                 <span class="screener-desc">Death Cross veya Kısa Vadeli Düşüş Trendi</span>
               </div>
               <ul class="screener-list" id="screen-bearish"></ul>
             </div>
             <div class="screener-card flex-full">
               <div class="screener-card-head screener-violet">
-                <h3>⚠️ Sinyal Çelişkisi Olan Varlıklar</h3>
+                <h3>Sinyal çelişkisi olan varlıklar</h3>
                 <span class="screener-desc">Yüksek Puan Alıp Tepe/Hacim Sinyali Çelişenler</span>
               </div>
               <ul class="screener-list flex-row-list" id="screen-contradic"></ul>
@@ -440,18 +523,18 @@
         <section class="view" id="view-backtest" hidden>
           <div class="card reveal">
             <div class="card-head">
-              <h2>⚙️ Strateji Testi Parametreleri</h2>
-              <span class="card-sub">Geçmiş 1 yıllık (250 Gün) verilere göre strateji simülasyonu</span>
+              <h2>Strateji testi parametreleri</h2>
+              <span class="card-sub">İlk 50 gözlem ısınmaya ayrılır. Önceki kapanıştan üretilen sinyal, sonraki gözlemin kapanışında uygulanır.</span>
             </div>
             <form id="backtest-form" class="bt-form">
               <div class="form-row-3">
                 <label>Varlık Seçimi:
                   <select id="bt-asset-sel" required></select>
                 </label>
-                <label>Alış Yatırım Puanı Eşiği:
+                <label>Alım teknik puanı eşiği:
                   <input type="number" id="bt-buy-input" value="70" min="0" max="100" required />
                 </label>
-                <label>Satış Yatırım Puanı Eşiği:
+                <label>Çıkış teknik puanı eşiği:
                   <input type="number" id="bt-sell-input" value="45" min="0" max="100" required />
                 </label>
               </div>
@@ -474,14 +557,14 @@
             <div class="kpis" id="backtest-kpis"></div>
             <div class="card reveal">
               <div class="card-head">
-                <h2>📈 Getiri Eğrisi</h2>
+                <h2>Getiri eğrisi</h2>
                 <span class="card-sub">Strateji vs Basit Al-Tut Getirisi</span>
               </div>
-              <div class="chart-box tall"><canvas id="backtestChart"></canvas></div>
+              <div class="chart-box tall"><canvas id="backtestChart" role="img" aria-label="Geçmiş test grafiği. Henüz hesaplama yapılmadı."></canvas></div>
             </div>
             <div class="card reveal">
               <div class="card-head">
-                <h2>📜 Gerçekleşen İşlemler</h2>
+                <h2>Gerçekleşen işlemler</h2>
                 <span class="card-sub">Simülasyon süresince yapılan alım/satımlar</span>
               </div>
               <div class="table-wrap max-height-300">
@@ -491,8 +574,8 @@
                       <th>Gün</th>
                       <th>İşlem</th>
                       <th>Fiyat</th>
-                      <th>Kâr / Zarar %</th>
-                      <th>Gerekce</th>
+                      <th>Net getiri %</th>
+                      <th>Gerekçe</th>
                       <th>Bakiye</th>
                     </tr>
                   </thead>
@@ -507,96 +590,98 @@
         <section class="view" id="view-literacy" hidden>
           <div class="editorial-container reveal">
             <header class="editorial-header">
-              <h2>📚 Finansal Okuryazarlık &amp; Risk Yönetimi</h2>
-              <p class="editorial-lead">Yatırım kararlarınızı rasyonel temellere oturtmak ve portföy riskini yönetmek için analitik rehber.</p>
+              <h2>Finansal okuryazarlık &amp; risk yönetimi</h2>
+              <p class="editorial-lead">Göstergeleri okumak, işlem riskini hesaplamak ve haberleri beklentilerle karşılaştırmak için kısa rehber.</p>
             </header>
 
             <div class="editorial-content">
               <article class="editorial-section">
-                <h3>🔍 İndikatörler Ne Anlatır?</h3>
+                <h3>İndikatörler ne anlatır?</h3>
                 <div class="lit-grid">
                   <div class="lit">
                     <h4>RSI (Göreceli Güç)</h4>
-                    <p>0–100 arası momentum. <b>70 üstü</b> aşırı alım (geri çekilme riski), <b>30 altı</b> aşırı satım (tepki yükselişi olabilir). 50–70 sağlıklı yükseliş bölgesi. Tek başına değil trendle birlikte okuyun.</p>
+                    <p>Son fiyat değişimlerinin gücünü 0–100 arasında ölçer. <b>70 üstü / 30 altı</b> yaygın aşırı alım / satım eşikleridir. Güçlü trendde bu bölgelerde uzun süre kalabilir; eşik geçişi fiyatın döneceğini garanti etmez.</p>
                   </div>
                   <div class="lit">
                     <h4>MACD</h4>
-                    <p>İki ortalamanın farkı + sinyal çizgisi. <b>Histogram pozitif ve genişliyorsa</b> ivme güçleniyor; daralıyorsa zayıflıyor. Negatiften pozitife geçiş alım, tersi satış sinyali sayılır.</p>
+                    <p>İki hareketli ortalamanın farkını izler. Histogram, MACD ile sinyal çizgisinin farkıdır. Kesişimler momentum değişimine işaret edebilir; yatay piyasada yanıltıcı sinyaller oluşabilir.</p>
                   </div>
                   <div class="lit">
                     <h4>Hareketli Ortalamalar (SMA/EMA)</h4>
-                    <p>Fiyatın 20/50/200 günlük ortalaması. Fiyat ortalamaların <b>üstündeyse trend yukarı</b>. 50g'nin 200g'yi yukarı kesmesi "altın kesişim" (boğa), aşağı kesmesi "ölüm kesişimi" (ayı).</p>
+                    <p>Seçilen dönemdeki fiyatları yumuşatır; EMA son fiyatlara daha çok ağırlık verir. Fiyatın ortalamaya göre konumu geçmiş trendi özetler. Kesişimler gecikmeli göstergedir; gelecekteki yönü garanti etmez.</p>
                   </div>
                   <div class="lit">
                     <h4>Bollinger Bantları</h4>
-                    <p>20g ortalama ± 2 standart sapma. Fiyat <b>üst banda yapışırsa</b> aşırı gergin, alt banda değerse tepki potansiyeli. Bantların daralması büyük bir hareketin habercisi olabilir.</p>
+                    <p>Yaygın ayar, 20 dönemlik ortalama çevresinde ±2 standart sapmadır. <b>Banda temas tek başına alım veya satış sinyali değildir.</b> Daralma, ölçülen oynaklığın azaldığını gösterir; sonraki hareketin yönünü söylemez.</p>
                   </div>
                   <div class="lit">
                     <h4>ATR &amp; Volatilite</h4>
-                    <p>Ortalama Gerçek Aralık — fiyatın günlük ne kadar oynadığı. <b>Yüksek ATR = yüksek risk ve fırsat.</b> Pozisyon büyüklüğünü ve stop mesafesini buna göre ayarlayın.</p>
+                    <p>Seçilen dönemdeki fiyat aralıklarını ve boşlukları fiyatın para biriminde ölçer. <b>Fiyat yönünü göstermez.</b> Stop mesafesini değerlendirmek için bir girdi olabilir; 1,5 ATR gibi katsayılar örnek varsayımdır.</p>
                   </div>
                   <div class="lit">
                     <h4>Hacim &amp; OBV</h4>
-                    <p>Hareketi teyit eder. <b>Yükselişe artan hacim eşlik etmeli.</b> OBV (hacim akışı) yükseliyorsa alım baskısı, düşüyorsa satış baskısı. Hacimsiz yükseliş kırılgandır.</p>
+                    <p>OBV, kapanışın önceki döneme göre yönüne bağlı olarak hacmi toplar veya çıkarır. Fiyatla uyumu ya da ayrışması ek bir gözlemdir; gelecekteki fiyat hareketini tek başına belirlemez.</p>
                   </div>
                 </div>
               </article>
 
               <article class="editorial-section">
-                <h3>🛡️ Risk Yönetimi — En Önemli Kısım</h3>
+                <h3>Risk bütçesi ve pozisyon büyüklüğü</h3>
                 <ul class="lit-list">
-                  <li><b>Pozisyon büyüklüğü:</b> Tek bir varlığa sermayenizin küçük bir kısmını (örn. %2–5) koyun. Hiçbir tek işlem sizi batıramamalı.</li>
-                  <li><b>Stop-loss:</b> Her alımda "buraya düşerse çıkarım" seviyesini önceden belirleyin (örn. ATR'nin 1.5–2 katı altı). Zararı küçük tutmak, kârı büyütmekten önce gelir.</li>
-                  <li><b>Çeşitlendirme:</b> Farklı pazar ve sektörlere yayın (ABD + BIST + kripto, teknoloji + sanayi…). Korelasyonu düşük varlıklar riski azaltır.</li>
-                  <li><b>Risk/Ödül oranı:</b> Hedef kâr, göze aldığınız zararın en az 2 katı olsun. %50 isabetle bile kazanırsınız.</li>
-                  <li><b>Duygu yönetimi:</b> Korku ve hırs en büyük düşman. Planınıza sadık kalın; "kaçırma korkusuyla" (FOMO) tepe noktasından almayın.</li>
+                  <li><b>İki farklı oran:</b> Pozisyon ağırlığı, varlığa ayrılan tutarın portföye oranıdır. İşlem risk bütçesi, planlanan çıkış gerçekleşirse göze alınan kayıptır; pozisyon ağırlığıyla aynı değildir.</li>
+                  <li><b>Sayısal örnek:</b> 100.000 TL sermayede %1 risk bütçesi 1.000 TL'dir. 100 TL giriş ve 95 TL çıkış varsayımı, masraflar hariç 200 adet ve 20.000 TL pozisyon eder: %1 risk bütçesi, %20 pozisyon ağırlığı. Bunlar örnek sayılardır.</li>
+                  <li><b>Stop emri:</b> Stop fiyatından gerçekleşme garantisi vermez. Fiyat boşluğu veya düşük likiditede gerçekleşen zarar, planlanan risk bütçesini aşabilir.</li>
+                  <li><b>2R hedefi:</b> Hedef kazancın planlanan zararın iki katı olmasıdır. %50 isabet tek başına kâr garanti etmez; gerçekleşen ortalama kazanç ve kayıp, komisyon, alış-satış makası ve fiyat kayması birlikte değerlendirilir.</li>
+                  <li><b>Çeşitlendirme:</b> Farklı isimler aynı sektör veya piyasa riskini taşıyabilir. Geçmiş korelasyon gelecekte aynı kalmayabilir; çeşitlendirme piyasa düşüşünde zararı önleme garantisi vermez.</li>
                 </ul>
               </article>
 
               <article class="editorial-section">
-                <h3>🌍 Haberler &amp; Makro Piyasayı Nasıl Etkiler?</h3>
+                <h3>Haberleri beklentilerle karşılaştırın</h3>
+                <p>Bu rehberde <b>veri sürprizi</b>, açıklanan değerin açıklama öncesinde kaydedilmiş piyasa konsensüsünden farkıdır. Aynı ölçüm, dönem ve birimi karşılaştırın; konsensüs yoksa bu fark bilinmez.</p>
                 <div class="lit-grid">
                   <div class="lit">
-                    <h4>Faiz Kararları</h4>
-                    <p>Merkez bankaları (Fed, TCMB) faizi artırınca borçlanma pahalılaşır → hisseler ve kripto genelde baskılanır. Faiz indirimi tersine destekler.</p>
+                    <h4>Faiz kararları</h4>
+                    <p>Kararın beklenenden farkını ve sonraki faizlere ilişkin açıklamayı birlikte okuyun. Piyasa tepkisi büyüme görünümüne ve önceden fiyatlanan beklentilere bağlıdır; artış veya indirim tek başına yön kuralı değildir.</p>
                   </div>
                   <div class="lit">
-                    <h4>Enflasyon Verisi</h4>
-                    <p>Yüksek enflasyon → faiz artışı beklentisi → risk iştahı düşer. CPI/PPI açıklamaları piyasayı sert hareket ettirir.</p>
+                    <h4>Enflasyon verisi</h4>
+                    <p>Yüksek bir oran ile beklenti üzerindeki veri farklı şeylerdir. Aylık/yıllık ve manşet/çekirdek ölçümleri ayırın. Tepki, sürprizin büyüklüğüne, bileşenlerine ve para politikası beklentilerine göre değişebilir.</p>
                   </div>
                   <div class="lit">
-                    <h4>Şirket Bilançoları</h4>
-                    <p>Beklenti üstü kâr hisseyi uçurur, altı çakar. Bilanço dönemlerinde volatilite artar.</p>
+                    <h4>Şirket sonuçları</h4>
+                    <p>Kârı konsensüsle karşılaştırırken gelir, nakit akışı ve şirketin ileriye dönük beklentisini de okuyun. Beklenti üzerindeki kâr, hisse fiyatının mutlaka yükseleceği anlamına gelmez.</p>
                   </div>
                   <div class="lit">
-                    <h4>Jeopolitik &amp; Kur</h4>
-                    <p>Savaş, seçim, kur şokları (özellikle BIST için TL/USD) tüm teknik tabloyu bir günde değiştirebilir. Haber akışını takip edin.</p>
+                    <h4>Kur ve diğer gelişmeler</h4>
+                    <p>Haberin şirketin gelir, maliyet ve borcuna hangi kanaldan etki edebileceğini araştırın. TL cinsinden bir fiyat değişimi ile USD cinsinden yatırım sonucunu birbirine karıştırmayın.</p>
                   </div>
                 </div>
-                <p class="muted-note">Bu yüzden <b>Günlük Rapor</b> sekmesi her sabah güncel makro/haber durumunu okuyup takip listenize etkisini yorumlar.</p>
+                <p class="muted-note"><b>Günlük Rapor</b> bölümünde kaynak ve veri zamanını kontrol edin. Model yorumu, gerçekleşmiş sonuç veya fiyat yönü garantisi değildir.</p>
               </article>
 
               <article class="editorial-section">
-                <h3>⚠️ Sık Yapılan Hatalar</h3>
+                <h3>Sık yapılan hatalar</h3>
                 <ul class="lit-list">
-                  <li>Tek indikatöre güvenmek — sinyalleri birlikte okuyun (trend + momentum + hacim).</li>
-                  <li>Zarardaki pozisyonu "döner" diye tutmak; kazançlıyı erken satmak.</li>
-                  <li>Kaldıraçla kapasitenin üstünde risk almak.</li>
-                  <li>Araştırmadan, sadece sosyal medya tüyosuyla almak.</li>
-                  <li>Geçmiş getirinin geleceği garanti ettiğini sanmak.</li>
+                  <li>Tek göstergeyi veya teknik puanı kazanç olasılığı sanmak.</li>
+                  <li>Risk bütçesini, pozisyona ayrılan toplam tutarla karıştırmak.</li>
+                  <li>Fiyat, sermaye ve risk hesabında farklı para birimlerini birlikte kullanmak.</li>
+                  <li>Komisyonu, fiyat kaymasını ve kaldıraç etkisini hesaba katmamak.</li>
+                  <li>Geçmiş getiriyi ya da korelasyonu geleceğin garantisi saymak.</li>
                 </ul>
               </article>
 
               <!-- Pozisyon Büyüklüğü Hesaplayıcı -->
               <article class="editorial-section card reveal" style="margin-bottom: 24px; padding: 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-2);">
-                <h3>🛡️ Pozisyon Büyüklüğü &amp; Seviye Hesaplayıcı</h3>
-                <p class="card-sub" style="margin-bottom: 16px; color: var(--muted); font-size: 12px;">Sermayenize, risk yüzdenize ve varlığın oynaklığına (ATR) göre pozisyon büyüklüğü, stop-loss ve kâr al seviyelerini hesaplayın.</p>
+                <h3>Pozisyon büyüklüğü &amp; seviye hesaplayıcı</h3>
+                <p class="card-sub" style="margin-bottom: 16px; color: var(--muted); font-size: 12px;">Alış yönlü örnek hesap. Stop mesafesi 1,5 ATR, hedef mesafesi 3 ATR varsayılır; bu katsayılar öneri değildir. Teorik seviyeler, emir gerçekleşmesini veya kayıp sınırını garanti etmez.</p>
+                <p class="muted compact">Sermaye, giriş fiyatı ve ATR'yi aynı para biriminde girin. Örneğin TL sermaye ile USD fiyatı birlikte kullanmayın; bu araç kur dönüşümü yapmaz. Komisyon, alış-satış makası ve fiyat kayması bu örnek hesaba dahil değildir.</p>
                 <div class="port-form" style="display: flex; flex-direction: column; gap: 16px;">
-                  <div class="form-row-3" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 0;">
+                  <div class="position-calculator-grid" style="margin-bottom: 0;">
                     <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Sermaye (TL / USD):
                       <input type="number" id="calc-capital" value="100000" step="any" min="1" required class="btn" style="text-align:left; padding:8px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text);" />
                     </label>
-                    <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Risk Oranı (%):
+                    <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">İşlem risk bütçesi (%):
                       <input type="number" id="calc-risk-pct" value="2" step="0.1" min="0.1" max="100" required class="btn" style="text-align:left; padding:8px; background:var(--bg-2); border:1px solid var(--border); border-radius:6px; color:var(--text);" />
                     </label>
                     <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Giriş Fiyatı:
@@ -609,42 +694,50 @@
                   
                   <div class="kpis" style="margin-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
                     <div class="kpi" style="padding: 10px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;">
-                      <div class="label" style="font-size: 11px;">Giriş Seviyesi</div>
+                      <div class="label" style="font-size: 12px;">Giriş Seviyesi</div>
                       <div class="value" id="res-entry" style="font-size: 18px; font-weight:700;">–</div>
                     </div>
                     <div class="kpi" style="padding: 10px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;">
-                      <div class="label" style="font-size: 11px; color: var(--red);">Stop Loss (1.5 ATR)</div>
+                      <div class="label" style="font-size: 12px; color: var(--red);">Stop varsayımı (1,5 ATR)</div>
                       <div class="value" id="res-stop" style="font-size: 18px; font-weight:700; color: var(--red);">–</div>
                     </div>
                     <div class="kpi" style="padding: 10px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;">
-                      <div class="label" style="font-size: 11px; color: var(--green);">Kâr Al (3.0 ATR / 2R)</div>
+                      <div class="label" style="font-size: 12px; color: var(--green);">Hedef varsayımı (3 ATR / 2R)</div>
                       <div class="value" id="res-target" style="font-size: 18px; font-weight:700; color: var(--green);">–</div>
                     </div>
                     <div class="kpi" style="padding: 10px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;">
-                      <div class="label" style="font-size: 11px;">Göze Alınan Risk</div>
+                      <div class="label" style="font-size: 12px;">Risk bütçesi</div>
                       <div class="value" id="res-risk-amount" style="font-size: 18px; font-weight:700;">–</div>
                     </div>
                     <div class="kpi" style="padding: 10px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;">
-                      <div class="label" style="font-size: 11px; color: var(--accent);">Alınacak Adet</div>
+                      <div class="label" style="font-size: 12px; color: var(--accent);">Model adedi</div>
                       <div class="value" id="res-units" style="font-size: 18px; font-weight:700; color: var(--accent);">–</div>
                     </div>
                     <div class="kpi" style="padding: 10px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;">
-                      <div class="label" style="font-size: 11px;">Pozisyon Büyüklüğü</div>
+                      <div class="label" style="font-size: 12px;">Pozisyon Büyüklüğü</div>
                       <div class="value" id="res-pos-amount" style="font-size: 18px; font-weight:700;">–</div>
                     </div>
                   </div>
+                  <p id="position-calculator-state" class="muted compact" role="status" aria-live="polite"></p>
                 </div>
               </article>
 
               <!-- Günlük İpuçları Arşivi -->
               <article class="editorial-section card reveal" style="margin-top: 24px; padding: 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-2);">
-                <h3>📚 Günlük Analitik İpuçları Arşivi</h3>
-                <p class="card-sub" style="margin-bottom: 16px; color: var(--muted); font-size: 12px;">Sistem tarafından her gün paylaşılan finansal okuryazarlık ipuçlarının geçmiş kaydı.</p>
+                <h3>Günlük analitik ipuçları arşivi</h3>
+                <p class="card-sub" style="margin-bottom: 16px; color: var(--muted); font-size: 12px;">Kaydedilmiş öğrenme notları. Her notu kendi tarihi ve varsayımlarıyla okuyun.</p>
                 <div id="tipsArchiveList" style="display: flex; flex-direction: column; gap: 12px;">
                   <!-- Dinamik ipuçları buraya yüklenecek -->
                 </div>
               </article>
             </div>
+            <footer class="muted-note literacy-sources">
+              <details>
+                <summary>Kaynaklar ve ek okuma</summary>
+                <p>Risk ve piyasa yorumu: <a href="https://www.finra.org/investors/insights/stop-orders-factors-consider-during-volatile-markets" target="_blank" rel="noopener noreferrer">FINRA · stop emirleri</a> · <a href="https://www.sec.gov/investor/pubs/roadmap/risk.htm" target="_blank" rel="noopener noreferrer">SEC · çeşitlendirme</a> · <a href="https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated" target="_blank" rel="noopener noreferrer">SEC · maliyetler</a> · <a href="https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/economics-and-investment-markets" target="_blank" rel="noopener noreferrer">CFA · makro çerçeve</a> · <a href="https://rpc.cfainstitute.org/research/financial-analysts-journal/2016/analyst-forecasts-dont-ignore-the-tail" target="_blank" rel="noopener noreferrer">CFA · kâr sürprizi</a> · <a href="https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/asset-allocation-to-alternative-investments" target="_blank" rel="noopener noreferrer">CFA · korelasyon</a>.</p>
+                <p>Resmî gösterge dokümanları: <a href="https://www.tradingview.com/support/solutions/43000502338-relative-strength-index-rsi/" target="_blank" rel="noopener noreferrer">RSI</a> · <a href="https://www.tradingview.com/support/solutions/43000502344-moving-average-convergence-divergence-macd-indicator/" target="_blank" rel="noopener noreferrer">MACD</a> · <a href="https://www.tradingview.com/support/solutions/43000502589-moving-averages/" target="_blank" rel="noopener noreferrer">SMA / EMA</a> · <a href="https://www.bollingerbands.com/bollinger-band-rules" target="_blank" rel="noopener noreferrer">Bollinger</a> · <a href="https://www.tradingview.com/support/solutions/43000501823-average-true-range-atr/" target="_blank" rel="noopener noreferrer">ATR</a> · <a href="https://www.tradingview.com/support/solutions/43000502593-on-balance-volume-obv/" target="_blank" rel="noopener noreferrer">OBV</a>.</p>
+              </details>
+            </footer>
           </div>
         </section>
 
@@ -653,66 +746,66 @@
           <!-- Monte Carlo Simülasyonu -->
           <div class="card reveal">
             <div class="card-head">
-              <h2>🔮 Monte Carlo Portföy Simülasyonu</h2>
-              <span class="card-sub">Portföyünüzün tarihsel günlük getirileri, oynaklık ve korelasyonları temel alınarak olasılıksal gelecek projeksiyonu.</span>
+              <h2>Portföy senaryosu · USD</h2>
+              <span class="card-sub">Tarihsel getirilerle portföyünüzün olası yollarını sınayın. Tutarlar USD; BIST için kaynaklı kur zorunlu.</span>
             </div>
             <form id="mc-form" class="bt-form">
               <div class="form-row-3">
-                <label>Simülasyon Gün Sayısı:
+                <label>Süre · takvim günü:
                   <select id="mc-horizon-sel" required>
                     <option value="90">90 Gün (Kısa Vade)</option>
                     <option value="180">180 Gün (Orta Vade)</option>
                     <option value="365" selected>365 Gün (1 Yıl)</option>
                   </select>
                 </label>
-                <label>Aylık Ek Tasarruf (Nakit Ekleme):
-                  <input type="number" id="mc-saving-input" value="1000" min="0" step="any" placeholder="Aylık tasarruf tutarı" required />
+                <label>Aylık ek tasarruf (USD):
+                  <input type="number" id="mc-saving-input" value="1000" min="0" step="any" placeholder="USD tutarı; ekleme yoksa 0" required />
                 </label>
                 <div class="btn-wrap">
-                  <button type="submit" id="mc-run-btn" class="btn"><span class="btn-ic">🔮</span> Simülasyonu Başlat</button>
+                  <button type="submit" id="mc-run-btn" class="btn">Simülasyonu çalıştır</button>
                 </div>
               </div>
             </form>
+            <details class="calculation-assumptions"><summary>Model varsayımları</summary><p>365 adım bir takvim yılıdır. Tarihçede yalnız kapanışı doğrulanmış günlük gözlemler kullanılır; yeni kapanış olmayan günlere önceki gözlenen kapanış taşınır. Gelecekteki borsa tatilleri ayrı modellenmez.</p><p>USD/TRY kuru sabit tutulur; döviz oynaklığı simüle edilmez. USDT cinsinden kripto getirileri kullanılırsa USDT/USD değişimi de modellenmez. Aylık tasarruf yıl boyunca günlük eşit paylarla eklenir.</p><p>Kaynak kapanışlarının fiyat getirisi kullanılır. Temettü, şirket işlemleri, vergi ve işlem masrafı ayrı modellenmez. Sonuçlar gerçekleşme olasılığı kalibre edilmiş tahminler değildir.</p></details>
           </div>
 
           <div id="mc-results-container" hidden>
+            <details class="calculation-assumptions" id="mc-history-details" hidden><summary>Kullanılan kapanışlar ve kaynak kesiti</summary><div id="mc-history-proof"></div></details>
             <div class="kpis" id="mc-kpis">
               <div class="kpi">
                 <div class="label">Mevcut Değer</div>
                 <div class="value">$<span id="mc-kpi-init">0</span></div>
               </div>
               <div class="kpi">
-                <div class="label">Beklenen Değer (Medyan)</div>
+                <div class="label">Simülasyon medyanı</div>
                 <div class="value" style="color:var(--accent);">$<span id="mc-kpi-median">0</span></div>
               </div>
               <div class="kpi">
                 <div class="label">Kötümser Senaryo (%10)</div>
-                <div class="value" style="color:var(--red);">$<span id="mc-kpi-pessimistic">0</span><small>Aşırı olumsuz piyasa</small></div>
+                <div class="value" style="color:var(--red);">$<span id="mc-kpi-pessimistic">0</span><small>Simülasyon %10 yüzdeliği</small></div>
               </div>
               <div class="kpi">
                 <div class="label">İyimser Senaryo (%90)</div>
-                <div class="value" style="color:var(--green);">$<span id="mc-kpi-optimistic">0</span><small>Güçlü boğa dönemi</small></div>
+                <div class="value" style="color:var(--green);">$<span id="mc-kpi-optimistic">0</span><small>Simülasyon %90 yüzdeliği</small></div>
               </div>
               <div class="kpi">
-                <div class="label">Yıllık Projeksiyon</div>
+                <div class="label">Yıllıklandırılmış tarihsel getiri</div>
                 <div class="value"><span id="mc-kpi-ret">0</span>%<small>Volatilite: %<span id="mc-kpi-vol">0</span></small></div>
               </div>
             </div>
             <div class="card reveal">
               <div class="card-head">
-                <h2>📈 Getiri Eğrisi</h2>
-                <span class="card-sub">Pessimistik (%10 olasılık alt limit), Medyan (%50 beklenen), Optimistik (%90 üst limit)</span>
+                <h2>Getiri eğrisi</h2>
+                <span class="card-sub">Simülasyon yüzdelikleri: %10 / medyan / %90. Kalibre edilmiş tahmin güven aralığı değildir.</span>
               </div>
-              <div class="chart-box tall"><canvas id="mcChart"></canvas></div>
+              <div class="chart-box tall"><canvas id="mcChart" role="img" aria-label="Monte Carlo senaryo grafiği. Henüz hesaplama yapılmadı."></canvas></div>
             </div>
           </div>
 
           <!-- Stres Testleri -->
-          <div class="card reveal">
-            <div class="card-head">
-              <h2>⚡ Makro Stres Testi Senaryoları</h2>
-              <span class="card-sub">Güncel portföyünüzün makroekonomik şok senaryolarındaki olası değişimi (Anlık USD/TRY kuru baz alınır).</span>
-            </div>
+          <details class="card reveal forecast-secondary" id="forecast-stress-details">
+            <summary role="button" aria-expanded="false">Stres senaryoları <span>Sabit fiyat şoklarıyla riskinizi sınayın</span></summary>
+            <p class="card-sub" id="stress-source-state" role="status">Açtığınızda ekrandaki pozisyonlar ve kaynak fiyatlarıyla hesaplanır. Senaryoların gerçekleşme olasılığı tahmin edilmez.</p>
             <div class="table-wrap">
               <table>
                 <thead>
@@ -727,43 +820,40 @@
                   </tr>
                 </thead>
                 <tbody id="stress-table-body">
-                  <tr><td colspan="7" class="muted" style="text-align:center;padding:16px;">Portföy bilgileri yükleniyor...</td></tr>
+                  <tr><td colspan="7" class="muted" style="text-align:center;padding:16px;">Stres analizi henüz açılmadı.</td></tr>
                  </tbody>
               </table>
             </div>
-          </div>
+          </details>
 
           <!-- Portföy Korelasyon Matrisi -->
-          <div class="card reveal">
-            <div class="card-head">
-              <h2>📊 Varlık Korelasyon Matrisi (Heatmap)</h2>
-              <span class="card-sub">Portföyünüzdeki varlıkların 1 yıllık günlük getiri verileri arasındaki Pearson korelasyon katsayıları (-1.0 ile +1.0).</span>
-            </div>
+          <details class="card reveal forecast-secondary" id="forecast-correlation-details">
+            <summary role="button" aria-expanded="false">Varlıkların birlikte hareketi <span>Ortak tarihlerdeki yerel para getirileri</span></summary>
+            <p class="card-sub">Son bir yıllık tarihçenin ortak kapanışlarıyla fiyat getirisi korelasyonu. Eksik günlere fiyat eklenmez; temettü ve tarihsel kur getirisi modellenmez.</p>
             
-            <div id="correlation-info-panel" style="margin-bottom: 16px; padding: 10px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); font-size: 12.5px; display: flex; align-items: center; gap: 8px; transition: opacity 150ms var(--ease-out);">
-              <span class="btn-ic" style="font-size: 14px;">ℹ️</span>
-              <span id="correlation-info-text" style="color: var(--muted);">İlişkileri incelemek için hücrelerin üzerine gelin.</span>
+            <div id="correlation-info-panel" class="correlation-info" role="status" aria-live="polite">
+              <span id="correlation-info-text">Bir katsayı seçerek ilişkiyi inceleyin.</span>
             </div>
 
             <div class="table-wrap" style="overflow-x: auto; padding: 10px 0;">
               <div id="correlation-matrix-wrapper" style="min-width: 320px; max-width: 100%; width: 100%;">
                 <div id="correlation-loading" class="muted" style="text-align:center; padding:16px;">
-                  Varlık verileri yükleniyor...
+                  Korelasyon analizi henüz açılmadı.
                 </div>
-                <div id="correlation-heatmap-container" style="display:none; overflow-x: auto; display: flex; justify-content: center;">
+                <div id="correlation-heatmap-container" style="display:none; overflow-x:auto;">
                   <!-- Dinamik olarak tablo şeklinde çizilecek -->
                 </div>
               </div>
             </div>
-          </div>
+          </details>
 
           <!-- DCF Değerleme Modeli -->
           <div class="card reveal">
             <div class="card-head">
-              <h2>🧮 Etkileşimli Şirket Değerleme Suite'i</h2>
-              <span class="card-sub">DCF (indirgenmiş nakit akışı), Benjamin Graham Formülü veya Temettü İskonto Modeli (DDM) ile hisselerin adil değerini hesaplayın.</span>
+              <h2>Şirket değerlemesi</h2>
+              <span class="card-sub">DCF, Graham veya temettü modeliyle kendi varsayımlarınızı sınayın. Finansal tablo verisi bulunmadığında alanlar boş kalır.</span>
             </div>
-            <div class="form-row-3" style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; align-items: end;">
+            <div class="dcf-toolbar" style="margin-bottom: 20px;">
               <label>Hisse Seçimi:
                 <select id="dcf-asset-sel"></select>
               </label>
@@ -775,16 +865,18 @@
                 </select>
               </label>
               <div class="btn-wrap">
-                <button type="button" id="dcf-load-defaults-btn" class="btn" style="width: 100%;"><span class="btn-ic">⚡</span> Varsayılanları Yükle</button>
+                <button type="button" id="dcf-load-defaults-btn" class="btn" style="width: 100%;">Girdileri sıfırla</button>
               </div>
             </div>
-            <div class="grid-2">
+            <p id="valuation-data-state" class="muted" role="status" style="font-size:12.5px;line-height:1.6;margin:0 0 18px;">Piyasa fiyatı ve finansal girdilerin kaynak durumu hisse seçildiğinde görünür. Oranlar örnek varsayımlardır.</p>
+            <div class="valuation-grid">
               <!-- Girdiler (Sürgüler ve inputlar) -->
               <div class="card-2" style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
-                <h3 style="margin: 0 0 10px; font-size: 15px;" id="valuation-assumptions-title">Model Varsayımları</h3>
+                <button type="button" id="dcf-run-btn" class="btn">Değerlemeyi hesapla</button>
+                <h3 style="margin: 0 0 10px; font-size: 15px;" id="valuation-assumptions-title">Model varsayımları</h3>
                 
                 <!-- DCF Inputs Group -->
-                <div id="dcf-inputs-group" style="display: flex; flex-direction: column; gap: 14px;">
+                <div id="dcf-inputs-group" class="dcf-assumption-grid">
                   <div class="range-group">
                     <div class="range-lbl"><span>Gelir Büyüme Oranı (1-5 Yıl)</span><b id="lbl-growth-1-5">%10</b></div>
                     <input type="range" id="dcf-growth-1-5" min="-20" max="60" value="10" />
@@ -810,20 +902,20 @@
                     <input type="range" id="dcf-terminal-growth" min="0" max="6" step="0.1" value="2.5" />
                   </div>
 
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Vergi Oranı (%):
+                  <div class="dcf-form-row-2" style="display: grid; gap: 10px;">
+                    <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Vergi oranı (% · varsayım):
                       <input type="number" id="dcf-tax-rate" value="21" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
                     </label>
-                    <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Net Borç ($ / ₺):
-                      <input type="number" id="dcf-net-debt" value="0" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
+                    <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Net borç (hissenin para birimi):
+                      <input type="number" id="dcf-net-debt" step="any" placeholder="Kaynağınızdan girin; yoksa 0" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
                     </label>
                   </div>
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-                    <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Yıllık Gelir (TTM):
-                      <input type="number" id="dcf-revenue" value="100000000" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
+                  <div class="dcf-form-row-2" style="display: grid; gap: 10px; margin-top: 10px;">
+                    <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Yıllık gelir (TTM · hissenin para birimi):
+                      <input type="number" id="dcf-revenue" step="any" min="0" placeholder="Finansal tablodan girin" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
                     </label>
                     <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Hisse Adedi:
-                      <input type="number" id="dcf-shares" value="1000000" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
+                      <input type="number" id="dcf-shares" step="any" min="0" placeholder="Dolaşımdaki hisse adedi" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
                     </label>
                   </div>
                 </div>
@@ -831,13 +923,13 @@
                 <!-- Graham Inputs Group -->
                 <div id="graham-inputs-group" style="display: none; flex-direction: column; gap: 14px;">
                   <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Hisse Başına Kazanç (EPS - TTM):
-                    <input type="number" id="graham-eps" value="5.00" step="any" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
+                    <input type="number" id="graham-eps" step="any" min="0" placeholder="Kaynaklı TTM EPS veya varsayımınız" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
                   </label>
                   <div class="range-group">
                     <div class="range-lbl"><span>Beklenen Yıllık Büyüme Oranı (5-10 Yıl)</span><b id="lbl-graham-growth">%10</b></div>
                     <input type="range" id="graham-growth" min="-10" max="40" step="0.5" value="10" />
                   </div>
-                  <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">AAA Kurumsal Tahvil Faizi (Y - %):
+                  <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">AAA tahvil faizi (% · varsayım):
                     <input type="number" id="graham-aaa-yield" value="4.5" step="0.1" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
                   </label>
                 </div>
@@ -845,7 +937,7 @@
                 <!-- DDM Inputs Group -->
                 <div id="ddm-inputs-group" style="display: none; flex-direction: column; gap: 14px;">
                   <label style="font-size: 12px; color: var(--muted); display:flex; flex-direction:column; gap:4px;">Son Yıllık Temettü Ödemesi (D0):
-                    <input type="number" id="ddm-dividend" value="2.00" step="any" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
+                    <input type="number" id="ddm-dividend" step="any" min="0" placeholder="Hisse başına yıllık temettü" class="btn" style="text-align:left; padding:6px; background:var(--bg-2); border:1px solid var(--border);" />
                   </label>
                   <div class="range-group">
                     <div class="range-lbl"><span>Temettü Yıllık Büyüme Oranı (g)</span><b id="lbl-ddm-growth">%5</b></div>
@@ -860,44 +952,44 @@
               </div>
 
               <!-- Sonuçlar -->
-              <div class="card-2" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between; background: var(--bg-2); border-radius: 8px; border: 1px solid var(--border);">
+              <div class="card-2" id="valuation-result-panel" hidden style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between; background: var(--bg-2); border-radius: 8px; border: 1px solid var(--border);">
                 <div>
                   <h3 style="margin: 0 0 16px; font-size: 15px;">Değerleme Sonucu</h3>
                   <div style="text-align: center; padding: 20px 0;">
                     <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Hesaplanan Hisse Başı Adil Değer</div>
                     <div style="font-size: 40px; font-weight: 800; color: var(--accent); margin: 8px 0; display: inline-flex; justify-content: center; align-items: baseline; transition: transform 150ms var(--ease-spring);" id="dcf-fair-value-box">
                       <span id="dcf-currency-sym" style="font-size: 24px; margin-right: 4px; font-weight: 700;">$</span>
-                      <span id="dcf-fair-val-num">0</span>
+                      <span id="dcf-fair-val-num">–</span>
                     </div>
                     <div>
-                      <div id="dcf-margin-safety-badge" class="badge" style="font-size: 12px; padding: 6px 12px; border-radius: 20px; display: inline-block;">Güvenlik Marjı: %<span id="dcf-safety-num">0</span></div>
+                      <div id="dcf-margin-safety-badge" class="badge" style="font-size: 12px; padding: 6px 12px; border-radius: 20px; display: inline-block;">Hesaplama bekleniyor <span id="dcf-safety-num"></span></div>
                     </div>
                   </div>
                   
                   <div style="border-top: 1px solid var(--border); padding-top: 14px; display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
                     <div style="display:flex; justify-content:space-between;"><span>Güncel Fiyat:</span><b id="dcf-current-price">–</b></div>
-                    <div id="dcf-ev-detail-row" style="display:flex; justify-content:space-between;"><span>Kurumsal Değer (EV):</span><div><span id="dcf-ev-cur">$</span><b id="dcf-ev-val-num">0</b></div></div>
-                    <div id="dcf-eq-detail-row" style="display:flex; justify-content:space-between;"><span>Özsermaye Değeri:</span><div><span id="dcf-eq-cur">$</span><b id="dcf-eq-val-num">0</b></div></div>
-                    <div id="dcf-ttm-detail-row" style="display:flex; justify-content:space-between;"><span>Gelir (TTM):</span><div><span id="dcf-ttm-cur">$</span><b id="dcf-ttm-val-num">0</b></div></div>
+                    <div id="dcf-ev-detail-row" style="display:flex; justify-content:space-between;"><span>Kurumsal Değer (EV):</span><div><span id="dcf-ev-cur">$</span><b id="dcf-ev-val-num">–</b></div></div>
+                    <div id="dcf-eq-detail-row" style="display:flex; justify-content:space-between;"><span>Özsermaye Değeri:</span><div><span id="dcf-eq-cur">$</span><b id="dcf-eq-val-num">–</b></div></div>
+                    <div id="dcf-ttm-detail-row" style="display:flex; justify-content:space-between;"><span>Gelir (TTM):</span><div><span id="dcf-ttm-cur">$</span><b id="dcf-ttm-val-num">–</b></div></div>
                   </div>
                 </div>
-                <div style="font-size: 11px; color: var(--muted-2); margin-top: 14px; text-align: center; font-style: italic;">
+                <div style="font-size: 12px; color: var(--muted-2); margin-top: 14px; text-align: center; font-style: italic;">
                   Değerleme modeli varsayımlarınıza karşı son derece hassastır.
                 </div>
               </div>
             </div>
 
             <!-- Değerleme Hassasiyet (Sensitivity) Matrisi -->
-            <div id="valuation-sensitivity-container" style="margin-top: 24px; padding: 16px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px;">
-              <h3 style="margin: 0 0 4px; font-size: 14.5px;">📊 Değerleme Hassasiyet Matrisi</h3>
-              <p style="font-size: 11.5px; color: var(--muted); margin: 0 0 16px;">Girdi varyasyonlarına göre adil değer değişim tablosu. Hücre arka planları, güncel fiyata göre güvenlik marjını temsil eder.</p>
+            <div id="valuation-sensitivity-container" hidden style="margin-top: 24px; padding: 16px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px;">
+              <h3 style="margin: 0 0 4px; font-size: 14.5px;">Değerleme Hassasiyet Matrisi</h3>
+              <p style="font-size: 12px; color: var(--muted); margin: 0 0 16px;">Girdi varyasyonlarına göre adil değer değişim tablosu. Hücre arka planları, güncel fiyata göre güvenlik marjını temsil eder.</p>
               
-              <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px; font-size: 11px;">
+              <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px; font-size: 12px;">
                 <span style="color: var(--muted);">Renk İndeksi:</span>
-                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: rgba(5, 150, 105, 0.35);"></span> Güçlü Al (>%20)</span>
-                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: rgba(5, 150, 105, 0.18);"></span> Al (0 - %20)</span>
-                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: rgba(217, 119, 6, 0.22);"></span> Azalt (-20% - 0)</span>
-                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: rgba(220, 38, 38, 0.25);"></span> Sat (<-%20)</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: rgba(5, 150, 105, 0.35);"></span> Marj &gt;%20</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: rgba(5, 150, 105, 0.18);"></span> Marj %0–20</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: rgba(217, 119, 6, 0.22);"></span> Marj −%20–0</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: rgba(220, 38, 38, 0.25);"></span> Marj &lt;−%20</span>
               </div>
               
               <div class="table-wrap" style="overflow-x: auto;">
@@ -908,7 +1000,7 @@
             </div>
 
             <!-- DCF 10 Yıllık Projeksiyon Tablosu -->
-            <div id="dcf-table-container" style="margin-top: 24px;">
+            <div id="dcf-table-container" hidden style="margin-top: 24px;">
               <h3 style="margin: 0 0 10px; font-size: 14px;">10 Yıllık Projeksiyon Detayı</h3>
               <div class="table-wrap max-height-300">
                 <table>
@@ -936,9 +1028,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="insights.js"></script>
+  <script src="prediction-evidence.js"></script>
   <script src="action-layer.js"></script>
   <script src="report-integrity.js"></script>
   <script src="research.js"></script>
   <script src="app.js"></script>
+  <script src="/workspace.js"></script>
+  <script defer src="/macro.js"></script>
 </body>
 </html>

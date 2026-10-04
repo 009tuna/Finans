@@ -71,7 +71,8 @@ try {
   const latestData = {
     us: [{ symbol: 'AAPL', price: 160, currency: 'USD' }],
     bist: [{ symbol: 'THYAO', price: 220, currency: 'TRY' }],
-    crypto: [{ symbol: 'BTC', price: 62000, currency: 'USD' }]
+    crypto: [{ symbol: 'BTC', price: 62000, currency: 'USD' }],
+    fx: { rates: { 'USD/TRY': { price: 40, base: 'USD', quote: 'TRY', quoteTime: '2026-09-10T13:00:00Z' } } }
   };
 
   const stressResults = runStressTest(portfolio, latestData);

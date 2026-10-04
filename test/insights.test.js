@@ -71,6 +71,11 @@ console.log('   ✓ Başarılı: çelişki öne alındı, plansız durum yöneti
 console.log('3. explainDecision — veri yoksa null...');
 assert.equal(explainDecision(null), null);
 assert.equal(explainDecision({ analysis: { score: null } }), null);
+assert.equal(explainDecision({ analysis: { score: Infinity } }), null);
+assert.equal(explainDecision({ analysis: { score: 101 } }), null);
+assert.doesNotMatch(explainDecision({...buyAsset,ind:{regime:{type:'range',label:'Yatay'}}}).suitability,/sermaye eritir|mantıklı/);
+assert.match(explainDecision({...buyAsset,ind:{regime:{type:'trend',label:'Bilinmeyen'}}}).suitability,/yön bilgisi eksik/);
+assert.doesNotMatch(explainDecision({...buyAsset,decision:{activeSignal:{available:true,predictionId:'test',entry:100,stop:95,target:110}}}).plan,/undefined|NaN/);
 console.log('   ✓ Başarılı: skor yoksa null döndü.');
 
 // --- explainBacktest ---
@@ -85,9 +90,9 @@ const btRes = {
   ],
   trades: [
     { type: 'BUY', day: 1, price: 100 },
-    { type: 'SELL', day: 2, price: 110, pnlPct: 10 },
+    { type: 'SELL', day: 2, price: 110, pnlPct: 10, netPnlPct: 9.89 },
     { type: 'BUY', day: 3, price: 90 },
-    { type: 'SELL', day: 4, price: 130, pnlPct: 44 },
+    { type: 'SELL', day: 4, price: 130, pnlPct: 44, netPnlPct: 43.85 },
   ],
 };
 const bt = explainBacktest(btRes);
@@ -96,7 +101,8 @@ assert.equal(bt.winRate, 100);
 assert.equal(bt.closedTrades, 2);
 assert.equal(bt.beatBH, true);
 assert.equal(bt.headlineTone, 'pos');
-assert.ok(/Trend belirgin/.test(bt.worksWhen));
+assert.ok(/maliyetleri sonrasında pozitif/.test(bt.worksWhen));
+assert.doesNotMatch(bt.worksWhen, /Trend belirgin|erken çıkışlar|birkaç büyük işlem/);
 assert.ok(bt.breaksWhen.indexOf(String(bt.maxDrawdown)) !== -1, 'breaksWhen max düşüşü içermeli');
 console.log('   ✓ Başarılı: maxDD, isabet ve "çalışır/bozulur" anlatısı doğru.');
 
@@ -105,6 +111,16 @@ const btNone = { symbol: 'X', buyThreshold: 90, strategyReturn: 0, bhReturn: 5, 
 const bt2 = explainBacktest(btNone);
 assert.equal(bt2.headlineTone, 'warn');
 assert.ok(/hiç alım/i.test(bt2.worksWhen));
+assert.equal(bt2.winRate, null);
+const grossWinNetLoss = explainBacktest({ ...btRes, trades: [{type:'BUY'}, {type:'SELL',pnlPct:0.05,netPnlPct:-0.05}], strategyReturn:-0.05,bhReturn:0.05 });
+assert.equal(grossWinNetLoss.winRate, 0, 'fiyat artsa da maliyet sonrası kayıp kârlı işlem sayılamaz');
+assert.equal(grossWinNetLoss.best.netPnlPct, -0.05);
+const missingNet = explainBacktest({ ...btRes, trades: [{type:'BUY'}, {type:'SELL',pnlPct:10}], equityCurve:[],bhReturn:null });
+assert.equal(missingNet.winRate, null);
+assert.equal(missingNet.measuredClosedTrades, 0);
+assert.equal(missingNet.maxDrawdown, null);
+assert.equal(missingNet.beatBH, null);
+assert.equal(explainBacktest({...btRes,strategyReturn:20,bhReturn:20}).beatBH, false, 'eşit sonuç üstünlük sayılamaz');
 console.log('   ✓ Başarılı: alımsız senaryo uyarı olarak işaretlendi.');
 
 // --- buildExecutiveSummary ---
@@ -127,7 +143,9 @@ assert.ok(ex.actions.length >= 2 && ex.actions.length <= 4);
 const actionsText = ex.actions.join(' ');
 assert.ok(/BIST 200g/.test(actionsText), 'BIST nakit aksiyonu olmalı');
 assert.ok(/AAPL/.test(actionsText), 'en iyi fırsat aksiyonu olmalı');
-assert.ok(/negatif-toplaml/.test(actionsText), 'dürüstlük aksiyonu her zaman son sırada');
+assert.ok(/Teknik puan başarı olasılığı değildir/.test(actionsText), 'sınırları açıklayan aksiyon her zaman son sırada');
+assert.doesNotMatch(actionsText, /mean-reversion uygun|tepki fırsatı|negatif-toplamlı|En yüksek puanlı fırsat/);
+assert.equal(buildExecutiveSummary({us:[{analysis:{score:NaN}}]}),null);
 assert.equal(buildExecutiveSummary(null), null);
 console.log('   ✓ Başarılı: risk=' + ex.riskLevel.label + ', ' + ex.actions.length + ' aksiyon.');
 

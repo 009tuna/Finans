@@ -94,11 +94,9 @@ try {
 // 5. Korelasyon Matrisi Boş Portföy Testi
 try {
   console.log('5. Korelasyon Matrisi Boş/Tek Varlık Testi...');
-  calculateCorrelationMatrix({ assets: [] }).then(res => {
-    assert.deepStrictEqual(res.matrix, [], 'Hata: Boş portföy boş matris vermeli');
-    return calculateCorrelationMatrix({ assets: [{ symbol: 'AAPL', market: 'us' }] });
-  }).then(res => {
-    assert.deepStrictEqual(res.matrix, [[1.0]], 'Hata: Tek varlık [[1.0]] matris vermeli');
+  assert.rejects(() => calculateCorrelationMatrix({ assets: [] }), /en az 2/i).then(() => {
+    return assert.rejects(() => calculateCorrelationMatrix({ assets: [{ symbol: 'AAPL', market: 'us' }] }), /en az 2/i);
+  }).then(() => {
     console.log('   ✓ Başarılı: Korelasyon kenar durumları doğru yönetildi.');
   }).catch(e => {
     console.error('❌ Korelasyon Test Hatası:', e.message);

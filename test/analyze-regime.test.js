@@ -2,6 +2,7 @@
 'use strict';
 const assert = require('assert');
 const { scoreAsset } = require('../src/analyze');
+const { obv } = require('../src/indicators');
 
 console.log('🧪 Rejim-farkında skorlama testleri başlatılıyor...\n');
 
@@ -77,5 +78,38 @@ assert.equal(resNormalRisk.score - resTopRisk.score, 8, 'Top-risk asset score sh
 assert.ok(resTopRisk.reasons.some((r) => r.sentiment === 'neg' && r.text.includes('tepe riski düzeltmesi')), 'Top-risk reason should be attached');
 assert.ok(!resNormalRisk.reasons.some((r) => r.text.includes('tepe riski düzeltmesi')), 'Normal risk should not have the top-risk warning');
 console.log('   ✓ Top-risk adjustment decreases score by 8 points and attaches warning reason');
+
+// 7. Flat volume flow and an old false rising flag do not prove selling pressure.
+console.log('7. OBV artan / azalan / düz yönü ve eski veri belirsizliği...');
+const zeroFlow = obv([100, 101, 102], [0, 0, 0]);
+const flatFlow = obv([100, 101, 100], [1000, 1000, 1000]);
+const upFlow = obv([100, 101, 102], [1000, 1000, 1000]);
+const downFlow = obv([102, 101, 100], [1000, 1000, 1000]);
+assert.deepEqual(zeroFlow, { value: 0, rising: false, direction: 'flat' });
+assert.deepEqual(flatFlow, { value: 0, rising: false, direction: 'flat' });
+assert.deepEqual(upFlow, { value: 2000, rising: true, direction: 'up' });
+assert.deepEqual(downFlow, { value: -2000, rising: false, direction: 'down' });
+const scoredFlow = (flow) => scoreAsset(makeInd(50, 'trend', { obv: flow }), null, 'crypto');
+const flatScored = scoredFlow(flatFlow);
+const downScored = scoredFlow(downFlow);
+const upScored = scoredFlow(upFlow);
+const legacyScored = scoredFlow({ value: 0, rising: false });
+const flowReason = (scored) => scored.reasons.find((reason) => reason.text.startsWith('OBV '));
+assert.equal(flowReason(flatScored).sentiment, 'neutral');
+assert.ok(flowReason(flatScored).text.includes('yatay'));
+assert.ok(!flowReason(flatScored).text.includes('satış baskısı'));
+assert.equal(flowReason(downScored).sentiment, 'neg');
+assert.ok(flowReason(downScored).text.includes('düşüyor'));
+assert.equal(flowReason(upScored).sentiment, 'pos');
+assert.ok(flowReason(upScored).text.includes('yükseliyor'));
+assert.equal(flowReason(legacyScored).sentiment, 'neutral');
+assert.ok(flowReason(legacyScored).text.includes('yön bilgisi eksik'));
+assert.ok(!flowReason(legacyScored).text.includes('düşüyor'));
+// Only evidence and wording changed: the existing false-rising score branch remains.
+assert.deepEqual(flatScored.sub, downScored.sub);
+assert.equal(flatScored.score, downScored.score);
+assert.equal(legacyScored.score, downScored.score);
+assert.ok(upScored.sub.hacim > downScored.sub.hacim);
+console.log('   ✓ Düz/eksik yön satış baskısı değil; mevcut puanlama korunuyor.');
 
 console.log('\n🎉 Tüm rejim-farkında skorlama testleri geçti.');

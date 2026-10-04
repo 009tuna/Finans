@@ -87,7 +87,12 @@ function volumeScore(ind) {
   let sc = 0.5;
   if (ind.obv) {
     sc = ind.obv.rising ? 0.6 : 0.35;
-    reasons.push([ind.obv.rising ? 'pos' : 'neg', `OBV (hacim akışı) ${ind.obv.rising ? 'yükseliyor — alım baskısı' : 'düşüyor — satış baskısı'}`]);
+    const direction = ['up', 'down', 'flat'].includes(ind.obv.direction) ? ind.obv.direction : ind.obv.rising ? 'up' : null;
+    const obvReason = direction === 'up' ? ['pos', 'yükseliyor — alım baskısı']
+      : direction === 'down' ? ['neg', 'düşüyor — satış baskısı']
+      : direction === 'flat' ? ['neutral', 'yatay — karşılaştırma aralığında net değişim yok']
+      : ['neutral', 'yükseliş teyidi yok — yön bilgisi eksik'];
+    reasons.push([obvReason[0], `OBV (hacim akışı) ${obvReason[1]}`]);
   }
   if (ind.volSpike != null) {
     sc = clamp(sc + (ind.volSpike - 1) * 0.3, 0, 1);

@@ -1,8 +1,12 @@
 // Action layer: deterministic dashboard action surfaces for browser and Node tests.
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory();
-  else root.FinansActionLayer = factory();
-})(typeof self !== 'undefined' ? self : this, function () {
+  var evidence = root && root.FinansPredictionEvidence;
+  if (typeof module === 'object' && module.exports) {
+    try { evidence = require('./prediction-evidence'); } catch (_) { evidence = null; }
+  }
+  if (typeof module === 'object' && module.exports) module.exports = factory(evidence);
+  else root.FinansActionLayer = factory(evidence);
+})(typeof self !== 'undefined' ? self : this, function (predictionEvidence) {
   'use strict';
 
   function pct(v) {
@@ -30,15 +34,16 @@
 
   function scoreDelta(asset) {
     const c = asset && asset.decision && asset.decision.confidence;
-    if (c && typeof c.scoreDelta === 'number') return c.scoreDelta;
-    if (c && typeof c.previousScore === 'number' && asset.analysis && typeof asset.analysis.score === 'number') {
-      return asset.analysis.score - c.previousScore;
+    if (c && Number.isFinite(c.scoreDelta)) return c.scoreDelta;
+    if (c && Number.isFinite(c.previousScore) && asset.analysis && Number.isFinite(asset.analysis.score)) {
+      const delta = asset.analysis.score - c.previousScore;
+      return Number.isFinite(delta) ? delta : null;
     }
     return null;
   }
 
   function buildDailyChangeDigest(snapshot) {
-    const assets = allAssets(snapshot).map(function (x) {
+    const assets = allAssets(snapshot).filter(function (x) { return Number.isFinite(x.analysis.score); }).map(function (x) {
       return {
         market: x.market,
         symbol: x.symbol,
@@ -49,18 +54,24 @@
         changePct: x.changePct,
         delta: scoreDelta(x),
       };
-    }).filter(function (x) { return typeof x.delta === 'number' && x.delta !== 0; });
+    });
+    const comparisonCount = assets.filter(function (x) { return Number.isFinite(x.delta); }).length;
+    const unchangedCount = assets.filter(function (x) { return x.delta === 0; }).length;
+    const missingComparisonCount = assets.length - comparisonCount;
+    const changed = assets.filter(function (x) { return Number.isFinite(x.delta) && x.delta !== 0; });
 
-    const improving = assets.filter(function (x) { return x.delta > 0; }).sort(function (a, b) { return b.delta - a.delta; }).slice(0, 4);
-    const weakening = assets.filter(function (x) { return x.delta < 0; }).sort(function (a, b) { return a.delta - b.delta; }).slice(0, 4);
+    const improving = changed.filter(function (x) { return x.delta > 0; }).sort(function (a, b) { return b.delta - a.delta; }).slice(0, 4);
+    const weakening = changed.filter(function (x) { return x.delta < 0; }).sort(function (a, b) { return a.delta - b.delta; }).slice(0, 4);
     const leader = weakening[0] || improving[0] || null;
     const headline = leader
       ? (leader.delta < 0
-        ? leader.symbol + ' sinyali ' + Math.abs(leader.delta) + ' puan zayifladi; bugun once risk degisimlerini oku.'
-        : leader.symbol + ' sinyali +' + leader.delta + ' puan guclendi; teyit icin hacim ve rejimi kontrol et.')
-      : 'Skor degisimleri sakin; ana karar katmani mevcut sinyalleri izliyor.';
+        ? leader.symbol + ' sinyali önceki teknik kayda göre ' + Math.abs(leader.delta) + ' puan zayıfladı; risk değişimini inceleyin.'
+        : leader.symbol + ' sinyali önceki teknik kayda göre +' + leader.delta + ' puan güçlendi; hacim ve piyasa rejimini kontrol edin.')
+      : comparisonCount
+        ? 'Karşılaştırılabilen ' + comparisonCount + ' varlığın teknik puanı önceki kayda göre değişmedi.'
+        : 'Karşılaştırılabilir önceki teknik kayıt yok. Sinyal değişimi ölçülemedi.';
 
-    return { headline: headline, improving: improving, weakening: weakening };
+    return { headline: headline, improving: improving, weakening: weakening, comparisonCount: comparisonCount, unchangedCount: unchangedCount, changedCount: changed.length, missingComparisonCount: missingComparisonCount, totalCount: assets.length };
   }
 
   function findAsset(data, market, symbol) {
@@ -68,41 +79,133 @@
     return list.find(function (x) { return x.symbol === symbol || (market === 'crypto' && x.id === symbol); }) || null;
   }
 
-  function buildPortfolioActions(input) {
+  function portfolioSourceUnavailable(source) {
+    if (!source) return false;
+    const status = String(source.status || '').toLowerCase();
+    const freshness = source.freshness && String(source.freshness.status || '').toLowerCase();
+    return !!(source.__error || source.error || source.stale || source.isStale ||
+      ['stale', 'unavailable', 'error', 'failed', 'unknown'].indexOf(status) >= 0 ||
+      ['stale', 'unavailable', 'error', 'unknown'].indexOf(freshness) >= 0);
+  }
+
+  function buildPortfolioValuation(input) {
     const data = input && input.data;
     const portfolioData = input && input.portfolioData;
-    const usdtry = (input && input.usdtry) || (data && data.fx && data.fx.usdtry) || 1;
+    const markets = ['us', 'bist', 'crypto'];
+    const portfolioKnown = !!portfolioData && typeof portfolioData === 'object' && markets.some(function (market) { return Array.isArray(portfolioData[market]); });
+    const finite = function (value) { return typeof value === 'number' && Number.isFinite(value); };
+    const calculated = function (value) { return finite(value) ? value : null; };
+    const sum = function (values) {
+      if (values.some(function (value) { return value == null; })) return null;
+      return calculated(values.reduce(function (total, value) { return total + value; }, 0));
+    };
+    const fx = data && data.fx;
+    const pair = fx && fx.rates && fx.rates['USD/TRY'];
+    const quoteTime = pair && pair.quoteTime;
+    const datedFx = typeof quoteTime === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(quoteTime) && Number.isFinite(Date.parse(quoteTime));
+    // A bare number or caller override cannot replace a dated, identified FX quote.
+    const validFx = !!pair && finite(pair.price) && pair.price > 0 && pair.base === 'USD' && pair.quote === 'TRY' && datedFx && !portfolioSourceUnavailable(fx) && !portfolioSourceUnavailable(pair);
+    const fxRate = validFx ? pair.price : null;
+    const convert = function (value, from, to) {
+      if (value == null) return null;
+      if (from === to) return value;
+      if (fxRate == null) return null;
+      return calculated(to === 'USD' ? value / fxRate : value * fxRate);
+    };
     const rows = [];
-    const totals = { us: 0, bist: 0, crypto: 0, allUsd: 0 };
-
-    ['us', 'bist', 'crypto'].forEach(function (market) {
-      const holdings = (portfolioData && portfolioData[market]) || [];
-      holdings.forEach(function (h) {
-        const asset = findAsset(data, market, h.symbol);
-        if (!asset) return;
+    markets.forEach(function (market) {
+      const holdings = portfolioKnown && Array.isArray(portfolioData[market]) ? portfolioData[market] : [];
+      holdings.forEach(function (holding) {
+        const h = holding || {};
+        const list = data && Array.isArray(data[market]) ? data[market] : [];
+        const asset = list.find(function (item) { return item && (item.symbol === h.symbol || (market === 'crypto' && item.id === h.symbol)); }) || null;
         const currency = market === 'bist' ? 'TRY' : 'USD';
-        const valueLocal = (h.amount || 0) * (asset.price || 0);
-        const valueUsd = currency === 'TRY' ? valueLocal / usdtry : valueLocal;
-        const costLocal = (h.amount || 0) * (h.avgPrice || 0);
-        const pnlPct = costLocal > 0 ? ((valueLocal - costLocal) / costLocal) * 100 : 0;
-        totals[market] += valueUsd;
-        totals.allUsd += valueUsd;
+        const amount = finite(h.amount) && h.amount >= 0 ? h.amount : null;
+        const avgPrice = finite(h.avgPrice) && h.avgPrice >= 0 ? h.avgPrice : null;
+        const price = asset && finite(asset.price) && asset.price > 0 && !portfolioSourceUnavailable(asset) && !(asset.decision && portfolioSourceUnavailable({ freshness: asset.decision.freshness })) ? asset.price : null;
+        const value = amount != null && price != null ? calculated(amount * price) : null;
+        const cost = amount != null && avgPrice != null ? calculated(amount * avgPrice) : null;
+        const pnl = value != null && cost != null ? calculated(value - cost) : null;
         rows.push({
           market: market,
-          symbol: asset.symbol,
-          name: asset.name || asset.symbol,
-          valueUsd: valueUsd,
-          weightPct: 0,
-          pnlPct: pnlPct,
-          score: asset.analysis ? asset.analysis.score : null,
-          label: asset.analysis ? asset.analysis.label : null,
-          tone: asset.analysis ? asset.analysis.tone : null,
+          symbol: asset ? asset.symbol : h.symbol,
+          name: asset ? asset.name || asset.symbol : h.symbol,
+          currency: currency,
+          amount: amount,
+          avgPrice: avgPrice,
+          price: price,
+          value: value,
+          cost: cost,
+          pnl: pnl,
+          valueLocal: value,
+          costLocal: cost,
+          pnlLocal: pnl,
+          pnlPct: pnl != null && cost > 0 ? calculated(pnl / cost * 100) : null,
+          valueUsd: convert(value, currency, 'USD'),
+          valueTry: convert(value, currency, 'TRY'),
+          costUsd: convert(cost, currency, 'USD'),
+          costTry: convert(cost, currency, 'TRY'),
+          pnlUsd: convert(pnl, currency, 'USD'),
+          pnlTry: convert(pnl, currency, 'TRY'),
+          weightPct: null,
+          unpriced: value == null,
+          score: asset && asset.analysis && finite(asset.analysis.score) ? asset.analysis.score : null,
+          label: asset && asset.analysis ? asset.analysis.label : null,
+          tone: asset && asset.analysis ? asset.analysis.tone : null,
           asset: asset,
+          holding: holding,
         });
       });
     });
+    const localTotals = {};
+    ['USD', 'TRY'].forEach(function (currency) {
+      const localRows = rows.filter(function (row) { return row.currency === currency; });
+      localTotals[currency] = {
+        value: portfolioKnown ? sum(localRows.map(function (row) { return row.value; })) : null,
+        cost: portfolioKnown ? sum(localRows.map(function (row) { return row.cost; })) : null,
+        pnl: portfolioKnown ? sum(localRows.map(function (row) { return row.pnl; })) : null,
+      };
+    });
+    const total = function (property) { return portfolioKnown ? sum(rows.map(function (row) { return row[property]; })) : null; };
+    const totalsUsd = total('valueUsd');
+    const totalsTry = total('valueTry');
+    const currencies = ['USD', 'TRY'].filter(function (currency) { return rows.some(function (row) { return row.currency === currency; }); });
+    const missingPriceCount = rows.filter(function (row) { return row.unpriced; }).length;
+    const missingCostCount = rows.filter(function (row) { return row.cost == null; }).length;
+    const missingFx = rows.length > 0 && fxRate == null;
+    const weightCurrency = totalsUsd != null ? 'USD' : currencies.length === 1 && totalsTry != null ? 'TRY' : null;
+    const weightTotal = weightCurrency === 'USD' ? totalsUsd : weightCurrency === 'TRY' ? totalsTry : null;
+    const weightsAvailable = rows.length > 0 && missingPriceCount === 0 && weightTotal != null && weightTotal > 0;
+    if (weightsAvailable) rows.forEach(function (row) { row.weightPct = (weightCurrency === 'USD' ? row.valueUsd : row.valueTry) / weightTotal * 100; });
+    const marketWeights = { us: null, bist: null, crypto: null };
+    if (weightsAvailable) markets.forEach(function (market) { marketWeights[market] = sum(rows.filter(function (row) { return row.market === market; }).map(function (row) { return row.weightPct; })); });
+    const status = !portfolioKnown ? 'unavailable' : !rows.length ? 'empty' : missingPriceCount === rows.length ? 'unavailable' : missingPriceCount || missingCostCount || totalsUsd == null || totalsTry == null ? 'partial' : 'complete';
+    return {
+      rows: rows,
+      totalsUsd: totalsUsd,
+      totalsTry: totalsTry,
+      costUsd: total('costUsd'),
+      costTry: total('costTry'),
+      pnlUsd: total('pnlUsd'),
+      pnlTry: total('pnlTry'),
+      localTotals: localTotals,
+      fxRate: fxRate,
+      fxQuoteTime: validFx ? quoteTime : null,
+      missingFx: missingFx,
+      missingPriceCount: missingPriceCount,
+      missingCostCount: missingCostCount,
+      missingPortfolio: !portfolioKnown,
+      weightsAvailable: weightsAvailable,
+      weightCurrency: weightsAvailable ? weightCurrency : null,
+      marketWeights: marketWeights,
+      coverage: { totalCount: portfolioKnown ? rows.length : null, pricedCount: portfolioKnown ? rows.length - missingPriceCount : null, costedCount: portfolioKnown ? rows.length - missingCostCount : null, priceRatio: rows.length ? (rows.length - missingPriceCount) / rows.length : null },
+      status: status,
+    };
+  }
 
-    rows.forEach(function (r) { r.weightPct = totals.allUsd > 0 ? (r.valueUsd / totals.allUsd) * 100 : 0; });
+  function buildPortfolioActions(input) {
+    const valuation = buildPortfolioValuation(input);
+    const rows = valuation.rows;
 
     const actions = [];
     rows.forEach(function (r) {
@@ -111,46 +214,55 @@
           kind: 'reduce',
           symbol: r.symbol,
           tone: 'neg',
-          text: r.symbol + ': teknik skor ' + r.score + ' ve onerisi ' + r.label + '; pozisyonu azalt veya yeni ekleme yapma.',
+          text: r.symbol + ': teknik puan ' + r.score + ', etiket ' + r.label + '. Azaltma veya yeni eklemeyi durdurma planını incele.',
         });
       } else if (r.weightPct > 35) {
         actions.push({
           kind: 'trim',
           symbol: r.symbol,
           tone: 'warn',
-          text: r.symbol + ': portfoy agirligi %' + Math.round(r.weightPct) + '; tek varlik riski yuksek.',
+          text: r.symbol + ': ağırlığı %' + Math.round(r.weightPct) + '. Tek varlık için %35 sınırı aşılıyor.',
         });
-      } else if (r.score != null && r.score >= 60 && r.pnlPct < -5) {
+      } else if (r.score != null && r.score >= 60 && r.pnlPct != null && r.pnlPct < -5) {
         actions.push({
           kind: 'watch',
           symbol: r.symbol,
           tone: 'pos',
-          text: r.symbol + ': zarar var ama skor guclu; panik satis yerine stop/tez kontrolu yap.',
+          text: r.symbol + ': maliyete göre zarar %5 üstünde; teknik puan ' + r.score + '. Stop ve tez koşullarını kontrol et.',
         });
       }
     });
 
-    const cryptoWeight = totals.allUsd > 0 ? (totals.crypto / totals.allUsd) * 100 : 0;
+    const cryptoWeight = valuation.marketWeights.crypto;
     if (cryptoWeight > 50) {
       actions.unshift({
         kind: 'rebalance',
         symbol: null,
         tone: 'warn',
-        text: 'Kripto agirligi %' + Math.round(cryptoWeight) + '; portfoy soku dogrudan tek risk faktorune bagli.',
+        text: 'Kripto ağırlığı %' + Math.round(cryptoWeight) + '; %50 sınırı aşılıyor. Piyasa yoğunlaşmasını incele.',
       });
     }
 
-    if (!actions.length && rows.length) {
-      actions.push({ kind: 'hold', symbol: null, tone: 'pos', text: 'Portfoyde acil aksiyon yok; mevcut stop ve veri takibi yeterli.' });
+    const riskAvailable = valuation.weightsAvailable && valuation.totalsUsd != null;
+    if (!riskAvailable && (rows.length || valuation.missingPortfolio)) {
+      actions.unshift({ kind: 'data-gap', symbol: null, tone: 'warn', text: 'Portföyün tam risk hesabı yapılamadı; eksik fiyat veya kur kaynağını doğrula.' });
+    }
+    if (!actions.length && rows.length && riskAvailable) {
+      actions.push({ kind: 'hold', symbol: null, tone: 'pos', text: 'Mevcut yoğunlaşma ve teknik puan kurallarında ek uyarı yok. Stop ve tez koşullarını izle.' });
     }
 
     return {
-      totalUsd: totals.allUsd,
+      totalUsd: valuation.totalsUsd,
+      totalTry: valuation.totalsTry,
       cryptoWeightPct: cryptoWeight,
       rows: rows,
-      summary: rows.length
-        ? 'Portfoyde ' + rows.length + ' varlik var; kripto ağırlığı %' + Math.round(cryptoWeight) + '.'
-        : 'Portfoy bos; aksiyon uretmek icin en az bir varlik ekle.',
+      valuation: valuation,
+      riskAvailable: riskAvailable,
+      summary: !riskAvailable && (rows.length || valuation.missingPortfolio)
+        ? 'Portföyün tam risk hesabı yapılamadı; eksik fiyat veya kur verisi var.'
+        : rows.length
+          ? 'Portföyde ' + rows.length + ' varlık var; kripto ağırlığı %' + Math.round(cryptoWeight) + '.'
+          : 'Portföy boş; aksiyon üretmek için en az bir varlık ekle.',
       actions: actions.slice(0, 5),
     };
   }
@@ -168,18 +280,18 @@
     const trade = activeLongPlan(asset);
     const pos = firstReason(asset, 'pos');
     const neg = firstReason(asset, 'neg');
-    const verb = tone === 'strong-buy' || tone === 'buy' ? 'Alim tezi' : tone === 'hold' ? 'Bekle tezi' : 'Risk azaltma tezi';
-    const thesis = verb + ': ' + (asset.symbol || '') + ' icin ana dayanak ' + (pos || asset.analysis.summary || 'teknik skor') + '.';
+    const verb = tone === 'strong-buy' || tone === 'buy' ? 'Alım yönlü teknik taslak' : tone === 'hold' ? 'Bekle tezi' : 'Risk azaltma taslağı';
+    const thesis = verb + ': ' + (asset.symbol || '') + ' için ana dayanak ' + (pos || asset.analysis.summary || 'teknik skor') + '.';
     const invalidation = trade && trade.stop != null
-      ? 'Tez ' + money(trade.stop, asset.currency) + ' stop altinda bozulur; bu seviyenin altinda karar tekrar okunmali.'
-      : 'Aktif AL sinyali yok; yeni giris yerine skor/katalizor teyidi beklenmeli.';
+      ? 'Teknik planın stop seviyesi ' + money(trade.stop, asset.currency) + '; bu eşik ihlal edilirse görüş yeniden incelenmeli.'
+      : 'Aktif AL sinyali yok; giriş ve bozulma eşiği henüz tanımlı değil.';
     const catalysts = [];
     const news = reportBase && reportBase.calendar && reportBase.calendar.companyNews;
     (news || []).forEach(function (n) {
       if (n && n.symbol === asset.symbol && n.headline) catalysts.push(n.headline + (n.source ? ' - ' + n.source : ''));
     });
-    if (!catalysts.length && neg) catalysts.push('Negatif teyit: ' + neg + '.');
-    if (!catalysts.length) catalysts.push('Yaklasan ozel katalizor yok; fiyat/hacim teyidi izlenmeli.');
+    if (neg) catalysts.push('Karşı bulgu: ' + neg + '.');
+    if (!catalysts.length) catalysts.push('Bu veri kesitinde kaynaklı özel bir gündem kaydı yok.');
     return { thesis: thesis, invalidation: invalidation, catalysts: catalysts.slice(0, 3) };
   }
 
@@ -215,20 +327,20 @@
     const alerts = [];
     const trade = activeLongPlan(asset);
     if (trade && trade.stop != null) {
-      alerts.push({ tone: 'neg', trigger: asset.symbol + ' stop ' + money(trade.stop, asset.currency) + ' altina inerse', action: 'Tez bozuldu; pozisyonu azalt veya kapat.' });
+      alerts.push({ tone: 'neg', trigger: asset.symbol + ' stop ' + money(trade.stop, asset.currency) + ' altina inerse', action: 'Eşiğin ihlalini fiyat kaynağından doğrula; kayıtlı bozulma koşulunu ve pozisyon riskini yeniden incele.' });
     }
     const rsi = asset.ind && asset.ind.rsi;
     if (rsi != null) {
-      if (rsi <= 35) alerts.push({ tone: 'warn', trigger: 'RSI 30-35 bolgesinden yukari donerse', action: 'Tepki alimi icin hacim teyidi ara.' });
-      if (rsi >= 65) alerts.push({ tone: 'warn', trigger: 'RSI 65 ustunde kalir ve fiyat 52H tepesine yaklasirsa', action: 'Yeni girisi kovalamak yerine geri cekilme bekle.' });
+      if (rsi <= 35) alerts.push({ tone: 'warn', trigger: 'RSI 30-35 bolgesinden yukari donerse', action: 'Momentum değişimini fiyat ve hacimle birlikte incele; tek başına dönüş teyidi sayma.' });
+      if (rsi >= 65) alerts.push({ tone: 'warn', trigger: 'RSI 65 ustunde kalir ve fiyat 52H tepesine yaklasirsa', action: 'Tepeye uzaklığı ve mevcut hacmi kontrol et; giriş varsayımını yeniden incele.' });
     }
     const hist = asset.ind && asset.ind.macd && asset.ind.macd.histogram;
     if (hist != null && hist < 0) {
-      alerts.push({ tone: 'warn', trigger: 'MACD histogram pozitife donerse', action: 'Zayiflayan momentum tezi yeniden degerlendir.' });
+      alerts.push({ tone: 'warn', trigger: 'MACD histogram pozitife donerse', action: 'Momentum değişimini fiyat ve hacimle karşılaştır; teknik görüşü yeniden değerlendir.' });
     }
     const weightPct = context && context.weightPct;
     if (weightPct != null && weightPct > 30) {
-      alerts.push({ tone: 'neg', trigger: 'Portfoy agirligi %' + Math.round(weightPct) + ' uzerinde kalirsa', action: 'Tek varlik riskini azalt.' });
+      alerts.push({ tone: 'neg', trigger: 'Portfoy agirligi %' + Math.round(weightPct) + ' uzerinde kalirsa', action: 'Hesaplanan ağırlığı risk bütçen ve diğer pozisyonlarla karşılaştır; yoğunlaşma sınırını yeniden değerlendir.' });
     }
     return alerts.slice(0, 4);
   }
@@ -236,24 +348,34 @@
   function buildPredictionScorecard(journal) {
     const predictions = (journal && journal.predictions) || [];
     const closedItems = predictions.filter(function (x) { return x.outcome && x.outcome !== 'open'; });
-    const wins = closedItems.filter(function (x) { return x.outcome === 'target-hit' || x.outcome === 'expired-win'; }).length;
-    
-    let avgResultPct = 0;
-    if (closedItems.length > 0) {
-      let totalPct = 0;
-      closedItems.forEach(function (x) { totalPct += (x.resultPct || 0); });
-      avgResultPct = Math.round((totalPct / closedItems.length) * 10) / 10;
-    }
+    function knownWin(x) { return x.outcome === 'target-hit' || x.outcome === 'expired-win'; }
+    function knownLoss(x) { return x.outcome === 'stop-hit' || x.outcome === 'expired-loss'; }
+    const wins = closedItems.filter(function (x) { return x.outcomeEvidence !== 'ambiguous_bar' && knownWin(x); }).length;
+    const losses = closedItems.filter(function (x) { return x.outcomeEvidence !== 'ambiguous_bar' && knownLoss(x); }).length;
+    const ambiguous = closedItems.filter(function (x) { return x.outcomeEvidence === 'ambiguous_bar'; }).length;
+    const decisiveCount = wins + losses;
+    const resultValues = closedItems.filter(function (x) { return x.outcomeEvidence !== 'ambiguous_bar' && (knownWin(x) || knownLoss(x)); })
+      .map(function (x) { return x.resultPct; }).filter(function (x) { return typeof x === 'number' && isFinite(x); });
+    const avgResultPct = resultValues.length
+      ? Math.round((resultValues.reduce(function (sum, n) { return sum + n; }, 0) / resultValues.length) * 10) / 10
+      : null;
     
     function getSubScorecard(source) {
       const filtered = predictions.filter(function (x) { return (x.source || 'user') === source; });
       const closed = filtered.filter(function (x) { return x.outcome && x.outcome !== 'open'; });
-      const w = closed.filter(function (x) { return x.outcome === 'target-hit' || x.outcome === 'expired-win'; }).length;
+      const w = closed.filter(function (x) { return x.outcomeEvidence !== 'ambiguous_bar' && knownWin(x); }).length;
+      const l = closed.filter(function (x) { return x.outcomeEvidence !== 'ambiguous_bar' && knownLoss(x); }).length;
+      const ambiguousCount = closed.filter(function (x) { return x.outcomeEvidence === 'ambiguous_bar'; }).length;
+      const denominator = w + l;
       return {
         total: filtered.length,
         closed: closed.length,
         wins: w,
-        winRate: closed.length ? Math.round((w / closed.length) * 100) : 0,
+        losses: l,
+        decisive: denominator,
+        ambiguous: ambiguousCount,
+        unscored: closed.length - denominator - ambiguousCount,
+        winRate: denominator ? Math.round((w / denominator) * 100) : null,
       };
     }
 
@@ -267,6 +389,7 @@
         symbol: x.symbol,
         market: x.market,
         outcome: x.outcome,
+        outcomeEvidence: x.outcomeEvidence || null,
         resultPct: x.resultPct,
         resolvedAt: x.resolvedAt ? x.resolvedAt.slice(0, 10) : ''
       };
@@ -277,9 +400,13 @@
       open: predictions.length - closedItems.length,
       closed: closedItems.length,
       wins: wins,
-      losses: closedItems.length - wins,
-      winRate: closedItems.length ? Math.round((wins / closedItems.length) * 100) : 0,
+      losses: losses,
+      decisive: decisiveCount,
+      ambiguous: ambiguous,
+      unscored: closedItems.length - decisiveCount - ambiguous,
+      winRate: decisiveCount ? Math.round((wins / decisiveCount) * 100) : null,
       avgResultPct: avgResultPct,
+      resultSampleSize: resultValues.length,
       last5Closed: last5Closed,
       bySource: {
         system: getSubScorecard('system'),
@@ -288,36 +415,68 @@
     };
   }
 
-  function calculatePosition(capital, riskPct, price, atr) {
-    price = parseFloat(price);
-    atr = parseFloat(atr);
-    capital = parseFloat(capital) || 100000;
-    riskPct = parseFloat(riskPct) || 2;
-
-    if (isNaN(price) || isNaN(atr) || price <= 0 || atr <= 0) {
-      return { available: false, reason: 'Fiyat veya ATR geçersiz' };
+  // Cohorts are an additive metadata layer. The legacy scorecard above intentionally
+  // keeps its historical contract and arithmetic for old reports/tests.
+  function buildPredictionCohorts(journal, nowIso) {
+    if (!predictionEvidence || typeof predictionEvidence.group !== 'function') {
+      return { unavailable:true, groups:[], counts:{}, reasons:{classifier_unavailable:1} };
     }
+    const result = predictionEvidence.group((journal && journal.predictions) || [], nowIso);
+    result.groups.forEach(function (group) { group.scorecard = buildPredictionScorecard({predictions:group.items}); });
+    return result;
+  }
 
-    const digits = price >= 1000 ? 0 : price >= 1 ? 2 : 4;
+  function calculatePosition(capital, riskPct, price, atr) {
+    const positiveNumber = function (value) { return typeof value === 'number' && Number.isFinite(value) && value > 0; };
+    if (!positiveNumber(capital) || !positiveNumber(riskPct) || riskPct > 100 || !positiveNumber(price) || !positiveNumber(atr)) {
+      return { available: false, reason: 'Sermaye, fiyat ve ATR pozitif sayılar; risk oranı %0 üstü ve en fazla %100 olmalıdır' };
+    }
     const risk = atr * 1.5;
-    const entry = Math.round(price * 10 ** digits) / 10 ** digits;
-    const stop = Math.round((price - risk) * 10 ** digits) / 10 ** digits;
-    const target = Math.round((price + risk * 2) * 10 ** digits) / 10 ** digits;
-
+    if (!positiveNumber(risk) || !(price - risk > 0)) {
+      return { available: false, reason: 'ATR mesafesi pozitif bir stop üretmiyor; stop giriş fiyatının altında ve sıfırdan büyük olmalıdır' };
+    }
+    const digits = Math.min(12, Math.max(2, Math.ceil(-Math.log10(price)) + 2, Math.ceil(-Math.log10(risk)) + 2));
+    const entry = Number(price.toFixed(digits));
+    const stop = Number((price - risk).toFixed(digits));
+    const target = Number((price + risk * 2).toFixed(digits));
+    const riskPerUnit = entry - stop;
+    if (![entry, stop, target, riskPerUnit].every(positiveNumber) || stop >= entry || target <= entry) {
+      return { available: false, reason: 'Fiyat, stop veya ATR mesafesi desteklenen 12 ondalık basamakta geçerli ayrı seviyeler üretmiyor' };
+    }
     const riskAmount = capital * (riskPct / 100);
-    const rawUnits = risk > 0 ? riskAmount / risk : null;
-    const units = rawUnits == null ? null : rawUnits >= 1 ? Math.floor(rawUnits) : Math.round(rawUnits * 10000) / 10000;
-
-    const positionAmount = units != null ? Math.round((units * entry) * 100) / 100 : 0;
-
+    const maxUnitsByRisk = riskAmount / riskPerUnit;
+    const maxUnitsByCapital = capital / entry;
+    if (![riskAmount, maxUnitsByRisk, maxUnitsByCapital].every(positiveNumber)) {
+      return { available: false, reason: 'Risk bütçesi veya adet sayısal hesaplama sınırını aşıyor' };
+    }
+    const rawUnits = Math.min(maxUnitsByRisk, maxUnitsByCapital);
+    const quantityDecimals = rawUnits >= 1 ? 0 : 8;
+    const quantityScale = 10 ** quantityDecimals;
+    const constraints = {
+      quantityDecimals: quantityDecimals,
+      fractionalQuantity: quantityDecimals > 0,
+      maxUnitsByRisk: maxUnitsByRisk,
+      maxUnitsByCapital: maxUnitsByCapital,
+      riskPerUnit: riskPerUnit,
+      leverageAllowed: false
+    };
+    let units = Math.floor(rawUnits * quantityScale) / quantityScale;
+    // Kayan nokta çarpımı sınırı aşarsa bir temsil edilebilir adet adımı daha azalt.
+    for (let adjustment = 0; adjustment < 4 && (units * entry > capital || units * riskPerUnit > riskAmount); adjustment++) {
+      const step = Math.max(1 / quantityScale, units * Number.EPSILON * 2);
+      units = Math.max(0, Math.floor((units - step) * quantityScale) / quantityScale);
+    }
+    const positionAmount = units * entry;
+    const actualRiskAmount = units * riskPerUnit;
+    if (![units, positionAmount, actualRiskAmount].every(positiveNumber) || positionAmount > capital || actualRiskAmount > riskAmount) {
+      return { available: false, reason: 'Bütçe desteklenen en küçük 0,00000001 adedi karşılamıyor veya adet sınırı doğrulanamadı', constraints: constraints };
+    }
     return {
-      available: true,
-      entry: entry,
-      stop: stop,
-      target: target,
-      riskAmount: riskAmount,
-      units: units,
-      positionAmount: positionAmount
+      available: true, entry: entry, stop: stop, target: target,
+      riskAmount: riskAmount, actualRiskAmount: actualRiskAmount,
+      units: units, positionAmount: positionAmount,
+      capitalLimited: maxUnitsByCapital < maxUnitsByRisk,
+      priceDecimals: digits, constraints: constraints
     };
   }
 
@@ -378,18 +537,12 @@
   }
 
   function activeLearningRules(reportBase) {
-    const learning = reportBase && reportBase.decisionLearning;
-    const nowIso = (reportBase && reportBase.generatedAt) || new Date().toISOString();
-    return ((learning && learning.learningRules) || [])
-      .filter(function (rule) { return !isLearningRuleExpired(rule, nowIso); })
-      .sort(function (a, b) {
-        return learningRuleSpecificity(b) - learningRuleSpecificity(a) || (b.sampleSize || 0) - (a.sampleSize || 0);
-      });
+    // There is no validated rule activation workflow in this release.
+    return [];
   }
 
   function buildDecisionLearningPanel(reportBase) {
     const learning = reportBase && reportBase.decisionLearning;
-    const scorecard = reportBase && reportBase.scorecard;
     if (!learning) {
       return {
         empty: true,
@@ -412,27 +565,38 @@
         reason: rule.reason,
       };
     });
-    const system = scorecard && scorecard.bySource ? scorecard.bySource.system : null;
+    const modern = learning.evidenceVersion === 'technical-learning-v2';
+    const proposals = modern ? (learning.learningRules || []).filter(function (rule) {
+      return rule.activation === 'proposal_only' && rule.validationStatus === 'chronological_validation_required';
+    }).map(function(rule) { return Object.assign({}, rule, {scopeLabel:[marketName(rule.scope && rule.scope.market), rule.scope && rule.scope.label, rule.scope && rule.scope.scoreBucket].filter(Boolean).join(' / ')}); }) : [];
     return {
       empty: false,
-      summary: learning.systemAudits
-        ? 'Sistem ' + learning.systemAudits + ' kapanan karardan kalibrasyon dersi cikariyor.'
-        : 'Sistem tarafinda kapanan karar yok; ogrenme etkisi beklemede.',
+      summary: modern ? 'Örüntü önerileri ayrı bir ileri dönem örnekleminde doğrulanmadan puanı değiştirmez.' : 'Bu rapor eski öğrenme yöntemini kullanıyor. Çıkarımları arşiv bağlamıdır; etkin kural veya ölçülmüş başarı sayılmaz.',
       metrics: [
-        { label: 'Audit', value: learning.totalAudits || 0 },
-        { label: 'Sistem', value: learning.systemAudits || 0 },
-        { label: 'Kural', value: (learning.learningRules || []).length },
-        { label: 'Sistem isabet', value: system && system.closed ? system.winRate + '%' : '-' },
+        { label: 'İncelenen kayıt', value: learning.totalAudits || 0 },
+        { label: 'Ölçüme uygun sistem kaydı', value: modern ? learning.systemAudits || 0 : 'Doğrulanmadı' },
+        { label: 'Örüntü önerisi', value: proposals.length },
+        { label: 'Aktif kural', value: 0 },
       ],
-      lessons: (learning.recentLessons || []).slice(0, 4),
+      lessons: modern ? (learning.recentLessons || []).slice(0, 4) : [],
       rules: rules,
-      reviewQueue: (learning.reviewQueue || []).slice(0, 4),
+      reviewQueue: modern ? (learning.reviewQueue || []).slice(0, 4) : [],
+      activation: learning.activation || 'proposal_only',
+      validationStatus: learning.validationStatus || 'chronological_validation_required',
+      proposalRules: proposals.slice(0, 4),
+      archivedRules: modern ? [] : (learning.learningRules || []),
+      archivedLessons: modern ? learning.archivedLessons || [] : learning.recentLessons || [],
+      excludedCount: modern ? (learning.excludedAudits || []).length : learning.totalAudits || 0,
     };
   }
 
   function buildAssetLearningSnippet(asset, reportBase) {
     const learning = reportBase && reportBase.decisionLearning;
     if (!learning || !asset) return null;
+    if (learning.evidenceVersion !== 'technical-learning-v2') return {
+      kind:'archive', adjustment:0, sampleSize:null,
+      title:'Eski öğrenme raporu', detail:'Bu raporun çıkarımları sürüm ve ölçüm kanıtıyla doğrulanmadı; puanı değiştirmez.'
+    };
     const rules = activeLearningRules(reportBase)
       .filter(function (rule) { return learningRuleMatchesAsset(rule, asset); });
     const rule = rules[0] || null;
@@ -644,6 +808,63 @@
     });
   }
 
+  function cockpitSelectionReason(asset, status, trade) {
+    const analysis = asset.analysis || {};
+    const reasons = (Array.isArray(analysis.reasons) ? analysis.reasons : []).filter(function (reason) {
+      return reason && typeof reason.text === 'string' && reason.text.trim();
+    });
+    const preferred = status === 'blocked' ? 'neg' : status === 'watch' ? 'neutral' : 'pos';
+    const selected = reasons.find(function (reason) { return reason.sentiment === preferred; }) || (status === 'blocked' ? null : reasons[0]);
+    const counter = selected && selected.sentiment !== 'neg'
+      ? reasons.find(function (reason) { return reason.sentiment === 'neg'; })
+      : null;
+    const compact = function (text, limit) {
+      const clean = text.trim().replace(/\s+/g, ' ');
+      return clean.length > limit ? clean.slice(0, limit).replace(/\s+\S*$/, '') + '…' : clean;
+    };
+    let reason;
+    if (selected) {
+      reason = compact(selected.text, counter ? 130 : 220);
+      if (counter) reason += ' · Dikkat: ' + compact(counter.text, 100);
+    } else if (typeof analysis.summary === 'string' && analysis.summary.trim()) {
+      reason = compact(analysis.summary, 220);
+    } else {
+      reason = 'Teknik puan ' + analysis.score + '/100';
+      if (typeof analysis.label === 'string' && analysis.label.trim()) reason += '; ' + analysis.label.trim() + ' sinyali';
+      reason += '.';
+      if (trade) reason += ' Aktif işlem sinyali mevcut.';
+    }
+    const freshness = asset.decision && asset.decision.freshness;
+    const freshnessLabels = { fresh: 'Veri taze', delayed: 'Veri gecikmeli', stale: 'Veri eski', unknown: 'Veri zamanı doğrulanmadı' };
+    if (freshness && freshnessLabels[freshness.status]) reason += ' · ' + freshnessLabels[freshness.status];
+    return reason;
+  }
+
+  function cockpitNextAction(asset, status, trade, note, snapshot) {
+    const decision = asset.decision || {};
+    const freshness = decision.freshness || {};
+    if (freshness.status === 'stale' || freshness.status === 'delayed') return 'Önce fiyat verisini yenile; teknik sinyali yeniden kontrol et.';
+    if (freshness.status === 'unknown' || !snapshot || !snapshot.generatedAt) return 'Önce fiyatın zamanını doğrula; teknik sinyali yeniden kontrol et.';
+    if (decision.status === 'blocked') return 'Karar kontrolündeki uyarıları incele; yeni işlem için planı yeniden doğrula.';
+    if (status === 'blocked') return 'Yeni alım yerine sinyalin toparlanmasını izle; pozisyonun varsa çıkış koşullarını incele.';
+    if (status === 'ready') return 'Giriş, stop ve hedefi portföy risk limitlerinle birlikte kontrol et.';
+    const research = asset.market === 'crypto' ? 'Protokol, likidite ve arzı araştır' : 'Şirketi, kârı ve nakit akışını araştır';
+    if (status === 'watch') return research + '; teknik sinyali izlemeye devam et.';
+    if (!trade) return 'Aktif giriş/stop/hedef sinyalini bekle; ' + research.toLowerCase() + '.';
+    if (!note || !note.thesis || !note.invalidation) return research + '; tezini ve bozulma koşulunu tamamla.';
+    return research + '; eksik kanıtları tamamla.';
+  }
+
+  function cockpitSourceGate(asset) {
+    if (typeof asset.price !== 'number' || !Number.isFinite(asset.price) || asset.price <= 0 || portfolioSourceUnavailable(asset)) return 'Geçerli fiyat kaydı yok.';
+    const freshness = asset.decision && asset.decision.freshness;
+    const status = freshness && freshness.status;
+    if (status === 'stale') return 'Fiyat verisi eski.';
+    if (status === 'delayed') return 'Fiyat verisi gecikmeli.';
+    if (status !== 'fresh') return 'Fiyatın güncelliği doğrulanmadı.';
+    return null;
+  }
+
   function buildCfoDecisionCockpit(snapshot, journal, reportBase) {
     const rows = [];
     assetsByMarket(snapshot).forEach(function (asset) {
@@ -655,27 +876,32 @@
       const gaps = overlayGaps(overlay);
       const missing = [];
       if (!note || !note.thesis) missing.push('tez notu yok');
-      if (!note || !note.invalidation) missing.push('tez bozulma kosulu yok');
+      if (!note || !note.invalidation) missing.push('tez bozulma koşulu yok');
       gaps.forEach(function (g) {
         if (missing.indexOf(g) < 0) missing.push(g);
       });
-      if (!trade) missing.push('aktif giris/stop/hedef sinyali eksik');
-      if (!snapshot || !snapshot.generatedAt) missing.push('snapshot tarihi eksik');
+      if (!trade) missing.push('aktif giriş/stop/hedef sinyali eksik');
+      if (!snapshot || !snapshot.generatedAt) missing.push('veri tarihi eksik');
+      const sourceGate = cockpitSourceGate(asset);
+      const decisionBlocked = asset.decision && asset.decision.status === 'blocked';
+      const gatingReason = decisionBlocked ? 'Karar kontrolü işlemi engelliyor.' : sourceGate;
+      if (sourceGate) missing.unshift(sourceGate);
+      if (decisionBlocked) missing.unshift('Karar kontrolü işlemi engelliyor.');
 
       let status = 'watch';
-      if (score < 35 || tone === 'sell') status = 'blocked';
+      if (score < 35 || tone === 'sell' || decisionBlocked) status = 'blocked';
       else if (score >= 62 && !missing.length) status = 'ready';
       else if (score >= 60 || (overlay && overlay.totalAdjustment < 0)) status = 'gated';
 
-      const bindingReason = status === 'blocked'
-        ? (score < 35 ? 'teknik skor karar icin zayif' : 'satis tonu sermaye tahsisini bloke ediyor')
-        : missing[0] || 'sinyal izlenebilir, baglayici eksik yok';
+      const bindingReason = decisionBlocked ? 'Karar kontrolü işlemi engelliyor.' : status === 'blocked'
+        ? (score < 35 ? 'teknik skor karar için zayıf' : 'satış sinyali yeni pozisyona uygun değil')
+        : missing[0] || 'sinyal izlenebilir, bağlayıcı eksik yok';
       const decisionAsk = status === 'ready'
-        ? 'ekle / tut karari'
+        ? 'ekle / tut kararı'
         : status === 'gated'
-          ? 'kanit bekle / degerle'
+          ? 'kanıt bekle / değerle'
           : status === 'blocked'
-            ? 'uzak dur / cikis incele'
+            ? 'uzak dur / çıkışı incele'
             : 'izleme listesi';
 
       rows.push({
@@ -689,22 +915,28 @@
         status: status,
         decisionAsk: decisionAsk,
         bindingReason: bindingReason,
-        retainedExposure: status === 'ready' ? 'teknik ve tez bazli pozisyon risk limitleri icinde korunabilir' : 'kanit tamamlanana kadar sadece izleme pozisyonu korunur',
+        gatingReason: gatingReason,
+        selectionReason: cockpitSelectionReason(asset, status, trade),
+        evidenceGaps: missing.slice(),
+        nextAction: sourceGate && !(asset.decision && ['stale', 'delayed'].indexOf(asset.decision.freshness && asset.decision.freshness.status) >= 0) ? 'Önce fiyat ve zamanını doğrula; teknik sinyali yeniden kontrol et.' : cockpitNextAction(asset, status, trade, note, snapshot),
+        retainedExposure: status === 'ready' ? 'teknik ve tez bazlı pozisyon risk limitleri içinde korunabilir' : 'kanıt tamamlanana kadar sadece izleme pozisyonu korunur',
         missingEvidence: missing.slice(0, 4),
         nextWorkflow: status === 'ready'
-          ? 'risk butcesi -> komite notu'
+          ? 'risk bütçesi → karar notu'
           : status === 'gated'
-            ? 'sirket ozeti / benzerler / pozisyon boyutu'
+            ? (asset.market === 'crypto' ? 'protokol / likidite / arz / pozisyon boyutu' : 'şirket / kâr / nakit akışı / pozisyon boyutu')
             : status === 'blocked'
-              ? 'sermaye ayirmadan once sinyali onar'
-              : 'tez takipcisi',
+              ? 'sermaye ayırmadan önce sinyali onar'
+              : 'tez takibi',
         adjustedScore: overlay && overlay.adjustedScore != null ? overlay.adjustedScore : score,
       });
     });
 
-    const rank = { ready: 0, gated: 1, blocked: 2, watch: 3 };
+    const rank = { ready: 0, gated: 1, watch: 2, blocked: 3 };
     rows.sort(function (a, b) {
-      const r = (rank[a.status] || 9) - (rank[b.status] || 9);
+      const ar = Object.prototype.hasOwnProperty.call(rank, a.status) ? rank[a.status] : 9;
+      const br = Object.prototype.hasOwnProperty.call(rank, b.status) ? rank[b.status] : 9;
+      const r = ar - br;
       if (r !== 0) return r;
       return b.score - a.score;
     });
@@ -713,10 +945,30 @@
       acc[row.status] = (acc[row.status] || 0) + 1;
       return acc;
     }, {});
+    // Build market queues from the complete ranking before limiting the legacy list.
+    const marketGroups = ['us', 'bist', 'crypto'].map(function (market) {
+      const marketRows = rows.filter(function (row) { return row.market === market; });
+      const marketCounts = marketRows.reduce(function (acc, row) {
+        acc[row.status] += 1;
+        return acc;
+      }, { ready: 0, gated: 0, watch: 0, blocked: 0 });
+      return {
+        market: market,
+        marketLabel: marketName(market),
+        total: marketRows.length,
+        counts: marketCounts,
+        rows: marketRows.slice(0, 3),
+        empty: marketRows.length === 0,
+      };
+    });
     return {
-      summary: 'Finans direktoru kokpiti: ' + (counts.ready || 0) + ' hazir, ' + (counts.gated || 0) + ' kanita bagli, ' + (counts.blocked || 0) + ' bloke.',
+      summary: rows.length
+        ? (counts.ready || 0) + ' aday hazır, ' + (counts.gated || 0) + ' aday kanıt bekliyor, ' + (counts.watch || 0) + ' aday izleniyor, ' + (counts.blocked || 0) + ' aday işlem için uygun değil.'
+        : 'Karar oluşturmak için piyasa verisi bekleniyor.',
       counts: counts,
       rows: rows.slice(0, 8),
+      marketGroups: marketGroups,
+      empty: rows.length === 0,
     };
   }
 
@@ -734,36 +986,37 @@
         constraints.push({
           kind: 'single-name',
           label: row.symbol,
-          detail: row.symbol + ' portfoyun %' + Math.round(row.weightPct) + ' agirliginda.',
+          detail: row.symbol + ' portföyün %' + Math.round(row.weightPct) + ' ağırlığında.',
         });
       }
       if (row.score != null && row.score < 40) {
         constraints.push({
           kind: 'weak-holding',
           label: row.symbol,
-          detail: row.symbol + ' zayif teknik skora sahip: ' + row.score + '.',
+          detail: row.symbol + ' için teknik puan: ' + row.score + '; 40 puan eşiğinin altında.',
         });
       }
     });
     if (base.cryptoWeightPct > 50) {
       constraints.unshift({
         kind: 'single-market',
-        label: 'Kripto yogunlasmasi',
-        detail: 'Kripto portfoy degerinin %' + Math.round(base.cryptoWeightPct) + ' seviyesinde.',
+        label: 'Kripto yoğunlaşması',
+        detail: 'Kripto, portföy değerinin %' + Math.round(base.cryptoWeightPct) + ' seviyesinde.',
       });
     }
-    const status = constraints.some(function (x) { return x.kind === 'single-market' || x.kind === 'single-name'; })
+    const constraintStatus = constraints.some(function (x) { return x.kind === 'single-market' || x.kind === 'single-name'; })
       ? 'concentrated'
       : constraints.length ? 'watch' : 'balanced';
+    const status = base.valuation.status === 'empty' ? 'empty' : !base.riskAvailable ? 'incomplete' : constraintStatus;
     const targetAllocations = base.rows.map(function (row) {
-      let maxWeightPct = limits.maxSingleNamePct;
-      let action = 'hold';
-      let reason = 'pozisyon normal tek-varlik limiti icinde kalabilir';
+      let maxWeightPct = row.weightPct == null ? null : limits.maxSingleNamePct;
+      let action = row.weightPct == null ? 'unavailable' : 'hold';
+      let reason = row.weightPct == null ? 'Ağırlık hesaplanamadı; fiyat ve kur kaynağını doğrula.' : 'pozisyon normal tek-varlik limiti icinde kalabilir';
       if (row.score != null && row.score < limits.weakScoreThreshold) {
         maxWeightPct = 0;
         action = 'exit';
         reason = 'zayif teknik skor yeni sermayeyi bloke ediyor';
-      } else if (row.score != null && row.score < limits.reviewScoreThreshold) {
+      } else if (row.score != null && row.score < limits.reviewScoreThreshold && row.weightPct != null) {
         maxWeightPct = Math.min(row.weightPct, 10);
         action = row.weightPct > maxWeightPct ? 'trim' : 'watch';
         reason = 'skor inceleme esiginin altinda; agirligi kucuk tut';
@@ -775,8 +1028,8 @@
       return {
         market: row.market,
         symbol: row.symbol,
-        currentWeightPct: Math.round(row.weightPct * 10) / 10,
-        maxWeightPct: Math.round(maxWeightPct * 10) / 10,
+        currentWeightPct: row.weightPct == null ? null : Math.round(row.weightPct * 10) / 10,
+        maxWeightPct: maxWeightPct == null ? null : Math.round(maxWeightPct * 10) / 10,
         action: action,
         reason: reason,
       };
@@ -784,12 +1037,16 @@
     const binding = constraints[0] || null;
     return {
       status: status,
+      constraintStatus: base.riskAvailable ? constraintStatus : null,
+      riskAvailable: base.riskAvailable,
+      valuation: base.valuation,
       totalUsd: base.totalUsd,
+      totalTry: base.totalTry,
       riskBudget: {
         totalNavUsd: base.totalUsd,
         maxSingleNamePct: limits.maxSingleNamePct,
         maxCryptoPct: limits.maxCryptoPct,
-        bindingConstraint: binding ? binding.label + ': ' + binding.detail : 'Baglayici kisit yok.',
+        bindingConstraint: !base.riskAvailable && status !== 'empty' ? 'Tam risk hesabı yapılamadı; eksik fiyat veya kur kaynağı var.' : binding ? binding.label + ': ' + binding.detail : 'Mevcut kurallarda bağlayıcı kısıt yok.',
       },
       constraints: constraints,
       targetAllocations: targetAllocations,
@@ -798,10 +1055,10 @@
         return {
           symbol: a.symbol,
           trigger: a.text,
-          action: a.kind === 'reduce' || a.kind === 'trim' || a.kind === 'rebalance' ? 'agirligi azalt veya dengele' : 'mevcut esiklerle tut',
+          action: a.kind === 'data-gap' || a.kind === 'unavailable' ? 'Fiyat ve kur kaynağını doğrula; tam risk hesabını yeniden yap.' : a.kind === 'reduce' || a.kind === 'trim' || a.kind === 'rebalance' ? 'Ağırlığı azaltma veya dengeleme planını incele.' : 'Mevcut izleme eşiklerini kontrol et.',
         };
       }),
-      retainedExposure: status === 'balanced' ? 'Mevcut pozisyon normal tez esikleriyle izlenebilir.' : 'Sadece guncel tezle desteklenen pozisyonu koru ve once yogunlasma riskini azalt.',
+      retainedExposure: status === 'incomplete' ? 'Portföyün tam riski hesaplanamadı; yerel tutarlar ve mevcut teknik uyarılar ayrı gösteriliyor.' : status === 'empty' ? 'Kayıtlı pozisyon yok.' : status === 'balanced' ? 'Hesaplanan ağırlıklar mevcut sınırlar içinde. Bu kontrol stop ve tez incelemesini tamamlamaz.' : 'Aşağıdaki kısıtları pozisyon büyüklüğü, stop ve tez koşullarıyla birlikte incele.',
     };
   }
 
@@ -815,45 +1072,48 @@
       { label: 'RSI', value: asset.ind && asset.ind.rsi != null ? asset.ind.rsi : '-' },
       { label: 'ATR %', value: asset.ind && asset.ind.atrPct != null ? asset.ind.atrPct + '%' : '-' },
     ];
-    const thesis = note && note.thesis ? note.thesis : (asset.analysis && asset.analysis.summary) || 'Henuz tez notu yok.';
+    const thesis = note && note.thesis ? note.thesis : (asset.analysis && asset.analysis.summary) || 'Henüz tez notu yok.';
     const gaps = [];
-    if (!asset.fundamentals && !asset.fund) gaps.push('temel finansallar / tahmin verisi kaynaklanmamis');
-    if (!note || !note.invalidation) gaps.push('onayli tez bozulma esigi eksik');
-    if (!snapshot || !snapshot.generatedAt) gaps.push('snapshot zamani eksik');
+    if (asset.market === 'crypto') gaps.push('Protokol, likidite ve arz araştırması bu teknik veri paketinde yok.');
+    else if (!asset.fundamentals && !asset.fund) gaps.push('Kaynaklı temel finansallar ve finansal tahmin verisi eksik.');
+    if (!note || !note.invalidation) gaps.push('Kayıtlı tez bozulma koşulu eksik.');
+    if (!snapshot || !snapshot.generatedAt) gaps.push('Veri kesitinin zamanı eksik.');
     return {
       symbol: asset.symbol,
       market: asset.market,
       name: asset.name || asset.symbol,
-      bankerRead: asset.analysis && asset.analysis.score >= 60 ? 'tarama kalitesinde pozitif kurulum' : 'izleme kalitesinde kurulum',
+      bankerRead: asset.analysis && asset.analysis.score >= 60 ? 'Teknik görünüm olumlu' : 'Teknik görünüm izleniyor',
       thesis: thesis,
       metrics: metrics,
       gaps: gaps,
-      nextRoute: 'sirket ozeti -> benzerler gorunumu -> tez takipcisi',
+      nextRoute: 'Özet → teknik puan benzerleri → tez takibi',
     };
   }
 
   function buildCompsSnapshot(asset, snapshot) {
+    const validScore = function (value) { return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 100; };
+    const targetScore = asset && asset.analysis && validScore(asset.analysis.score) ? asset.analysis.score : null;
     const peers = assetsByMarket(snapshot)
-      .filter(function (x) { return x.market === asset.market && x.symbol !== asset.symbol; })
-      .sort(function (a, b) { return Math.abs(a.analysis.score - asset.analysis.score) - Math.abs(b.analysis.score - asset.analysis.score); })
+      .filter(function (x) { return targetScore != null && x.market === asset.market && x.symbol !== asset.symbol && x.analysis && validScore(x.analysis.score) && !x.__error; })
+      .sort(function (a, b) { return Math.abs(a.analysis.score - targetScore) - Math.abs(b.analysis.score - targetScore); })
       .slice(0, 5);
     const peerScores = peers.map(function (x) { return x.analysis.score; });
     const avgScore = peerScores.length ? Math.round(peerScores.reduce(function (a, b) { return a + b; }, 0) / peerScores.length) : null;
-    const diff = avgScore == null ? null : asset.analysis.score - avgScore;
+    const diff = avgScore == null ? null : targetScore - avgScore;
     return {
       target: {
         symbol: asset.symbol,
-        score: asset.analysis.score,
-        label: asset.analysis.label,
+        score: targetScore,
+        label: asset.analysis && asset.analysis.label,
       },
       peerSet: peers.map(function (x) {
         return { symbol: x.symbol, score: x.analysis.score, label: x.analysis.label, market: x.market };
       }),
       peerAverageScore: avgScore,
       readThrough: avgScore == null
-        ? 'Benzer sirket seti yok; degerleme baglami hazir degil.'
-        : 'Hedef skor benzer ortalamasina gore ' + (diff >= 0 ? '+' : '') + diff + ' puan; bunu degerleme tavsiyesi degil, benzer baglami olarak oku.',
-      limitations: ['gecici benzer baglami icin teknik skor kullanir', 'gercek carpan degerlemesi icin FD, FAVOK, gelir, SNA ve tahmin verisi gerekir'],
+        ? 'Aynı piyasada geçerli teknik puanla karşılaştırılabilecek kayıt yok.'
+        : 'Teknik puanı yakın ' + peers.length + ' varlığın ortalaması ' + avgScore + '/100; hedef bu ortalamadan ' + (diff >= 0 ? '+' : '') + diff + ' puan ayrılıyor.',
+      limitations: ['Benzerlik yalnız teknik puana göre seçildi; sektör veya iş modeli eşleşmesi yapılmadı.', asset.market === 'crypto' ? 'Protokol değeri, likidite ve arz karşılaştırması için ayrıca kaynaklı araştırma gerekir.' : 'Şirket değerlemesi için kaynaklı finansallar, sermaye yapısı ve aynı sektörden emsaller gerekir.'],
     };
   }
 
@@ -866,34 +1126,35 @@
     const gaps = []
       .concat(tear.gaps || [])
       .concat(overlayGaps(overlay));
-    if (!note || !note.thesis) gaps.unshift('onayli tez notu eksik');
-    if (!note || !note.invalidation) gaps.unshift('tez bozulma kosulu eksik');
-    if (!trade) gaps.unshift('aktif giris / stop / hedef sinyali eksik');
-    if (!snapshot || !snapshot.generatedAt) gaps.unshift('guncel snapshot zamani eksik');
+    const sourceGate = cockpitSourceGate(asset);
+    if (!note || !note.thesis) gaps.unshift('Kayıtlı tez notu eksik.');
+    if (!trade) gaps.unshift('Aktif giriş, stop ve hedef planı eksik.');
+    if (!snapshot || !snapshot.generatedAt) gaps.unshift('Veri kesitinin zamanı eksik.');
+    if (sourceGate) gaps.unshift(sourceGate);
 
     const score = asset && asset.analysis ? asset.analysis.score : null;
     let verdict = 'screen-grade';
-    if (score != null && score < 35) verdict = 'blocked';
+    if (sourceGate || (asset.decision && asset.decision.status === 'blocked') || score == null || !Number.isFinite(score) || score < 35 || score > 100) verdict = 'blocked';
     else if (!trade || !snapshot || !snapshot.generatedAt) verdict = 'blocked';
     else if (note && note.thesis && note.invalidation && score >= 60 && !overlayGaps(overlay).length) verdict = 'senior-review-ready';
 
     const decisionAsk = verdict === 'blocked'
-      ? 'Bloke eden madde onarilana kadar yeni sermaye ayirma.'
+      ? 'Önce fiyat kaydını ve aktif teknik planı doğrula.'
       : verdict === 'senior-review-ready'
-        ? 'Risk butcesini incele ve ekle, tut veya azalt kararini ver.'
-        : 'Bunu tarama kalitesinde not olarak kullan; sermaye ayirmadan once kanit bosluklarini kapat.';
+        ? 'Tez ve teknik plan kayıtlı. Pozisyon boyutunu risk bütçesiyle birlikte incele; temel araştırma eksikleri aşağıda.'
+        : 'Bu teknik tarama notunu ilerletmeden önce tez ve kanıt eksiklerini tamamla.';
 
     const whatWeBelieve = [
-      (asset.symbol || 'Varlik') + ' teknik skoru ' + (score == null ? '-' : score) + ' ve etiketi ' + ((asset.analysis && asset.analysis.label) || '-'),
-      'Guncel tez: ' + (note && note.thesis ? note.thesis : tear.thesis),
+      (asset.symbol || 'Varlık') + ' teknik skoru ' + (score == null ? '-' : score) + '/100; etiketi ' + ((asset.analysis && asset.analysis.label) || '-'),
+      (note && note.thesis ? 'Kayıtlı tez: ' + note.thesis : 'Teknik özet: ' + tear.thesis),
       comps.readThrough,
     ];
     const riskTransmission = [
-      note && note.invalidation ? 'Tez su kosulda bozulur: ' + note.invalidation : 'Bozulma kosulu yoksa asagi yonlu risk yonetilemez.',
-      trade ? 'Aktif stop/hedef sinyali ilk zarar ve odul sinirini tanimliyor.' : 'Aktif AL sinyali yoksa pozisyon boyutu zarar butcesine baglanamaz.',
+      note && note.invalidation ? 'Kayıtlı bozulma koşulu: ' + note.invalidation : 'Kişisel tez için bozulma koşulu henüz kaydedilmedi.',
+      trade ? 'Stop ve hedef teknik plana ait eşiklerdir; gerçekleşen işlem fiyatını garanti etmez.' : 'Aktif giriş planı olmadığı için stop mesafesine göre boyutlama yapılamıyor.',
     ];
     if (overlay && overlay.totalAdjustment < 0) {
-      riskTransmission.push('Makro/sinyal katmani ayarlanmis skoru ' + Math.abs(overlay.totalAdjustment) + ' puan azaltiyor.');
+      riskTransmission.push('Makro katmanı ayarlanmış skoru ' + Math.abs(overlay.totalAdjustment) + ' puan azaltıyor.');
     }
 
     return {
@@ -912,9 +1173,9 @@
         evidenceGaps: gaps.slice(0, 6),
         riskTransmission: riskTransmission,
         nextActions: [
-          'ekleme kararindan once risk butcesi boyutlamasini calistir',
-          'gunlukte tez ve bozulma kosulunu yaz veya guncelle',
-          'katalizor veya skor degisiminden sonra komite notunu yenile',
+          'Pozisyon boyutunu risk bütçesiyle hesapla.',
+          'Tez ve bozulma koşulunu kaydet veya güncelle.',
+          'Gündem veya teknik puan değiştiğinde görüşü yeniden incele.',
         ],
       },
     };
@@ -922,11 +1183,13 @@
 
   return {
     buildDailyChangeDigest: buildDailyChangeDigest,
+    buildPortfolioValuation: buildPortfolioValuation,
     buildPortfolioActions: buildPortfolioActions,
     buildAssetThesis: buildAssetThesis,
     buildReportTrust: buildReportTrust,
     buildAlertRules: buildAlertRules,
     buildPredictionScorecard: buildPredictionScorecard,
+    buildPredictionCohorts: buildPredictionCohorts,
     calculatePosition: calculatePosition,
     buildIdeaFunnel: buildIdeaFunnel,
     buildCatalystCalendar: buildCatalystCalendar,

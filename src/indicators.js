@@ -139,7 +139,9 @@ function obv(closes, volumes) {
     series.push(v);
   }
   const ref = series[Math.max(0, series.length - 11)];
-  return { value: last(series), rising: last(series) > ref };
+  const value = last(series);
+  const direction = value > ref ? 'up' : value < ref ? 'down' : 'flat';
+  return { value, rising: value > ref, direction };
 }
 
 // ADX(14) — Wilder. Trend GÜCÜ (yön değil) ölçer + son DI+/DI- (yön için).

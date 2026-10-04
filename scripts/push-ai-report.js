@@ -15,7 +15,10 @@ async function main() {
     process.exit(1);
   }
   const ai = JSON.parse(fs.readFileSync(file, 'utf8'));
-  const result = await publish(ai, { db, readJournal, journalPath: path.join(__dirname, '..', 'data', 'journal.json') });
+  const stageFile = path.join(__dirname, '..', 'data', 'report', 'base-stage.json');
+  if (!fs.existsSync(stageFile)) throw new Error('Eslesen dondurulmus temel rapor taslagi bulunamadi');
+  const stage = JSON.parse(fs.readFileSync(stageFile, 'utf8'));
+  const result = await publish(ai, { db, readJournal, journalPath: path.join(__dirname, '..', 'data', 'journal.json'), base: stage.base, snapshot: stage.snapshot });
   console.log('✅ AI rapor yayinlandi ve geri okunarak dogrulandi:', result.date, result.runId);
 }
 
