@@ -238,7 +238,7 @@ function buildLearningSummary(journal, nowIso = new Date().toISOString()) {
   const normalized = normalizeJournal(journal);
   const existingAudits = normalized.decisionAudits || [];
   const inferredAudits = normalized.predictions
-    .filter((p) => isClosed(p))
+    .filter((p) => p.strategyVersion!=='structural-long-v1' && isClosed(p))
     .map(auditPrediction)
     .filter(Boolean);
   const byId = {};

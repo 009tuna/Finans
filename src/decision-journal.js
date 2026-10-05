@@ -122,7 +122,9 @@ function appendDecisionAudit(journal, audit) {
 }
 
 function buildPredictionScorecard(journal) {
-  const predictions = normalizeJournal(journal).predictions;
+  const allPredictions=normalizeJournal(journal).predictions;
+  const structural=require('../public/structural-records').buildScorecard(allPredictions);
+  const predictions = allPredictions.filter(x=>x.strategyVersion!=='structural-long-v1');
   const closedItems = predictions.filter((x) => x.outcome && x.outcome !== 'open');
   const wins = closedItems.filter((x) => x.outcomeEvidence !== 'ambiguous_bar' && (x.outcome === 'target-hit' || x.outcome === 'expired-win')).length;
   const losses = closedItems.filter((x) => x.outcomeEvidence !== 'ambiguous_bar' && (x.outcome === 'stop-hit' || x.outcome === 'expired-loss')).length;
@@ -154,6 +156,7 @@ function buildPredictionScorecard(journal) {
   };
 
   return {
+    structural,
     total: predictions.length,
     open: predictions.length - closedItems.length,
     closed: closedItems.length,

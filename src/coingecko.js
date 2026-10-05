@@ -73,7 +73,7 @@ function createCryptoClient({ fetcher = cryptoHttp.fetchJson, seriesFetcher = fe
       let series;
       try { series = await seriesFetcher(binanceSymbol(base), id); } catch (err) { series = unavailableSeries(err); }
       if (!series || series.__error && !series.technicalData) series = unavailableSeries(series && series.__error || 'Seri verisi alinamadi');
-      return Object.assign({ id, providerId }, base, { series, technicalData: series.technicalData });
+      return Object.assign({ id, providerId }, base, { series, sourceSymbol:binanceSymbol(base), technicalData: series.technicalData });
     });
   } };
 }

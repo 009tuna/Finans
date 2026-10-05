@@ -53,6 +53,10 @@ function validDate(value) { return typeof value === 'string' && /^\d{4}-\d{2}-\d
 // resolveOne(prediction, series, now) -> güncellenmiş prediction (veya değişiklik yoksa aynısı)
 // series: { dates:[], highs:[], lows:[], closes:[] } — createdAt SONRASI günler
 function resolveOne(prediction, series, now) {
+  if(require('../public/structural-records').isStructural(prediction)) {
+    const observation=require('./structural-data').normalizeObservation({series,market:prediction.market,symbol:prediction.symbol,sourceSymbol:prediction.plan.sourceSymbol,provider:prediction.sourceEvidence.provider,currency:prediction.plan.currency,priceBasis:prediction.plan.priceBasis},now.toISOString());
+    return require('./paper-trade-engine').advancePaperTrade(prediction,observation,{preparedAt:now.toISOString()});
+  }
   if (!prediction || prediction.outcome !== 'open') {
     return prediction;
   }
@@ -153,74 +157,13 @@ function applyResolvedPrediction(journal, prediction) {
 
 // CLI wrapper
 async function main() {
-  const journal = await readJournal(JOURNAL_PATH);
-  const openPredictions = journal.predictions.filter((x) => x.outcome === 'open');
-  
-  if (openPredictions.length === 0) {
-    console.log(`[resolver] 0 çözüldü: 0 hedef, 0 stop | 0 açık`);
-    return;
-  }
-
-  let targetHitCount = 0;
-  let stopHitCount = 0;
-  let ambiguousCount = 0;
-  let resolvedCount = 0;
-  const now = new Date();
-
-  for (const pred of openPredictions) {
-    let series = null;
-    try {
-      if (pred.market === 'us') {
-        const data = await fetchYahooSeries(pred.symbol);
-        if (data && !data.__error) {
-          series = data.series;
-        }
-      } else if (pred.market === 'bist') {
-        const data = await fetchYahooSeries(pred.symbol + '.IS');
-        if (data && !data.__error) {
-          series = data.series;
-        }
-      } else if (pred.market === 'crypto') {
-        let binSym = pred.symbol.toUpperCase();
-        if (!binSym.endsWith('USDT')) {
-          binSym += 'USDT';
-        }
-        series = await fetchBinanceSeries(binSym);
-      }
-    } catch (err) {
-      console.warn(`[resolver] warning: ${pred.market}:${pred.symbol} serisi çekilemedi: ${err.message}`);
-    }
-
-    if (!series || !series.closes || series.closes.length === 0) {
-      console.warn(`[resolver] warning: ${pred.market}:${pred.symbol} için veri serisi alınamadı, atlanıyor.`);
-      continue;
-    }
-
-    const nextPred = resolveOne(pred, series, now);
-    if (nextPred.outcome !== 'open') {
-      resolvedCount++;
-      if (nextPred.outcome === 'target-hit' || nextPred.outcome === 'expired-win') {
-        targetHitCount++;
-      } else if (nextPred.outcome === 'stop-hit' || nextPred.outcome === 'expired-loss') {
-        stopHitCount++;
-      } else if (nextPred.outcome === 'ambiguous') {
-        ambiguousCount++;
-      }
-      applyResolvedPrediction(journal, nextPred);
-    }
-  }
-
-  if (resolvedCount > 0) {
-    const learningSummary = buildLearningSummary(journal, new Date().toISOString());
-    journal.learningRules = learningSummary.learningRules;
-    journal.reviewQueue = learningSummary.reviewQueue;
-    await writeJournal(JOURNAL_PATH, journal);
-  }
-
-  const currentOpenCount = journal.predictions.filter((x) => x.outcome === 'open').length;
-  console.log(`[resolver] ${resolvedCount} işlendi: ${targetHitCount} hedef, ${stopHitCount} stop, ${ambiguousCount} belirsiz | ${currentOpenCount} açık`);
+  const journal=await readJournal(JOURNAL_PATH);
+  const {collectObservations}=require('./structural-pipeline');
+  const observations=await collectObservations({},journal,new Date().toISOString());
+  const updated=await require('./structural-journal').createStructuralJournal()(observations);
+  const score=require('../public/structural-records').buildScorecard(updated.predictions);
+  console.log('[resolver] yapısal net sonuçlar:',score.verified,'| bekleyen:',score.exclusions.pending,'| kanıt eksik:',score.exclusions.incomplete);
 }
-
 if (require.main === module) {
   main().catch((err) => {
     console.error('Resolver hatası:', err.message);

@@ -29,6 +29,15 @@ function acknowledgeRegistration(record,{revision,responseAt}) {
   event(r,'registration-receipt',revision,{responseAt,eligibilityAt:responseAt});
   return r;
 }
+function acknowledgeSimulation(record,decisionCutAt) {
+  const r=clone(record);
+  if(!Number.isFinite(ms(decisionCutAt))) throw Error('simulation decision cut required');
+  r.source='historical-simulation';r.events=[];
+  r.execution={...r.execution,state:'pending-entry',eligibilityAt:decisionCutAt,registrationRevision:null};
+  r.plan.entryExpiresAt=iso(ms(decisionCutAt)+(r.market==='crypto'?2:7)*DAY);r.planHash=hash(r.plan);
+  r.simulation={kind:'historical-simulation',eligibilityBasis:'decision-cut-assumption'};
+  event(r,'simulation-registered',r.id,{decisionCutAt});return r;
+}
 function advancePaperTrade(record,observation,{preparedAt=observation.sourceObservedAt}={}) {
   const r=clone(record), cut=ms(observation.effectiveCutoffAt), observed=ms(observation.sourceObservedAt);
   if(r.execution.state==='registered') return r;
@@ -112,4 +121,4 @@ function advancePaperTrade(record,observation,{preparedAt=observation.sourceObse
   }
   return r;
 }
-module.exports={EXECUTION,RESOLVER,TERMINAL,barHash,makeRecord,acknowledgeRegistration,advancePaperTrade};
+module.exports={EXECUTION,RESOLVER,TERMINAL,barHash,makeRecord,acknowledgeRegistration,acknowledgeSimulation,advancePaperTrade};
