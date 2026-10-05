@@ -1,0 +1,48 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {makeRecord,acknowledgeRegistration,advancePaperTrade}=require('../src/paper-trade-engine');
+const {evaluateSignal}=require('../src/structural-signals');
+const {observation,freshBar}=require('./helpers/structural-fixtures');
+const {DAY,iso}=require('../src/structural-data');
+const base=observation(), signal=evaluateSignal(base), created=base.sourceObservedAt;
+const registered=makeRecord(signal,base,created);
+const receipt=iso(Date.parse(created)+1000), openDate=iso(Math.floor(Date.parse(created)/DAY)*DAY+DAY).slice(0,10);
+const pending=acknowledgeRegistration(registered,{revision:'saved-first-write',responseAt:receipt});
+function observed(bars,at) {return {...base,bars,sourceObservedAt:at,generationCutoffAt:at,effectiveCutoffAt:at,evidenceHash:'fixture-'+at};}
+function run(record,bars,at) {return advancePaperTrade(record,observed(bars,at),{preparedAt:iso(Date.parse(at)+1000)});}
+const next=Date.parse(openDate+'T00:00:00Z'), end=iso(next+DAY), entry=(pending.plan.entryZone[0]+pending.plan.entryZone[1])/2;
+assert.equal(registered.execution.state,'registered');
+assert.equal(run(registered,[freshBar(openDate,{open:entry})],end).execution.state,'registered','unpersisted receipt cannot execute');
+const live=run(pending,[freshBar(openDate,{open:entry,completed:false})],iso(next+3600000));
+assert.equal(live.execution.state,'filled');assert.equal(live.execution.fillEffectiveAt,iso(next));
+assert.equal(live.execution.fillPrice,entry);assert.equal(live.outcome,'open');
+assert.deepEqual(live.plan,pending.plan);
+assert.deepEqual(run(live,[freshBar(openDate,{open:entry,completed:false})],iso(next+3600000)),live,'same observation retry is idempotent');
+const miss=run(pending,[freshBar(openDate,{open:150,high:151,low:140,close:145})],end);
+assert.equal(miss.execution.state,'missed-entry');assert.equal(miss.outcome,'not-entered');
+const missing=run(pending,[freshBar(iso(next+DAY).slice(0,10),{open:entry})],iso(next+4*DAY));
+assert.equal(missing.execution.state,'pending-entry');assert.equal(missing.evidence.status,'data-pending');assert.equal(missing.evidence.entryWindowExpired,true);
+assert.equal(run(missing,[freshBar(openDate,{open:entry})],iso(next+4*DAY)).execution.state,'filled','late source proof can confirm only original in-window first open');
+const nextDate=iso(next+DAY).slice(0,10), first=freshBar(openDate,{open:entry,high:entry+.5,low:entry-.5,close:entry});
+const gap=run(pending,[first,freshBar(nextDate,{open:80,high:85,low:75,close:82})],iso(next+2*DAY));
+assert.equal(gap.outcome,'stop-hit');assert.equal(gap.exitPrice,80,'stop gap uses actual open, not stop');
+assert.equal(gap.exitEffectiveAt,iso(next+DAY));assert.ok(gap.netResultPct<gap.grossResultPct);
+const both=run(pending,[freshBar(openDate,{open:entry,low:pending.plan.stop-1,high:pending.plan.target+1,close:entry})],end);
+assert.equal(both.outcome,'ambiguous');assert.equal(both.netResultPct,null);assert.equal(both.exitPrice,null);
+const developing=run(pending,[freshBar(openDate,{open:entry,high:200,low:50,completed:false})],iso(next+3600000));
+assert.equal(developing.outcome,'open','developing high/low cannot resolve');
+const interrupted=run(pending,[first,freshBar(iso(next+2*DAY).slice(0,10),{open:entry,high:200})],iso(next+3*DAY));
+assert.equal(interrupted.outcome,'open');assert.equal(interrupted.evidence.status,'evidence-incomplete','missing earlier session blocks later win');
+const revision=run(gap,[{...first,open:entry+1}],iso(next+2*DAY));
+assert.equal(revision.evidence.status,'evidence-incomplete');
+const noCalendar=run(pending,[first],end); // identity/currency changes fail closed independently of ranges
+const currency=advancePaperTrade(pending,{...observed([first],end),currency:'USD'},{preparedAt:end});
+assert.equal(currency.evidence.status,'evidence-incomplete');
+const horizon=acknowledgeRegistration(makeRecord(evaluateSignal(base,{config:{horizonDays:90}}),base,created),{revision:'90-day-receipt',responseAt:receipt});
+const days=Array.from({length:91},(_,i)=>freshBar(iso(next+i*DAY).slice(0,10),{open:entry,high:entry+.1,low:entry-.1,close:entry}));
+const timed=run(horizon,days,iso(next+91*DAY));
+assert.equal(timed.outcome,'time-exit');assert.equal(timed.exitEffectiveAt,iso(next+90*DAY));
+assert.equal(timed.execution.state,'closed');assert.equal(timed.evidence.status,'verified');
+const expiryGap=run(horizon,[...days.slice(0,90),freshBar(days[90].date,{open:80,high:85,low:75,close:82})],iso(next+91*DAY));
+assert.equal(expiryGap.outcome,'stop-hit','gap policy precedes horizon exit');
+console.log('frozen paper execution OK');
