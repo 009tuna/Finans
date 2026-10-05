@@ -1,0 +1,12 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {evaluateForecasts}=require('../src/learning-evaluation');
+const forecasts=[{id:'f',exampleId:'e',targetId:'t',cohort:'c',estimate:10,createdAt:'2026-01-01T00:00:00Z',decisionDate:'2026-01-01'}];
+const labels=[{exampleId:'e',targetId:'t',cohort:'c',value:8,unit:'percent_return',availableAt:'2026-02-01T00:00:00Z',eventId:'event'}];
+const baseline=[{...forecasts[0],id:'b',estimate:0}];
+const r=evaluateForecasts({forecasts,labels,baselineForecasts:baseline,asOf:'2026-03-01T00:00:00Z'});assert.equal(r.mae,2);assert.equal(r.signedBias,2);assert.equal(r.paired.improvement,6);
+assert.equal(evaluateForecasts({forecasts:[...forecasts,...forecasts],labels,asOf:'2026-03-01T00:00:00Z'}).n,1);
+assert.equal(evaluateForecasts({forecasts,labels,asOf:'2026-01-15T00:00:00Z'}).mae,null);
+assert.equal(evaluateForecasts({forecasts:[],labels:[],asOf:'2026-01-15T00:00:00Z'}).paired.improvement,null);
+const loss=evaluateForecasts({forecasts,labels:[{...labels[0],value:0}],baselineForecasts:baseline,asOf:'2026-03-01T00:00:00Z'});assert.equal(loss.paired.improvement,-10);
+console.log('learning-evaluation: PASS');
