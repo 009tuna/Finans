@@ -33,3 +33,11 @@ Her modülün testinin eksik modülle başarısız olduğu ve uygulamadan sonra 
 İki Minor bulgu da düzeltildi: yakın dönem ölçümü sonucun gözlenme zamanına göre ayrılır; model başlığı varlığı ve 90/180 günlük hedefi içerir. Ertelenmiş denetim bulgusu yoktur. Canlı DB içeriği, RLS, kârlılık ve mevcut işlem resolver'ı bu fixture kabulünün sonucu değildir.
 
 1440×960 masaüstünde 13px içerik ve yatay taşma olmaması; 390×844 mobilde sayfa taşması olmadan 540px tablonun kendi 327px alanında kayması doğrulandı. Native disclosure Enter ile açılıp kapanır ve odağı korur. [Masaüstü QA görüntüsü](../design-air/learning-acceptance/desktop.jpg), [mobil QA görüntüsü](../design-air/learning-acceptance/mobile.jpg): gösterilen 42 kesit ve model sentetik kabul verisidir; canlı ölçüm değildir. Boş/hata/retry durumları da izole sunucuda kontrol edilir; portföy/DB yazılmaz.
+
+## Git teslimi ve yayın kontrolü
+
+Son tam yerel test çalışması 112 test komutuyla başarılıdır. GitHub PR #4 CI `test` çalışması da başarılıdır. [PR #4](https://github.com/009tuna/Finans/pull/4), 5 Ekim 2026 21:22 TRT'de ana dala merge edildi: `006ea4cf8eca2e5c85eaf0676d9c4e67142ec9f8`. Kullanıcının mevcut yayın onayıyla işlem tamamlandı; yeni yayın onayı istenmedi.
+
+Bu kesit için Vercel Git otomasyonu kendiliğinden bir production deployment üretmedi. Mevcut `finans-dashboard` projesi, aynı repo bağlantısıyla kullanılarak `dpl_2kpyAEYr4DCTZAUnxaVR1oJtNshQ` önizlemesi oluşturuldu; READY durumu ve tam commit SHA doğrulandı. Statik sayfa ve learning.js 200 dönerken öğrenme ve mevcut rapor API'leri önizlemede 503 döndü. Üretimde mevcut rapor ve makro API'leri 200 döndü. Bu nedenle önizleme promote edilmedi; production ortamıyla yeniden derleme gerekir. Vercel connector ortam değişkeni okuma çağrısına 403 verdi; yönetim tarayıcısı giriş ekranında. Önizleme ortamının kesin yapılandırma nedeni doğrulanamadı.
+
+Bu kontrol sırasında çalışan eski üretim deployment'ı `dpl_H2xLp4U34wMhrkUQkhSbeeqhL8k8`, SHA `ab6b5a9895ba6c52150e09c47e3d694601708ebb` idi. Alan adı: https://finans-dashboard-iota.vercel.app. Canlı öğrenme panelinin yayınlandığı veya canlı DB'ye örnek yazıldığı iddia edilmez. Yayın engeli kodun test kabulünden ayrıdır.
