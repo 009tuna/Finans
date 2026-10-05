@@ -202,6 +202,20 @@ async function runAll() {
   const history = await loadHistory();
   attachDecisionMetadata(snapshot, history, cfg);
 
+  const sourceSeriesByKey = {};
+  for (const [market, sources] of [['us', usSeries], ['bist', bistSeries], ['crypto', crypto]]) {
+    for (const source of sources) {
+      const symbol = market === 'bist' ? source.symbol.replace(/\.IS$/i, '') : source.symbol;
+      sourceSeriesByKey[market + ':' + symbol] = { ...source.series, symbol,
+        provider: market === 'crypto' ? 'binance' : 'yahoo',
+        currency: market === 'crypto' ? source.series?.quoteCurrency : source.currency,
+        priceBasis: market === 'crypto' ? 'binance-spot-close-v1' : 'yahoo-chart-close-v1',
+        ...(market === 'crypto' ? { technicalData: source.technicalData } : {}) };
+    }
+  }
+  const learning = await require('./learning-pipeline').captureLearningSnapshot({ snapshot, sourceSeriesByKey });
+  if (learning.status === 'unavailable' || learning.conflicts) snapshot.errors.push('Öğrenme kaydı: ' + learning.status);
+
   // System predictions recording
   const { readJournal, writeJournal, recordPrediction } = require('./decision-journal');
   const JOURNAL_PATH = path.join(ROOT, 'data', 'journal.json');
