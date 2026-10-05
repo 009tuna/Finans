@@ -1,4 +1,23 @@
 /* Finans / Air — one quiet visual system across every workspace. */
+.learning-panel { margin-top: 24px; padding: 16px 20px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; font-size: 13px; }
+.learning-panel > summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; cursor: pointer; min-height: 32px; font-weight: 600; }
+.learning-summary-note { color: var(--muted); font-size: 12px; font-weight: 400; }
+.learning-panel summary:focus-visible, .learning-table-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.learning-state, .learning-policy { max-width: 72ch; color: var(--text); margin: 16px 0; }
+.learning-counts { display: flex; flex-wrap: wrap; gap: 16px 36px; margin: 20px 0; }
+.learning-counts dt { color: var(--muted); font-size: 12px; }
+.learning-counts dd { margin: 4px 0 0; font-size: 17px; font-variant-numeric: tabular-nums; }
+.learning-model, .learning-coverage { border-top: 1px solid var(--border); padding: 14px 0; }
+.learning-model summary { cursor: pointer; overflow-wrap: anywhere; }
+.learning-model-mode { margin-left: 12px; color: var(--muted); font-weight: 400; }
+.learning-model p, .learning-coverage p { max-width: 72ch; color: var(--muted); }
+.learning-table-scroll { max-width: 100%; overflow-x: auto; }
+.learning-table-scroll table { width: 100%; min-width: 540px; border-collapse: collapse; font-size: 12px; text-align: left; }
+.learning-table-scroll th, .learning-table-scroll td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.learning-version { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 6px 12px; font-size: 12px; color: var(--muted); }
+.learning-version dd { margin: 0; overflow-wrap: anywhere; }
+.learning-coverage ul { padding-left: 18px; overflow-wrap: anywhere; }
+@media (max-width: 640px) { .learning-panel { padding: 12px 14px; } .learning-summary-note { flex-basis: 100%; } .learning-counts { gap: 14px 24px; } }
 :root,
 body.theme-mist {
   --bg: oklch(97% .005 210);

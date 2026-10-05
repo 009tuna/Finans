@@ -1,0 +1,11 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {renderLearning}=require('../public/learning');
+const empty={status:'awaiting_evidence',counts:{examples:0,matured:0,pending:0,excluded:0},models:[],cohorts:[],lastRecordedAt:null};
+assert.match(renderLearning(empty),/Öğrenme için doğrulanmış sonuç bekleniyor/);
+assert.ok(!renderLearning(empty).includes('0%'));
+assert.match(renderLearning(empty),/role="status"/);
+const model={modelId:'m<script>',kind:'macro',targetId:'NFP',unit:'thousand_jobs',status:'shadow',availableAt:'2026-01-01T00:00:00Z',policyVersion:'v1',datasetId:'d1',cumulative:{n:1,mae:5,pairedN:1,improvement:-2,distinctDates:1},recent:{n:0,mae:null,pairedN:0,improvement:null}};
+const html=renderLearning({...empty,status:'collecting',models:[model]});assert.match(html,/Gölge/);assert.match(html,/bin kişi/);assert.match(html,/Son 90 gün/);assert.ok(!html.includes('<script>'));assert.match(html,/d1/);
+assert.match(renderLearning({status:'unavailable'}),/okunamadı/);
+console.log('learning-ui: PASS');
