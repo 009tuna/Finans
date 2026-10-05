@@ -1,0 +1,18 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {registerCandidate,freezeShadowForecast,assessPromotion,applyModelEvent,DEFAULT_POLICY}=require('../src/learning-registry');
+const {memoryDatabase,example}=require('./learning-fixtures');
+const {appendLearningRecords,readLearningRecords}=require('../src/learning-store');
+const artifact={modelId:'m1',kind:'price',cohort:example().cohort,targetId:'price-return-90d',featureSchemaVersion:'price-features-v1',availableAt:'2026-01-01T00:00:00Z',testUsage:'final_assessment',trainingIds:[],validationIds:[],finalTestIds:[]};
+const event=registerCandidate({artifact,evaluation:{n:0,mae:null},createdAt:'2026-01-01T00:00:00Z'});
+assert.equal(assessPromotion({candidate:event,pairedShadowResults:[],asOf:'2026-04-01T00:00:00Z'}).status,'insufficient_evidence');
+const x=example(),prediction={status:'available',estimate:10};
+const f=freezeShadowForecast({modelId:'m1',artifact,example:x,prediction,createdAt:x.createdAt});assert.equal(f.mode,'forward_shadow');
+assert.equal(freezeShadowForecast({modelId:'m1',artifact:{...artifact,availableAt:'2026-02-01T00:00:00Z'},example:x,prediction,createdAt:'2026-02-01T00:00:00Z'}).mode,'replay');
+let registry=applyModelEvent({registry:{events:[]},event});registry=applyModelEvent({registry,event});assert.equal(registry.events.length,1);
+assert.throws(()=>applyModelEvent({registry,event:{...event,status:'active',id:'active',activationEffectiveAt:'2026-02-01T00:00:00Z'}}),/shadow-only/);
+const rows=Array.from({length:40},(_,i)=>({key:'pair'+i,eventId:'event'+i,date:'2026-03-'+String(i+1).padStart(2,'0'),mode:'forward_shadow',modelId:'m1',cohort:artifact.cohort,targetId:artifact.targetId,availableAt:'2026-04-01T00:00:00Z',improvement:1,candidateError:1,baselineError:2}));
+assert.equal(assessPromotion({candidate:event,pairedShadowResults:[...rows,...rows],asOf:'2026-04-02T00:00:00Z'}).evidence.n,40);
+assert.equal(assessPromotion({candidate:event,pairedShadowResults:rows,asOf:'2026-04-02T00:00:00Z'}).status,'shadow_only');
+assert.equal(assessPromotion({candidate:{...event,artifact:{...artifact,testUsage:'tuning_reused'}},pairedShadowResults:rows,asOf:'2026-04-02T00:00:00Z'}).status,'blocked');
+(async()=>{const db=memoryDatabase();await Promise.all([appendLearningRecords({modelEvents:[event]},db),appendLearningRecords({modelEvents:[registerCandidate({artifact:{...artifact,modelId:'m2'},evaluation:{n:0},createdAt:event.createdAt})]},db)]);assert.equal((await readLearningRecords({},db)).records.length,2);await appendLearningRecords({runs:[f]},db);await assert.rejects(appendLearningRecords({runs:[{...f,estimate:20}]},db),/identity_conflict/);console.log('learning-registry: PASS');})().catch(e=>{console.error(e);process.exitCode=1;});
