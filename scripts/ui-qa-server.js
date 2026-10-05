@@ -179,7 +179,7 @@ const metricsScript = `<script data-qa-instrumentation>
   }
 })();
 </script>`;
-async function createQaServer({ sourceUrl = source, fetchImpl = fetch, writeDelayMs = 600, macroSnapshot, macroFixture, newsSnapshot, liveDraftPaths } = {}) {
+async function createQaServer({ sourceUrl = source, fetchImpl = fetch, writeDelayMs = 600, macroSnapshot, macroFixture, newsSnapshot, liveDraftPaths, learningSnapshot } = {}) {
   const snapshots = new Map();
   const chartCache = new Map();
   const fixtureStates = new Map();
@@ -232,6 +232,11 @@ async function createQaServer({ sourceUrl = source, fetchImpl = fetch, writeDela
         }
         const record = snapshots.get(url.pathname);
         if (!record) return json(res, 404, {error:'QA route unavailable'});
+        if (url.pathname === '/api/report' && url.searchParams.get('resource') === 'learning' && learningSnapshot) {
+          if (fixture === 'learning-error') return json(res, 503, {status:'unavailable'});
+          if (fixture === 'learning-empty') return json(res, 200, {schemaVersion:1,status:'awaiting_evidence',counts:{examples:0,matured:0,pending:0,excluded:0},cohorts:[],models:[],lastRecordedAt:null});
+          return json(res, 200, structuredClone(learningSnapshot));
+        }
         if (fixture === 'live-draft' && ['/api/report','/api/data'].includes(url.pathname)) {
           try {
             const draft = await loadLiveDraft();

@@ -10,6 +10,7 @@ async function run({ database = db, lockPath = path.join(__dirname, '../data/rep
   fetchSnapshot = async () => database.getLatestSnapshot({ strict: true }),
   refreshIndependent = (options) => require('./refresh-intelligence').run(options),
   resolveOutcomes = async () => { await require('../src/research-outcomes').resolveEarnings(); await require('../src/prediction-resolver').main(); },
+  refreshLearning = (options) => require('./refresh-learning').run(options),
   buildBase = async (snapshot) => require('../src/report').run({ snapshot }),
   generateResearch = (options) => require('./generate-research').run(options),
   progress = { read: readProgress, write: writeProgress } } = {}) {
@@ -47,6 +48,8 @@ async function run({ database = db, lockPath = path.join(__dirname, '../data/rep
     if (!snapshot || !isFresh(snapshot.generatedAt, now) || snapshot.generatedAt.slice(0, 10) !== now.slice(0, 10)) snapshot = await require('../src/fetch-all').runAll();
     await mark('data', 'completed'); activeStage = 'outcomes'; await mark('outcomes', 'running');
     await resolveOutcomes();
+    const learning = await refreshLearning({ database });
+    if (learning.status === 'unavailable') throw new Error('Öğrenme yenilemesi tamamlanamadı');
     await mark('outcomes', 'completed'); activeStage = 'base'; await mark('base', 'running');
     const ledgerNow = await readLedger(database);
     const pub = ledgerNow.value.publication;
@@ -56,6 +59,10 @@ async function run({ database = db, lockPath = path.join(__dirname, '../data/rep
     await mark('base', 'completed'); activeStage = 'research';
     const ai = await generateResearch({ database, base, snapshot, existingAi: record.ai, ledgerValue: ledgerNow.value,
       onStage: async (id, status) => { activeStage = id; await mark(id, status); } });
+    // Newly frozen macro forecasts must be captured before their release, rather
+    // than waiting for tomorrow's run and misclassifying a replay as shadow data.
+    const afterResearchLearning = await refreshLearning({ database });
+    if (afterResearchLearning.status === 'unavailable') throw new Error('Yeni tahminlerin öğrenme kaydı tamamlanamadı');
     if (ai?.publicationSkipped) { await mark('research', 'skipped'); await mark('validation', 'skipped'); await mark('publication', 'skipped'); }
     state.status = 'completed'; state.finishedAt = new Date(Math.max(Date.now(), Date.parse(state.updatedAt) + 1)).toISOString(); state.updatedAt = state.finishedAt;
     if (ai?.publicationResult?.runId) state.lastSuccessful = { runId: ai.publicationResult.runId, publishedAt: ai.publicationResult.publishedAt };

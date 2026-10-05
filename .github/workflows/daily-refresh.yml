@@ -80,6 +80,13 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           FINNHUB_TOKEN:             ${{ secrets.FINNHUB_TOKEN }}
 
+      - name: Değişmez öğrenme kayıtlarını ve gölge sonuçları yenile
+        run: npm run learning:refresh
+        env:
+          SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY:         ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
       - name: Kaynak kapsamı
         run: |
           node -e 'const b=require("./data/report/base.json");const lines=["## Finans veri akışı", "Çalışma: "+b.runId, "Veri: "+b.snapshotId, "Kalite: "+b.quality.status, "Fiyat kaynağı hataları: "+b.quality.snapshotErrors.length, ...Object.entries(b.calendar.coverage).map(([k,v])=>k+": "+v.status+" ("+v.count+")"), "AI: Bu workflow AI üretmez; kaynaklı analiz ayrı yayın adımını bekliyor."];require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY,lines.join("\n\n")+"\n");'

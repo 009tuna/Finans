@@ -59,7 +59,7 @@ async function refreshCpi({database,source,now}={}) {
   const future=[...events.values()].filter(event=>time(event.scheduledAt)>time(completed)&&!event.scheduleConflict&&validSchedule(event,completed)).sort((a,b)=>time(a.scheduledAt)-time(b.scheduledAt));
   for(const event of future.slice(0,1))for(const metric of METRICS)for(const methodId of Object.values(METHODS)) {
    const prediction=forecastFor({...event,metric:metric.metric},methodId,eligible,completed),fid=metric.metric+':'+event.period+':'+methodId;
-   if(prediction.status==='frozen'&&!forecasts.some(row=>row.id===fid))forecasts.push({...prediction,id:fid,eventId:event.eventId,metric:metric.metric,methodId,period:event.period,createdAt:completed,knowledgeCutoff:completed});
+   if(prediction.status==='frozen'&&!forecasts.some(row=>row.id===fid))forecasts.push({...prediction,id:fid,eventId:event.eventId,metric:metric.metric,methodId,period:event.period,createdAt:completed,knowledgeCutoff:completed,scheduledAt:event.scheduledAt,scheduleProof:{sourceUrl:event.sourceUrl,contentHash:event.contentHash,observedAt:event.observedAt}});
   }
   for(const event of events.values()) {
    if(time(event.scheduledAt)>time(completed)||event.scheduleConflict)continue;

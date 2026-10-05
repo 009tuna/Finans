@@ -7,6 +7,7 @@ const vm = require('node:vm');
 const http = require('node:http');
 const { once } = require('node:events');
 const { handleIntelligence } = require('../src/intelligence-api');
+const { handleLearning } = require('../src/learning-api');
 const database = { getCache: async () => null };
 const root = path.resolve(__dirname, '..');
 let reportReads = 0;
@@ -30,6 +31,7 @@ const modules = {
   './src/report-api': { getReportPayload: async () => { reportReads++; return { base: { runId: 'routing-fixture' } }; } },
   './src/research-api': { handleResearch: async () => ({ status: 200, body: { forecasts: [] } }) },
   './src/intelligence-api': { handleIntelligence: (req, options) => handleIntelligence(req, { ...options, database }) },
+  './src/learning-api': { handleLearning: req => handleLearning(req, { database, asOf: '2026-10-05T00:00:00Z' }) },
 };
 const portfolioContext = vm.createContext({ module: { exports: {} }, console: { error() {} }, require: name => {
   if (name === '../src/db') return modules['./src/db'];
@@ -52,6 +54,25 @@ modules['./api/portfolio'] = portfolioContext.module.exports;
   if (!server.listening) await once(server, 'listening');
   const base = 'http://127.0.0.1:' + server.address().port;
   try {
+    const learningResponse = await fetch(base + '/api/report?resource=learning');
+    assert.equal(learningResponse.status, 200);
+    const learningBody = await learningResponse.json();
+    assert.equal(learningBody.measurement, 'forecast_error');
+    assert.equal(learningBody.counts.examples, 0);
+    assert.equal((await fetch(base + '/api/report?resource=learning', { method: 'POST' })).status, 405);
+    const vercelContext = vm.createContext({ module: { exports: {} }, URL, require: name => {
+      if (name === '../src/learning-api') return modules['./src/learning-api'];
+      if (name === '../src/intelligence-api') return modules['./src/intelligence-api'];
+      if (name === '../src/report-api') return modules['./src/report-api'];
+      if (name === '../src/research-api') return modules['./src/research-api'];
+      throw Error('Unexpected Vercel dependency ' + name);
+    } });
+    vm.runInContext(fs.readFileSync(path.join(root, 'api/report.js'), 'utf8'), vercelContext);
+    let vercelBody;
+    await vercelContext.module.exports({ method: 'GET', query: { resource: 'learning' } }, {
+      setHeader() {}, status(code) { assert.equal(code, 200); return this; }, json(value) { vercelBody = value; },
+    });
+    assert.deepEqual(JSON.parse(JSON.stringify(vercelBody)), learningBody);
     for (const resource of ['market-news', 'macro']) {
       const rewritten = await fetch(base + '/api/report?resource=' + resource);
       assert.equal(rewritten.status, 200);

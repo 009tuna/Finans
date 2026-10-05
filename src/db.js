@@ -272,6 +272,28 @@ async function compareAndSetCache(key, value, expectedRevision) {
   return data[0].updated_at;
 }
 
+// Bounded IN queries stay below PostgREST's row cap and URL limits. Missing keys
+// are explicit nulls; transport errors never turn a batch into an empty result.
+async function getCaches(keys, { strict = true } = {}) {
+  if (!supabase) { if (strict) throw new Error('Veritabani baglantisi yapilandirilmadi'); return {}; }
+  if (!Array.isArray(keys) || keys.some(key => typeof key !== 'string')) throw new Error('Gecersiz cache anahtarlari');
+  const unique = [...new Set(keys)], result = {};
+  for (let offset = 0; offset < unique.length; offset += 50) {
+    const chunk = unique.slice(offset, offset + 50);
+    const { data, error } = await supabase.from('api_cache').select('cache_key, cache_value, updated_at').in('cache_key', chunk).limit(50);
+    if (error) throw error;
+    if (!Array.isArray(data) || data.length > chunk.length) throw new Error('Cache batch sonucu gecersiz');
+    for (const key of chunk) result[key] = null;
+    const seen = new Set();
+    for (const row of data) {
+      if (!chunk.includes(row.cache_key) || seen.has(row.cache_key) || !row.updated_at) throw new Error('Cache batch sonucu gecersiz');
+      seen.add(row.cache_key);
+      result[row.cache_key] = { value: row.cache_value, revision: row.updated_at, updatedAt: Date.parse(row.updated_at) };
+    }
+  }
+  return result;
+}
+
 /**
  * Veriyi önbelleğe yazar.
  * @param {string} key
@@ -372,6 +394,7 @@ module.exports = {
   getHistory,
   appendHistory,
   getCache,
+  getCaches,
   setCache,
   compareAndSetCache,
   getReport,

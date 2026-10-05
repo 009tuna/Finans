@@ -37,7 +37,8 @@ function progressStore(lastSuccessful = { runId: 'r1', publishedAt: oldLedger.pu
   await assert.rejects(publish(aiForReadback, { db: drop, base: newBase, snapshot: newSnapshot, now: NOW, readJournal: async () => ({}) }), /geri okuma/);
 
   let independentRuns = 0;
-  const daily = (options) => require('../scripts/daily-research').run({ ...options, refreshIndependent: async () => { independentRuns++; } });
+  let learningRuns = 0;
+  const daily = (options) => require('../scripts/daily-research').run({ ...options, refreshIndependent: async () => { independentRuns++; }, refreshLearning: async () => { learningRuns++; return { status: 'available' }; } });
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'finans-pipeline-'));
   const staleLock = path.join(temp, 'stale.lock'); fs.writeFileSync(staleLock, JSON.stringify({ pid: 2147483647, startedAt: NOW }));
   await assert.rejects(daily({ database: makeDatabase(oldLedger), lockPath: staleLock, fetchSnapshot: async () => { throw new Error('stop after stale lock recovery'); },
@@ -47,7 +48,7 @@ function progressStore(lastSuccessful = { runId: 'r1', publishedAt: oldLedger.pu
   // Generator failure leaves the previous publication untouched.
   const failureDb = makeDatabase(oldLedger); const failureProgress = progressStore();
   await assert.rejects(daily({ database: failureDb, lockPath, fetchSnapshot: async () => newSnapshot, resolveOutcomes: async () => {}, buildBase: async () => newBase,
-    progress: failureProgress, generateResearch: async () => { throw new Error('synthetic model failure'); } }), /synthetic model failure/);
+    progress: failureProgress, generateResearch: async () => { assert.equal(learningRuns, 1); throw new Error('synthetic model failure'); } }), /synthetic model failure/);
   assert.deepEqual((await failureDb.read()).publication, oldLedger.publication);
 
   // End-to-end staged context stays frozen even when latest prices advance while generation runs.
