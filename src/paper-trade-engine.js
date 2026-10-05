@@ -70,6 +70,7 @@ function advancePaperTrade(record,observation,{preparedAt=observation.sourceObse
   };
   if(r.execution.state==='pending-entry') {
     const expiry=ms(r.plan.entryExpiresAt), eligibility=ms(r.execution.eligibilityAt);
+    if(cut<=eligibility) return r;
     const sessions=expectedSessions(observation,eligibility,Math.min(cut,expiry));
     if(!sessions) return issue('data-pending',['entry-calendar-unverified']);
     const first=sessions[0];

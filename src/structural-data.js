@@ -1,7 +1,12 @@
 'use strict';
 const crypto = require('node:crypto');
 const DAY = 86400000;
-const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
+function canonical(value) {
+  if(Array.isArray(value)) return value.map(x=>x===undefined?null:canonical(x));
+  if(value && typeof value==='object') return Object.fromEntries(Object.keys(value).sort().filter(k=>value[k]!==undefined).map(k=>[k,canonical(value[k])]));
+  return value;
+}
+const hash = value => crypto.createHash('sha256').update(JSON.stringify(canonical(value))).digest('hex');
 const ms = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d\d:\d\d)$/.test(value) ? Date.parse(value) : NaN;
 const iso = value => Number.isFinite(value) ? new Date(value).toISOString() : null;
 function localDate(value,timeZone='UTC') {
@@ -78,4 +83,4 @@ function normalizeObservation(input, generationCutoffAt) {
   result.evidenceHash=hash(result);
   return result;
 }
-module.exports={DAY,hash,ms,iso,localDate,expectedSessions,normalizeObservation};
+module.exports={DAY,canonical,hash,ms,iso,localDate,expectedSessions,normalizeObservation};
