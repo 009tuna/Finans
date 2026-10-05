@@ -6,8 +6,8 @@ const {isStructural,selectActiveRecord,classifyRecord,buildScorecard}=require('.
 async function collectObservations(sourceSeriesByKey,journal,cutoffAt,{fetchCryptoSeries,fetchYahooSeries}={}) {
   fetchCryptoSeries ||= require('./coingecko').fetchSeries;fetchYahooSeries ||= require('./yahoo').fetchSeries;
   const inputs=new Map(Object.entries(sourceSeriesByKey || {}));
-  for(const record of journal.predictions || []) if(isStructural(record) && !inputs.has(record.market+':'+record.symbol)) {
-    inputs.set(record.market+':'+record.symbol,{missing:true,sourceSymbol:record.plan.sourceSymbol,currency:record.plan.currency,priceBasis:record.plan.priceBasis,provider:record.sourceEvidence.provider});
+  for(const record of journal.predictions || []) if((isStructural(record) || record.source==='system' && record.outcome==='open') && !inputs.has(record.market+':'+record.symbol)) {
+    inputs.set(record.market+':'+record.symbol,{missing:true,sourceSymbol:record.plan?.sourceSymbol || (record.market==='crypto'?record.symbol+'USDT':record.market==='bist'?record.symbol+'.IS':record.symbol),currency:record.plan?.currency || ({crypto:'USDT',bist:'TRY',us:'USD'})[record.market],priceBasis:record.plan?.priceBasis || 'unadjusted',provider:record.sourceEvidence?.provider || (record.market==='crypto'?'binance':'yahoo')});
   }
   const observations=[];
   for(const [key,original] of inputs) {

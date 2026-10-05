@@ -5,6 +5,7 @@ const EXECUTION='observed-open-paper-v1', RESOLVER='structural-paper-resolver-v1
 const TERMINAL=new Set(['closed','missed-entry','expired-entry']);
 const clone=value=>JSON.parse(JSON.stringify(value));
 const barHash=b=>hash([b.date,b.open,b.high,b.low,b.close,b.volume,b.openVerified,b.rangeVerified]);
+const openHash=b=>hash([b.date,b.open,b.barStartAt,b.openVerified]);
 function event(record,type,identity,details={}) {
   const id=hash([record.id,type,identity]);
   if(!record.events.some(e=>e.id===id)) record.events.push({id,type,...details});
@@ -49,7 +50,6 @@ function advancePaperTrade(record,observation,{preparedAt=observation.sourceObse
   if(!Number.isFinite(cut) || !Number.isFinite(observed) || !Number.isFinite(ms(preparedAt)) || ms(preparedAt)<observed) return issue('evidence-incomplete',['observation-time-unverified']);
   if(observation.provider!==r.sourceEvidence.provider || observation.currency!==r.plan.currency || observation.priceBasis!==r.plan.priceBasis || observation.sourceSymbol!==r.plan.sourceSymbol) return issue('evidence-incomplete',['source-price-basis-conflict']);
   const dangerous=(observation.reasons || []).filter(reason=>!['session-coverage-gap','calendar-unverified'].includes(reason));
-  if(dangerous.length) return issue('evidence-incomplete',dangerous);
   if(observation.corporateActions?.splits && Object.values(observation.corporateActions.splits).some(x=>!Number.isFinite(x.date) || x.date*1000>=ms(r.signalCreatedAt))) return issue('evidence-incomplete',['corporate-action-conflict']);
   const byDate=new Map(observation.bars.map(b=>[b.date,b]));
   if(byDate.size!==observation.bars.length) return issue('evidence-incomplete',['source-order-conflict']);
@@ -63,17 +63,38 @@ function advancePaperTrade(record,observation,{preparedAt=observation.sourceObse
   }
   if(r.execution.fillPrice!=null) {
     const entry=byDate.get(r.execution.entryDate);
-    if(entry && (entry.open!==r.execution.fillPrice || !entry.openVerified)) return issue('evidence-incomplete',['entry-source-revision']);
+    if(entry && (entry.open!==r.execution.fillPrice || !entry.openVerified || entry.barStartAt!==r.execution.fillEffectiveAt)) return issue('evidence-incomplete',['entry-source-revision']);
   }
+  if(r.execution.state==='closed') {
+    const proof=r.exitEvidence,current=byDate.get(proof?.date);
+    if(current && (proof.mode==='open' ? openHash(current)!==proof.openHash || (proof.completedHash && current.completed && barHash(current)!==proof.completedHash) : current.completed && barHash(current)!==proof.hash)) return issue('evidence-incomplete',['exit-source-revision']);
+    // Persisted evidence remains authoritative through absent observations.
+    // Contradictions stay excluded until every frozen proof is present again.
+    const contradictions=dangerous.filter(x=>/conflict|revision/.test(x));
+    if(contradictions.length) return issue('evidence-incomplete',contradictions);
+    const complete=!dangerous.length && current && (proof.mode==='open'?current.openVerified:current.completed && current.rangeVerified)
+      && byDate.has(r.execution.entryDate)
+      && (r.sourceEvidence.criticalBars || []).every(p=>byDate.get(p.date)?.completed)
+      && Object.keys(r.evidence.checkpoint?.completedHashes || {}).every(date=>byDate.get(date)?.completed);
+    if(complete) {r.evidence.status=r.outcome==='ambiguous'?'ambiguous':'verified';r.evidence.reasons=r.outcome==='ambiguous'?['same-bar-stop-and-target']:[];}
+    return r;
+  }
+  if(dangerous.length) return issue('evidence-incomplete',dangerous);
   if(TERMINAL.has(r.execution.state)) return r;
   const close=(outcome,bar,exitPrice,mode)=>{
     r.execution.state='closed';r.outcome=outcome;r.exitPrice=exitPrice;
     r.exitObservedAt=observation.sourceObservedAt;r.resultPreparedAt=preparedAt;r.resolvedAt=preparedAt;
     r.exitEffectiveAt=mode==='open'?bar.barStartAt:null;
     r.exitTimeBounds=mode==='range'?{startAt:bar.barStartAt,endAt:bar.barEndAt}:null;
-    r.exitEvidence={sourceSnapshotId:observation.evidenceHash,date:bar.date,hash:barHash(bar),mode,continuityVerified:true};
+    r.exitEvidence={sourceSnapshotId:observation.evidenceHash,date:bar.date,hash:barHash(bar),mode,continuityVerified:true,
+      ...(mode==='open'?{openHash:openHash(bar),completedHash:bar.completed && ms(bar.barEndAt)<=cut?barHash(bar):null}:{})};
     r.grossResultPct=exitPrice==null?null:(exitPrice/r.execution.fillPrice-1)*100;
     r.netResultPct=exitPrice==null?null:(exitPrice/r.execution.fillPrice*(1-r.plan.costModel.roundTrip/2)**2-1)*100;
+    const elapsed=at=>(ms(at)-ms(r.execution.fillEffectiveAt))/DAY;
+    r.holdingTime=mode==='open'?{mode:'exact',days:elapsed(bar.barStartAt)}:{mode:'bounded',minDays:elapsed(bar.barStartAt),maxDays:elapsed(bar.barEndAt)};
+    r.benchmark={basis:'same-fill-open-to-exact-exit-open',status:mode==='open'?'verified':'unverified',reason:mode==='open'?null:'intraday-exit-time-unverified',currency:r.plan.currency,costVersion:r.plan.costModel.version,
+      entryPrice:r.execution.fillPrice,exitPrice:mode==='open'?bar.open:null,entryAt:r.execution.fillEffectiveAt,exitAt:mode==='open'?bar.barStartAt:null,
+      netResultPct:mode==='open'?(bar.open/r.execution.fillPrice*(1-r.plan.costModel.roundTrip/2)**2-1)*100:null};
     r.evidence.status=outcome==='ambiguous'?'ambiguous':'verified';r.evidence.reasons=outcome==='ambiguous'?['same-bar-stop-and-target']:[];
     event(r,'closed',outcome+':'+bar.date,{outcome,exitPrice,preparedAt,sourceSnapshotId:observation.evidenceHash});return r;
   };

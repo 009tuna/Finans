@@ -20,7 +20,7 @@
   }
   function renderPerformance(all,sources=[]) {
     const card=records.buildScorecard(all),modern=all.filter(records.isStructural),markets={bist:'BIST',us:'ABD',crypto:'Kripto'};
-    const cohort=c=>'<li><span>'+esc(markets[c.market]+' · '+c.setup+' · '+c.horizonDays+' gün')+'</span><b>'+number(c.winRate)+'% · '+c.wins+'/'+c.verified+'</b><span>Ort. net '+number(c.avgNetResultPct)+'% · hedefe ulaşan '+c.targetHits+'</span></li>';
+    const cohort=c=>'<li><span>'+esc(markets[c.market]+' · '+c.setup+' · '+c.horizonDays+' gün · '+c.currency+' · sürüm '+c.parameterHash.slice(0,8))+'</span><b>'+number(c.winRate)+'% · '+c.wins+'/'+c.verified+'</b><span>Ort. net '+number(c.avgNetResultPct)+'% · hedef '+c.targetHits+' · stop '+c.stopHits+' · süre '+c.timeExits+'</span><span>Bilinen tutma süresi: '+number(c.holdingTime.avgExactDays)+' gün (n='+c.holdingTime.exactCount+'); gün içi sınırla bilinen '+c.holdingTime.boundedCount+'.</span><span>Al ve tut: '+number(c.benchmark.avgNetResultPct)+'% · aynı örneklerde yöntem '+number(c.benchmark.avgStrategyNetResultPct)+'% (n='+c.benchmark.verified+').</span></li>';
     const coverage=Object.entries(markets).map(([key,label])=>{
       const rows=modern.filter(r=>r.market===key),closed=rows.filter(r=>records.classifyRecord(r).category==='verified').length;
       const blocked=sources.some(s=>s.market===key && s.calendarStatus!=='verified');
@@ -28,6 +28,7 @@
     }).join('');
     return '<section class="card structural-performance"><div class="card-head"><h2>Sanal işlem defteri</h2><span class="card-sub">Yapısal planlar · maliyet sonrası sonuçlar</span></div><p>'+ (card.verified?'Doğrulanmış kapanış: <b>'+card.verified+'</b>. Sonuçlar her yöntem ve piyasa için ayrı hesaplanır.':'Başarı oranı henüz hesaplanamaz. Doğrulanmış kapanış yok; n=0.')+'</p><dl class="structural-market-status">'+coverage+'</dl>'+
       (card.cohorts.length?'<ul class="structural-cohorts">'+card.cohorts.map(cohort).join('')+'</ul>':'')+
+      '<p class="structural-proof-note">Al ve tut karşılaştırması aynı gerçek giriş açılışından kesin çıkış açılışına ve aynı maliyetle hesaplanır. Gün içi çıkışın saati bilinmiyorsa karşılaştırma doğrulanamaz; sanal sonuç portföy getirisi değildir.</p>'+
       '<p class="structural-proof-note">Bekleyen '+card.exclusions.pending+' · girilmeyen '+card.exclusions['not-entered']+' · belirsiz '+card.exclusions.ambiguous+' · kanıt eksik '+card.exclusions.incomplete+'. Bunlar başarı paydasına girmez. Eski teknik ve manuel kayıtlar ayrı tutulur.</p>'+ (modern.length?'<details><summary>Sabit planları incele ('+modern.length+')</summary>'+modern.slice().sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(renderPlan).join('')+'</details>':'')+'</section>';
   }
   return {reasonLabel,renderWatch,renderPlan,renderPerformance};

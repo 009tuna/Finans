@@ -35,8 +35,14 @@
   function buildScorecard(records=[]) {
     const exclusions={pending:0,'not-entered':0,ambiguous:0,incomplete:0,manual:0,legacy:0},verified=records.filter(r=>{const c=classifyRecord(r).category;if(c!=='verified')exclusions[c]++;return c==='verified';});
     const cohorts={};for(const r of verified){const k=cohortKey(r);(cohorts[k] ||= []).push(r);}
-    const summarize=rows=>({verified:rows.length,wins:rows.filter(r=>r.netResultPct>0).length,zero:rows.filter(r=>r.netResultPct===0).length,losses:rows.filter(r=>r.netResultPct<0).length,targetHits:rows.filter(r=>r.outcome==='target-hit').length,winRate:rows.length?rows.filter(r=>r.netResultPct>0).length/rows.length*100:null,avgNetResultPct:rows.length?rows.reduce((a,r)=>a+r.netResultPct,0)/rows.length:null});
-    return {...summarize(verified),exclusions,cohorts:Object.entries(cohorts).map(([key,rows])=>({key,market:rows[0].market,setup:rows[0].plan.setup,horizonDays:rows[0].plan.horizonDays,...summarize(rows)}))};
+    const summarize=rows=>{
+      const exact=rows.filter(r=>r.holdingTime?.mode==='exact' && Number.isFinite(r.holdingTime.days)),bounded=rows.filter(r=>r.holdingTime?.mode==='bounded');
+      const benchmarks=rows.filter(r=>r.benchmark?.status==='verified' && r.exitEvidence.mode==='open' && r.benchmark.entryPrice===r.execution.fillPrice && r.benchmark.entryAt===r.execution.fillEffectiveAt && r.benchmark.exitAt===r.exitEffectiveAt && Number.isFinite(r.benchmark.exitPrice) && Math.abs(r.benchmark.netResultPct-(r.benchmark.exitPrice/r.execution.fillPrice*(1-r.plan.costModel.roundTrip/2)**2-1)*100)<1e-8);
+      return {verified:rows.length,wins:rows.filter(r=>r.netResultPct>0).length,zero:rows.filter(r=>r.netResultPct===0).length,losses:rows.filter(r=>r.netResultPct<0).length,targetHits:rows.filter(r=>r.outcome==='target-hit').length,stopHits:rows.filter(r=>r.outcome==='stop-hit').length,timeExits:rows.filter(r=>r.outcome==='time-exit').length,winRate:rows.length?rows.filter(r=>r.netResultPct>0).length/rows.length*100:null,avgNetResultPct:rows.length?rows.reduce((a,r)=>a+r.netResultPct,0)/rows.length:null,
+        holdingTime:{exactCount:exact.length,boundedCount:bounded.length,unknownCount:rows.length-exact.length-bounded.length,avgExactDays:exact.length?exact.reduce((n,r)=>n+r.holdingTime.days,0)/exact.length:null},
+        benchmark:{verified:benchmarks.length,unverified:rows.length-benchmarks.length,avgNetResultPct:benchmarks.length?benchmarks.reduce((n,r)=>n+r.benchmark.netResultPct,0)/benchmarks.length:null,avgStrategyNetResultPct:benchmarks.length?benchmarks.reduce((n,r)=>n+r.netResultPct,0)/benchmarks.length:null}};
+    };
+    return {...summarize(verified),exclusions,cohorts:Object.entries(cohorts).map(([key,rows])=>({key,market:rows[0].market,setup:rows[0].plan.setup,horizonDays:rows[0].plan.horizonDays,parameterHash:rows[0].parameterHash,currency:rows[0].plan.currency,...summarize(rows)}))};
   }
   return {STRATEGY,isStructural,classifyRecord,selectActiveRecord,cohortKey,buildScorecard};
 });

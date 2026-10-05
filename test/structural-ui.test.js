@@ -21,5 +21,6 @@ const before=lines.length;
 sandbox.addTradePriceLines({createPriceLine:x=>lines.push(x)},{market:'crypto',decision:{trade:{available:true,structural:true,frozen:true,currency:'USDT',entry:101,stop:97,target:114}}},{currency:'USD',source:'yahoo'});
 assert.equal(lines.length,before,'different chart price source/currency cannot draw the paper plan');
 assert.ok(fs.readFileSync(require.resolve('../public/index.html'),'utf8').indexOf('structural-records.js')<fs.readFileSync(require.resolve('../public/index.html'),'utf8').indexOf('app.js'));
+assert.ok(fs.readFileSync(require.resolve('../public/index.html'),'utf8').indexOf('structural-records.js')<fs.readFileSync(require.resolve('../public/index.html'),'utf8').indexOf('insights.js'),'browser decision summary receives the shared classifier');
 const classified=records.classifyRecord(r);assert.match(html,new RegExp(classified.label));
 console.log('shared frozen plan UI OK');

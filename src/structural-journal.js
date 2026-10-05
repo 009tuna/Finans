@@ -59,7 +59,13 @@ function createStructuralJournal({read,write,persistEvidence,now=()=>Date.now(),
       j.predictions ||= [];
       j.predictions=j.predictions.map(r=>{
         const o=byKey.get(r.market+':'+r.symbol);
-        return isStructural(r) && o ? advancePaperTrade(r,o,{preparedAt:iso(Math.max(now(),ms(o.sourceObservedAt)))}) : r;
+        if(!o)return r;
+        if(isStructural(r))return advancePaperTrade(r,o,{preparedAt:iso(Math.max(now(),ms(o.sourceObservedAt)))});
+        if(r.source!=='system' || r.outcome!=='open')return r;
+        // Finish old records under their old daily-bar policy. They never
+        // acquire a structural fill, receipt or structural performance label.
+        const series={dates:o.bars.map(b=>b.date),highs:o.bars.map(b=>b.high),lows:o.bars.map(b=>b.low),closes:o.bars.map(b=>b.close),rangeVerified:o.bars.map(b=>b.rangeVerified),barComplete:o.bars.map(b=>b.completed),dateBasis:'exchange_timezone',timeZone:o.timeZone};
+        return require('./prediction-resolver').resolveOne(r,series,new Date(Math.min(now(),ms(o.effectiveCutoffAt))));
       });
       for(const {observation:o,signal} of candidates) if(canRegister(j.predictions,signal,o)) j.predictions.push(makeRecord(signal,o,iso(now())));
       return j;

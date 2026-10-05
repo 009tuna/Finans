@@ -2,9 +2,9 @@
 // Amaç: derin analiz çıktısını (skor/alt-skor/gerekçe/işlem planı, backtest sonucu) sade dile çevirmek.
 // app.js yardımcılarına BAĞIMLI DEĞİLDİR (test edilebilirlik için kendi mini formatçıları var).
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory();
-  else root.FinansInsights = factory();
-})(typeof self !== 'undefined' ? self : this, function () {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./structural-records'));
+  else root.FinansInsights = factory(root.StructuralRecords);
+})(typeof self !== 'undefined' ? self : this, function (structuralRecords) {
   'use strict';
 
   function pct(v) {
@@ -124,8 +124,10 @@
     }
     const qBits = [];
     if(t.structural) {
-      plan = t.available
-        ? (t.entry==null?'Sanal giriş bekleniyor; sabit bölge '+money(t.entryZone?.[0],currency)+' – '+money(t.entryZone?.[1],currency):'Sabit sanal plan; giriş '+money(t.entry,currency))+' '+currency+'. Yapısal stop '+money(t.stop,currency)+', ilk direnç hedefi '+money(t.target,currency)+'.'
+      const record=d.structuralRecord || t.record;
+      const state=record && structuralRecords?structuralRecords.classifyRecord(record):null;
+      plan = t.available && record
+        ? (state?.label || 'Kayıt durumu doğrulanamadı')+'. '+(t.entry==null?'Sabit bölge '+money(t.entryZone?.[0],currency)+' – '+money(t.entryZone?.[1],currency):'Sabit sanal giriş '+money(t.entry,currency))+' '+currency+'. Yapısal stop '+money(t.stop,currency)+', ilk direnç hedefi '+money(t.target,currency)+'.'
         : 'Yapısal giriş koşulları bekleniyor; teknik puan otomatik alış anlamına gelmez.';
     }
     if (d.freshness && d.freshness.label) qBits.push(d.freshness.label);

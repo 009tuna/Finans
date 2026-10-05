@@ -33,6 +33,20 @@ function netGate(entry,stop,target,costModel,minRR=DEFAULTS.minNetRR) {
   const netRR=risk>0?reward/risk:null;
   return {netTargetReturn:reward,netRisk: risk,netRR,pass:[entry,stop,target,factor].every(v=>Number.isFinite(v)&&v>0) && stop<entry && target>entry && reward>0 && netRR>=minRR};
 }
+// Walk formation and breaks in time order. A later confirmation must never
+// move the old formation boundary past a break and revive its old pivots.
+function renewSupport(level,bars,referenceAtr,config) {
+  const ordered=level.pivots.slice().sort((a,b)=>a.confirmedIndex-b.confirmedIndex || a.index-b.index);
+  let pivots=[],root=null,lastBreak=-1,cursor=0;
+  for(let i=ordered[0].confirmedIndex;i<bars.length;i++) {
+    while(cursor<ordered.length && ordered[cursor].confirmedIndex<=i) {
+      const p=ordered[cursor++];if(p.index>lastBreak)pivots.push(p);
+      root=clusterLevels(pivots,referenceAtr,config)[0] || null;
+    }
+    if(root && bars[i].close<root.lower-config.stopAtr*referenceAtr) {lastBreak=i;pivots=[];root=null;}
+  }
+  return {root,invalidated:lastBreak>=0};
+}
 function selectTarget(levels,zone,atrValue,excludedId=null,config=DEFAULTS) {
   const overhead=levels.filter(l=>l.type!=='support' && l.id!==excludedId && l.upper>zone[0]).sort((a,b)=>a.lower-b.lower || a.id.localeCompare(b.id))[0];
   if(!overhead) return {reason:'target-unverified'};
@@ -78,7 +92,9 @@ function evaluateSignal(observation,{config:overrides={}}={}) {
     const setupId=hash({strategy:STRATEGY,parameterHash,market:observation.market,symbol:observation.symbol,setup,root:root.id,trigger:last.date,breakout:breakoutIndex==null?null:bars[breakoutIndex].date});
     candidates.push({status:'candidate',strategyVersion:STRATEGY,parameterHash,setupId,triggerDate:last.date,triggerIndex:bars.length-1,reasons:[],plan:{setup,entryZone:zone,stop,target:target.target,supportEvidence:root,resistanceEvidence:target.resistance,atrReference:{value:referenceAtr,date:bars[referenceIndex].date},horizonDays:config.horizonDays,currency:observation.currency,priceBasis:observation.priceBasis,sourceSymbol:observation.sourceSymbol,costModel,netRiskReward:gate.netRR,triggerDate:last.date,breakoutDate:breakoutIndex==null?null:bars[breakoutIndex].date}});
   }
-  const support=levels.filter(l=>l.type==='support' && l.upper<last.close).sort((a,b)=>b.upper-a.upper || a.id.localeCompare(b.id))[0];
+  const validSupports=levels.filter(l=>l.type==='support').map(l=>renewSupport(l,bars,atrValue,config));
+  if(validSupports.some(s=>s.invalidated && !s.root)) reasons.push('support-invalidated');
+  const support=validSupports.map(s=>s.root).filter(l=>l && l.upper<last.close).sort((a,b)=>b.upper-a.upper || a.id.localeCompare(b.id))[0];
   if(support) candidate('A',support,atrValue,bars.length-1);
   for(let b=Math.max(21,bars.length-1-config.retestBars);b<bars.length-1;b++) {
     const prior=bars.slice(0,b), ref=atr(prior.map(x=>x.high),prior.map(x=>x.low),prior.map(x=>x.close),14);
