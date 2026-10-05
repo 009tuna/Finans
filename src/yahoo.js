@@ -29,6 +29,7 @@ function normalizeSeries(data, symbol, { observedAt = null } = {}) {
   const sourceTimestamps = [];
   const rangeVerified = [];
   const volumeVerified = [];
+  const opens = [], openVerified = [], barStartAt = [], barEndAt = [], sessionEvidence = [];
   let dateFormatter = null;
   const timeZone = typeof meta.exchangeTimezoneName === 'string' ? meta.exchangeTimezoneName : null;
   if (timeZone) {
@@ -61,6 +62,21 @@ function normalizeSeries(data, symbol, { observedAt = null } = {}) {
       const parts = Object.fromEntries(dateFormatter.formatToParts(instant).map((part) => [part.type, part.value]));
       dates.push(`${parts.year}-${parts.month}-${parts.day}`);
       sourceTimestamps.push(instant.toISOString());
+      const sourceOpen = q.open && q.open[i];
+      opens.push(Number.isFinite(sourceOpen) && sourceOpen > 0 ? sourceOpen : null);
+      openVerified.push(Number.isFinite(sourceOpen) && sourceOpen > 0);
+      const regular = currentTradingPeriod?.regular;
+      const sessionStart = regular?.start ? new Date(regular.start * 1000) : null;
+      const sessionEnd = regular?.end ? new Date(regular.end * 1000) : null;
+      const dateOf = d => {
+        const p = Object.fromEntries(dateFormatter.formatToParts(d).map(x => [x.type,x.value]));
+        return `${p.year}-${p.month}-${p.day}`;
+      };
+      const matched = sessionStart && sessionEnd && sessionEnd > sessionStart
+        && dateOf(sessionStart) === dates.at(-1) && dateOf(sessionEnd) === dates.at(-1);
+      barStartAt.push(matched ? sessionStart.toISOString() : null);
+      barEndAt.push(matched ? sessionEnd.toISOString() : null);
+      sessionEvidence.push(matched ? {basis:'yahoo_current_regular',date:dates.at(-1),observedAt:sourceObservedAt} : null);
       const sourceHigh = q.high && q.high[i];
       const sourceLow = q.low && q.low[i];
       rangeVerified.push(Number.isFinite(sourceHigh) && sourceHigh > 0 && Number.isFinite(sourceLow) && sourceLow > 0
@@ -88,7 +104,9 @@ function normalizeSeries(data, symbol, { observedAt = null } = {}) {
     high52: meta.fiftyTwoWeekHigh != null ? meta.fiftyTwoWeekHigh : null,
     low52: meta.fiftyTwoWeekLow != null ? meta.fiftyTwoWeekLow : null,
     volume: meta.regularMarketVolume != null ? meta.regularMarketVolume : null,
-    series: { dates, closes, highs, lows, volumes, sourceTimestamps, rangeVerified, volumeVerified,
+    series: { dates, closes, highs, lows, volumes, opens, openVerified, barStartAt, barEndAt, sessionEvidence,
+      timestampRole:'bar_label', corporateActions:r.events || null,
+      sourceTimestamps, rangeVerified, volumeVerified,
       dateBasis: dateFormatter ? 'exchange_timezone' : 'unverified', timeZone,
       observedAt: sourceObservedAt, currentTradingPeriod,
       ...(dateFormatter ? {} : { dateIssue: 'exchange_timezone_unavailable' }) },
