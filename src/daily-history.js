@@ -26,7 +26,7 @@ function completedYahooHistory(series, cutoffMs) {
   }
   // Validate the original arrays before filtering. Otherwise a short OHLCV array
   // could be expanded with undefined entries and silently lose its mismatch.
-  const alignedFields = ['closes','highs','lows','volumes','dates','sourceTimestamps','rangeVerified','volumeVerified'];
+  const alignedFields = ['closes','highs','lows','volumes','dates','sourceTimestamps','rangeVerified','volumeVerified','opens','openVerified','barStartAt','barEndAt','sessionEvidence'];
   for (const field of alignedFields) {
     if (series[field] != null && (!Array.isArray(series[field]) || series[field].length !== count)) {
       throw new Error('Yahoo kapanışları doğrulanamadı: tarih, fiyat ve OHLCV kanıtı gözlemleri aynı uzunlukta olmalıdır');
@@ -96,7 +96,7 @@ function completedCryptoHistory(series, cutoffMs) {
   if (!Number.isFinite(observedAt)) throw new Error('Kripto kapanışları doğrulanamadı: kaynağın gözlem kesiti bilinmiyor');
   const effectiveCutoff = Math.min(cutoffMs, observedAt);
   const count = Array.isArray(series?.closes) ? series.closes.length : 0;
-  const alignedFields = ['closes','highs','lows','volumes','dates','sourceTimestamps','closeTimes','closeTimeProvided','rangeVerified','volumeVerified'];
+  const alignedFields = ['closes','highs','lows','volumes','dates','sourceTimestamps','closeTimes','closeTimeProvided','rangeVerified','volumeVerified','opens','openVerified','barStartAt','barEndAt','sessionEvidence'];
   for (const field of alignedFields) {
     if (series[field] != null && (!Array.isArray(series[field]) || series[field].length !== count)) {
       throw new Error('Kripto kapanışları doğrulanamadı: tarih, fiyat ve OHLCV kanıtı gözlemleri aynı uzunlukta olmalıdır');

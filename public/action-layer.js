@@ -296,7 +296,7 @@
     const verb = tone === 'strong-buy' || tone === 'buy' ? 'Olumlu teknik görünüm taslağı' : tone === 'hold' ? 'Karışık teknik görünüm taslağı' : 'Zayıf teknik görünüm taslağı';
     const thesis = verb + ': ' + (asset.symbol || '') + ' için ana dayanak ' + (pos || asset.analysis.summary || 'teknik skor') + '.';
     const invalidation = trade && trade.stop != null
-      ? 'Teknik planın stop seviyesi ' + money(trade.stop, asset.currency) + '; bu eşik ihlal edilirse görüş yeniden incelenmeli.'
+      ? 'Teknik planın stop seviyesi ' + money(trade.stop, trade.currency || asset.currency) + '; bu eşik ihlal edilirse görüş yeniden incelenmeli.'
       : 'Aktif teknik giriş planı yok; giriş ve geçersiz kılma eşiği henüz tanımlı değil.';
     const catalysts = [];
     const news = reportBase && reportBase.calendar && reportBase.calendar.companyNews;
@@ -315,6 +315,7 @@
 
   function activeLongPlan(asset) {
     const d = asset && asset.decision ? asset.decision : {};
+    if(d.structuralRecord && ['closed','missed-entry','expired-entry'].includes(d.structuralRecord.execution?.state)) return null;
     if (d.activeSignal && d.activeSignal.available) return d.activeSignal;
     if (isBuyRecommendation(asset) && d.trade && d.trade.available) return d.trade;
     return null;

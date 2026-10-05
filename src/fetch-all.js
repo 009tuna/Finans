@@ -12,6 +12,8 @@ const { saveSnapshot, appendHistory, getHistory } = require('./db');
 const { fetchFxRates } = require('./fx');
 const { fetchAssetChart } = require('./chart-data');
 const { computeMarketRegimes } = require('./market-regime');
+const {completedYahooHistory,completedCryptoHistory}=require('./daily-history');
+const {processStructuralObservations}=require('./structural-pipeline');
 
 const ROOT = path.join(__dirname, '..');
 const fs = require('fs');
@@ -33,9 +35,15 @@ async function loadHistory() {
   }
 }
 
-function buildStock(series, fund, market) {
+function completedIndicators(series,market,cutoffMs) {
+  try {
+    const complete=(market==='crypto'?completedCryptoHistory:completedYahooHistory)(series,cutoffMs);
+    return computeIndicators(complete.series);
+  } catch (_) { return computeIndicators({}); }
+}
+function buildStock(series, fund, market, cutoffMs=Date.now()) {
   if (series.__error) return { market, symbol: series.symbol, __error: series.__error };
-  const ind = computeIndicators(series.series || {});
+  const ind = completedIndicators(series.series || {},market,cutoffMs);
   const analysis = scoreAsset(ind, fund, market);
   return {
     market,
@@ -58,9 +66,9 @@ function buildStock(series, fund, market) {
   };
 }
 
-function buildCrypto(c) {
+function buildCrypto(c,cutoffMs=Date.now()) {
   if (c.__error) return { market: 'crypto', symbol: c.symbol || c.id, id: c.id, __error: c.__error };
-  const ind = computeIndicators(c.series || {});
+  const ind = completedIndicators({...c.series,technicalData:c.technicalData},'crypto',cutoffMs);
   const analysis = scoreAsset(ind, null, 'crypto');
   const technicalData = c.technicalData || null;
   if (technicalData && ['stale', 'unavailable'].includes(technicalData.status)) {
@@ -135,9 +143,10 @@ async function runAll() {
   const fundBy = {};
   usFund.forEach((f) => { if (f && f.symbol) fundBy[f.symbol] = f; });
 
-  const us = usSeries.map((s) => buildStock(s, fundBy[s.symbol] || null, 'us'));
-  const bist = bistSeries.map((s) => buildStock(s, null, 'bist'));
-  const cryptoArr = crypto.map(buildCrypto);
+  const generationCutoffAt=new Date().toISOString();
+  const us = usSeries.map((s) => buildStock(s, fundBy[s.symbol] || null, 'us',Date.parse(generationCutoffAt)));
+  const bist = bistSeries.map((s) => buildStock(s, null, 'bist',Date.parse(generationCutoffAt)));
+  const cryptoArr = crypto.map(c=>buildCrypto(c,Date.parse(generationCutoffAt)));
 
   const scored = (arr) => arr.filter((x) => x.analysis && x.analysis.score != null);
   const tagged = [...scored(us), ...scored(bist), ...scored(cryptoArr)];
@@ -186,7 +195,7 @@ async function runAll() {
     .concat(insufficient(us, 'ABD'), insufficient(bist, 'BIST'), insufficient(cryptoArr, 'Kripto'));
 
   const snapshot = {
-    generatedAt: new Date().toISOString(),
+    generatedAt: generationCutoffAt,
     counts: { us: scored(us).length, bist: scored(bist).length, crypto: scored(cryptoArr).length },
     market: { usAsOf: maxTime(us), bistAsOf: maxTime(bist), cryptoAsOf: maxTime(cryptoArr) },
     fx,
@@ -207,6 +216,7 @@ async function runAll() {
     for (const source of sources) {
       const symbol = market === 'bist' ? source.symbol.replace(/\.IS$/i, '') : source.symbol;
       sourceSeriesByKey[market + ':' + symbol] = { ...source.series, symbol,
+        sourceSymbol:market==='crypto'?source.sourceSymbol || symbol+'USDT':market==='bist'?symbol+'.IS':symbol,
         provider: market === 'crypto' ? 'binance' : 'yahoo',
         currency: market === 'crypto' ? source.series?.quoteCurrency : source.currency,
         priceBasis: market === 'crypto' ? 'binance-spot-close-v1' : 'yahoo-chart-close-v1',
@@ -216,44 +226,7 @@ async function runAll() {
   const learning = await require('./learning-pipeline').captureLearningSnapshot({ snapshot, sourceSeriesByKey });
   if (learning.status === 'unavailable' || learning.conflicts) snapshot.errors.push('Öğrenme kaydı: ' + learning.status);
 
-  // System predictions recording
-  const { readJournal, writeJournal, recordPrediction } = require('./decision-journal');
-  const JOURNAL_PATH = path.join(ROOT, 'data', 'journal.json');
-  let journalForSignals = null;
-  try {
-    const journal = await readJournal(JOURNAL_PATH);
-    let updatedJournal = journal;
-    const nowIso = snapshot.generatedAt;
-    
-    const recordList = (arr) => {
-      (arr || []).forEach(x => {
-        if (x.analysis && x.analysis.score >= 70 && x.decision && x.decision.trade && x.decision.trade.available) {
-          updatedJournal = recordPrediction(updatedJournal, {
-            market: x.market,
-            symbol: x.symbol,
-            label: x.analysis.label,
-            score: x.analysis.score,
-            entry: x.decision.trade.entry,
-            target: x.decision.trade.target,
-            stop: x.decision.trade.stop,
-            horizonDays: 30,
-            source: 'system'
-          }, nowIso);
-        }
-      });
-    };
-    recordList(snapshot.us);
-    recordList(snapshot.bist);
-    recordList(snapshot.crypto);
-    
-    await writeJournal(JOURNAL_PATH, updatedJournal);
-    journalForSignals = updatedJournal;
-  } catch (err) {
-    console.error('⚠️ [fetch-all] Sistem tahminleri kaydedilemedi:', err.message);
-    throw err;
-  }
-
-  attachSignalHealth(snapshot, journalForSignals);
+  await processStructuralObservations(snapshot,sourceSeriesByKey);
 
   // Supabase'e yaz (latest + history)
   await saveSnapshot(snapshot);
@@ -277,4 +250,4 @@ if (require.main === module) {
     .catch((e) => { console.error('HATA:', e); process.exit(1); });
 }
 
-module.exports = { runAll };
+module.exports = { runAll, completedIndicators, buildStock, buildCrypto };

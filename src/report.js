@@ -120,7 +120,7 @@ async function buildBaseReport({ onSnapshot, snapshot: suppliedSnapshot } = {}) 
     const today = new Date();
     const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     resolvedLastWeek = journal.predictions
-      .filter((x) => x.outcome !== 'open' && x.resolvedAt && new Date(x.resolvedAt) >= sevenDaysAgo)
+      .filter((x) => x.strategyVersion!=='structural-long-v1' && x.outcome !== 'open' && x.resolvedAt && new Date(x.resolvedAt) >= sevenDaysAgo)
       .map((x) => ({
         id: x.id,
         market: x.market,
@@ -140,6 +140,8 @@ async function buildBaseReport({ onSnapshot, snapshot: suppliedSnapshot } = {}) 
   }
 
   const base = {
+    structural: snap.structural || null,
+    structuralRecords: journal?.predictions?.filter(r=>r.strategyVersion==='structural-long-v1') || [],
     schemaVersion: 2,
     runId: randomUUID(),
     snapshotId: snapshotId(snap),

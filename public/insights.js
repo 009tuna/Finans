@@ -2,9 +2,9 @@
 // Amaç: derin analiz çıktısını (skor/alt-skor/gerekçe/işlem planı, backtest sonucu) sade dile çevirmek.
 // app.js yardımcılarına BAĞIMLI DEĞİLDİR (test edilebilirlik için kendi mini formatçıları var).
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory();
-  else root.FinansInsights = factory();
-})(typeof self !== 'undefined' ? self : this, function () {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./structural-records'));
+  else root.FinansInsights = factory(root.StructuralRecords);
+})(typeof self !== 'undefined' ? self : this, function (structuralRecords) {
   'use strict';
 
   function pct(v) {
@@ -74,7 +74,7 @@
     const d = asset.decision || {};
     const reasons = a.reasons || [];
     const sub = a.sub || {};
-    const currency = asset.currency;
+    const currency = d.structuralRecord?.plan?.currency || asset.currency;
 
     const pros = reasons.filter(function (r) { return r.sentiment === 'pos'; }).map(function (r) { return r.text; });
     const consRaw = reasons.filter(function (r) { return r.sentiment === 'neg'; }).map(function (r) { return r.text; });
@@ -123,6 +123,13 @@
       plan = 'Aktif sistem sinyali ' + money(t.entry, currency) + ' girişinden izleniyor; stop ' + money(t.stop, currency) + ', hedef ' + money(t.target, currency) + '. ' + (typeof t.resultPct === 'number' && Number.isFinite(t.resultPct) ? 'Son ölçülen fiyat değişimi ' + pct(t.resultPct) + '.' : 'Son fiyat değişimi hesaplanamadı.');
     }
     const qBits = [];
+    if(t.structural) {
+      const record=d.structuralRecord || t.record;
+      const state=record && structuralRecords?structuralRecords.classifyRecord(record):null;
+      plan = t.available && record
+        ? (state?.label || 'Kayıt durumu doğrulanamadı')+'. '+(t.entry==null?'Sabit bölge '+money(t.entryZone?.[0],currency)+' – '+money(t.entryZone?.[1],currency):'Sabit sanal giriş '+money(t.entry,currency))+' '+currency+'. Yapısal stop '+money(t.stop,currency)+', ilk direnç hedefi '+money(t.target,currency)+'.'
+        : 'Yapısal giriş koşulları bekleniyor; teknik puan otomatik alış anlamına gelmez.';
+    }
     if (d.freshness && d.freshness.label) qBits.push(d.freshness.label);
     if (d.confidence && d.confidence.label) qBits.push(d.confidence.label);
     const quality = {

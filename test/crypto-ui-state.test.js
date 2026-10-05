@@ -15,7 +15,9 @@ function section(source, start, end) {
   return source.slice(from, to);
 }
 const pipeline = fs.readFileSync(path.join(__dirname, '../src/fetch-all.js'), 'utf8');
-const builder = vm.createContext({ computeIndicators, scoreAsset });
+// Isolate spot/stale display semantics here. Source-cut behavior is exercised
+// against the real completedIndicators function in structural-pipeline.test.
+const builder = vm.createContext({ computeIndicators, scoreAsset, completedIndicators:series=>computeIndicators(series) });
 vm.runInContext(section(pipeline, 'function buildCrypto(', '// Piyasa-seviye'), builder);
 const closes = Array.from({ length: 250 }, (_, i) => 20 + i * 0.07 + Math.sin(i) * 0.03);
 const series = { closes, highs: closes.map(n => n + 0.5), lows: closes.map(n => n - 0.5), volumes: closes.map(() => 1000), dates: closes.map((_, i) => 1700000000 + i * 86400) };

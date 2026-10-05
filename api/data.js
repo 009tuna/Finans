@@ -2,7 +2,7 @@
 // (data/latest.json yerine Supabase market_snapshots tablosu)
 'use strict';
 
-const { getLatestSnapshot } = require('../src/db');
+const { readStructuralSnapshot } = require('../src/structural-reader');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -10,7 +10,8 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const data = await getLatestSnapshot();
+    const data = await readStructuralSnapshot();
+    res.setHeader('Cache-Control','no-store');
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.status(200).json(data || { empty: true });
   } catch (e) {

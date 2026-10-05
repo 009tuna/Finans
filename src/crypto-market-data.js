@@ -28,12 +28,14 @@ function normalizeKlines(data) {
     if (high < Math.max(open, close, low) || low > Math.min(open, close, high)) continue;
     const closeTimeProvided = k[6] != null;
     const closeTime = k[6] == null || k[6] === '' ? null : Number(k[6]);
-    bars.push({ time: Math.floor(timeMs / 1000), openTime: timeMs, open, high, low, close, volume,
+    bars.push({ time: Math.floor(timeMs / 1000), openTime: timeMs, open, high, low, close, volume, openVerified:true,
       closeTimeProvided,
       ...(Number.isFinite(closeTime) && closeTime >= timeMs && Number.isFinite(new Date(closeTime).getTime()) ? {closeTime} : {}) });
   }
   bars.sort((a, b) => a.time - b.time);
   const unique = bars.filter((bar, i) => !i || bar.time > bars[i - 1].time);
+  const duplicates = new Set(bars.filter((bar,i)=>i && bar.time === bars[i-1].time).map(b=>b.time));
+  for (const bar of unique) if (duplicates.has(bar.time)) bar.sourceConflict = true;
   if (!unique.length) throw new Error('Binance OHLCV serisi malformed');
   return unique;
 }
@@ -45,6 +47,11 @@ function dailySeries(bars, calendar = null) {
     closeTimes: bars.map((b) => Number.isFinite(b.closeTime) ? new Date(b.closeTime).toISOString() : null),
     closeTimeProvided: bars.map((b) => b.closeTimeProvided === true || b.closeTime != null),
     calendar,
+    opens:bars.map(b=>b.open), openVerified:bars.map(b=>b.openVerified !== false && b.sourceProvenance !== 'legacy-imputed'),
+    barStartAt:bars.map(b=>new Date(b.openTime != null ? b.openTime : b.time*1000).toISOString()),
+    barEndAt:bars.map(b=>Number.isFinite(b.closeTime) ? new Date(b.closeTime).toISOString() : null),
+    timestampRole:'session_open',
+    sessionEvidence:bars.map(b=>({basis:'binance_utc_daily',sourceConflict:b.sourceConflict === true})),
     closes: bars.map((b) => b.close), highs: bars.map((b) => b.high),
     lows: bars.map((b) => b.low), volumes: bars.map((b) => b.volume),
     rangeVerified: bars.map(() => true), volumeVerified: bars.map(() => true),
@@ -59,6 +66,14 @@ function validateBars(input) {
   // indistinguishable from an old record that genuinely omitted that field.
   const explicitCloseTimes = new Set(input.filter((b) => b.closeTimeProvided === true).map((b) => Number(b.time)));
   for (const bar of bars) if (explicitCloseTimes.has(bar.time)) bar.closeTimeProvided = true;
+  const original = new Map(input.map(b=>[Number(b.time),b]));
+  for (const bar of bars) {
+    const source=original.get(bar.time);
+    if (source?.openVerified === false || source?.sourceProvenance === 'legacy-imputed') {
+      bar.openVerified=false; bar.sourceProvenance='legacy-imputed';
+    }
+    if(source?.sourceConflict) bar.sourceConflict=true;
+  }
   return bars;
 }
 
@@ -143,7 +158,7 @@ function createCryptoMarketData({ fetchJson = cryptoHttp.fetchJson, database = d
 
 function seriesToBars(series) {
   if (!series || !Array.isArray(series.dates)) return null;
-  return series.dates.map((date, i) => ({ time: Math.floor(Date.parse(`${date}T00:00:00Z`) / 1000), open: series.closes[i], high: series.highs[i], low: series.lows[i], close: series.closes[i], volume: series.volumes && series.volumes[i] != null ? series.volumes[i] : null }));
+  return series.dates.map((date, i) => ({ time: Math.floor(Date.parse(`${date}T00:00:00Z`) / 1000), open: series.closes[i], openVerified:false, sourceProvenance:'legacy-imputed', high: series.highs[i], low: series.lows[i], close: series.closes[i], volume: series.volumes && series.volumes[i] != null ? series.volumes[i] : null }));
 }
 function metadata(status, source, payload, error, cacheWarning) {
   const bars = payload.bars || [];

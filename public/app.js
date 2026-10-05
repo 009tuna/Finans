@@ -839,6 +839,7 @@ function renderDecisionTrace() {
 }
 
 async function renderReport() {
+  if(typeof renderPredictionScorecard==='function') renderPredictionScorecard();
   const el = $('#reportContent');
   const request = ++reportRequest;
   let data = null;
@@ -1592,11 +1593,15 @@ function addLwSeries(chart, name, options, paneIndex) {
   if (name === 'HistogramSeries'   && chart.addHistogramSeries)   return chart.addHistogramSeries(options);
   return null;
 }
-function addTradePriceLines(series, asset) {
+function addTradePriceLines(series, asset, chartEvidence) {
   const trade = asset && asset.decision && asset.decision.trade;
   if (!series || !series.createPriceLine || !trade || !trade.available) return;
+  if(trade.structural && (!trade.frozen || chartEvidence?.currency!==trade.currency || chartEvidence?.source!==(asset.market==='crypto'?'binance':'yahoo'))) return;
+  const entries=trade.structural && trade.entry==null
+    ? [['Bölge altı',trade.entryZone?.[0],CHART.accent],['Bölge üstü',trade.entryZone?.[1],CHART.accent]]
+    : [['Giriş',trade.entry,CHART.accent]];
   [
-    ['Giriş', trade.entry, CHART.accent],
+    ...entries,
     ['Stop', trade.stop, CHART.red],
     ['Hedef', trade.target, CHART.green],
   ].forEach(([title, price, color]) => {
@@ -1845,7 +1850,7 @@ function drawAssetDeskChart(payload, asset) {
     ? bars.map((b) => ({ time: b.time, value: b.close }))
     : bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
   
-  addTradePriceLines(main, asset);
+  addTradePriceLines(main, asset, payload);
 
   // Teknik indikatörleri hesapla ve paneli güncelle
   const closes = bars.map(b => b.close);
@@ -2191,7 +2196,9 @@ function decisionPanel(x) {
   const capitalBase = Number.isFinite(trade.capitalBase) && trade.capitalBase > 0 ? trade.capitalBase : 100000;
   const unitsWithinCapital = Number.isFinite(trade.unitsPer100k) && trade.unitsPer100k >= 0 && Number.isFinite(trade.entry) && trade.entry > 0
     && trade.unitsPer100k * trade.entry <= capitalBase + 1e-8;
-  const tradeHtml = trade.available
+  const tradeHtml = trade.structural && window.StructuralUI
+    ? (d.structuralRecord?window.StructuralUI.renderPlan(d.structuralRecord):window.StructuralUI.renderWatch(d.structural))
+    : trade.available
     ? '<p class="decision-muted">Alış yönlü örnek: ' + fmtPrice(capitalBase, x.currency) + ' sermaye, 1,5 ATR stop ve 3 ATR hedef varsayımı. Masraf ve fiyat kayması dahil değil.</p><div class="trade-grid">' +
       '<div class="trade-cell"><span>Giriş varsayımı</span><b>' + fmtPrice(trade.entry, x.currency) + '</b></div>' +
       '<div class="trade-cell"><span>Stop varsayımı</span><b>' + fmtPrice(trade.stop, x.currency) + '</b></div>' +
@@ -2213,7 +2220,7 @@ function decisionPanel(x) {
     '<div><span>Sinyal değişimi</span><b>' + esc(confidenceText(d.confidence)) + '</b></div>' +
     '<div><span>Çelişki</span><b>' + (contradictions.length ? contradictions.length + ' uyarı' : contradictionsKnown ? 'Gösterge çelişkisi saptanmadı' : 'Çelişki kontrolü kaydı yok') + '</b></div>' +
     '</div>' +
-    '<div class="decision-split"><div data-task-target="risk"><h4>Örnek risk hesabı</h4>' + tradeHtml + '</div><div><h4>Uyarılar</h4>' + contradictionHtml + '</div></div>' +
+    '<div class="decision-split"><div data-task-target="risk"><h4>'+(trade.structural?'Yapısal işlem durumu':'Örnek risk hesabı')+'</h4>' + tradeHtml + '</div><div><h4>Uyarılar</h4>' + contradictionHtml + '</div></div>' +
     '</div>';
 }
 
@@ -4496,7 +4503,10 @@ function renderPredictionScorecard() {
   const el = $('#predictionScorecard');
   const helper = window.FinansActionLayer;
   if (!el || !helper || !helper.buildPredictionCohorts) return;
-  const cohorts = helper.buildPredictionCohorts(JOURNAL, new Date().toISOString());
+  const structuralHtml=window.StructuralUI?window.StructuralUI.renderPerformance(JOURNAL.predictions || [],typeof DATA!=='undefined'?DATA?.structural?.sources || []:[]):'';
+  const structuralReport=$('#structuralReportContent');if(structuralReport) structuralReport.innerHTML=structuralHtml;
+  const legacyJournal=window.StructuralRecords?{...JOURNAL,predictions:(JOURNAL.predictions || []).filter(r=>!window.StructuralRecords.isStructural(r))}:JOURNAL;
+  const cohorts = helper.buildPredictionCohorts(legacyJournal, new Date().toISOString());
   if (cohorts.unavailable) {
     el.innerHTML = '<div class="card scorecard-card"><h2>Teknik Sonuçlar</h2><p>Ölçüm kanıtı okunamadı. Başarı oranı hesaplanmadı.</p></div>';
     return;
@@ -4537,6 +4547,7 @@ function renderPredictionScorecard() {
   el.innerHTML = '<div class="card scorecard-card"><div class="card-head"><h2>Teknik Sonuçlar</h2><span class="card-sub">Sistem senaryoları · model tahminlerinden ayrı</span></div><p class="scorecard-evidence-strip">Ölçüme uygun <b>' + counts.versioned_result + '</b> sonuç · sürümlü <b>' + counts.versioned_open + '</b> açık · eski <b>' + counts.legacy + '</b> · geçersiz <b>' + counts.invalid + '</b> · belirsiz <b>' + counts.ambiguous + '</b></p><label class="scorecard-cohort-toolbar">İncelenen grup<select id="predictionCohortSelect">' + selectionOptions + '</select></label><p class="scorecard-caveat">Piyasa, kaynak, strateji ve ölçüm sürümleri birleştirilmez. Brüt senaryo getirisi; gerçekleşmiş net hesap getirisi değildir, komisyon ve vergileri içermez. Belirsiz sonuçlar isabet ve getiri ortalamasından çıkarılır.</p>' +
     (visible.length ? visible.map(groupHtml).join('') : '<p class="muted compact">Henüz ölçüme uygun kapanış yok. İsabet oranı ve ortalama getiri üretilemez.</p>') +
     '<details class="scorecard-archive"><summary>Ölçüm dışındaki kayıtlar (' + (counts.legacy + counts.invalid + counts.ambiguous) + ')</summary><p class="scorecard-caveat">Eski veya geçersiz kayıtlar yeniden yazılmadı. Ayrıntıları üstteki grup seçimiyle inceleyebilirsiniz.</p>' + archive.map(group => '<p>' + esc(label(group)) + ' · <b>' + group.items.length + '</b> kayıt</p>').join('') + '<p>Kontrol bulguları: ' + esc(Object.keys(cohorts.reasons).map(reason=>reasonLabel(reason) + ': ' + cohorts.reasons[reason]).join(' · ') || 'Yok') + '</p></details></div>';
+  if(structuralHtml) el.innerHTML=structuralHtml+'<details class="scorecard-archive"><summary>Önceki teknik senaryoları incele ('+legacyJournal.predictions.length+')</summary>'+el.innerHTML+'</details>';
   const control = el.querySelector && el.querySelector('#predictionCohortSelect');
   if (control) control.addEventListener('change', () => {
     predictionCohortFilter = decodeURIComponent(control.value);
