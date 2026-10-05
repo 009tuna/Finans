@@ -1,0 +1,17 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {resolvePriceLabel}=require('../src/learning-labels');
+const {example}=require('./learning-fixtures');
+const x=example({reference:{barDate:'2026-01-01',close:100,currency:'USD',priceBasis:'raw',timeZone:'America/New_York'},source:{provider:'yahoo',symbol:'ABC',currency:'USD',priceBasis:'raw'}});
+const coverage={verified:true,startDate:'2026-04-01',endDate:'2026-04-03',sessionDates:['2026-04-01','2026-04-02','2026-04-03'],observedAt:'2026-04-04T10:00:00Z',evidenceHash:'b'.repeat(64),provider:'yahoo',symbol:'ABC',currency:'USD',priceBasis:'raw'};
+const bar={date:'2026-04-01',close:110,completed:true,effectiveAt:'2026-04-01T20:00:00Z',observedAt:'2026-04-04T10:00:00Z',evidenceHash:'c'.repeat(64),currency:'USD',priceBasis:'raw'};
+const input={example:x,coverage,observations:[bar],horizonDays:90,asOf:'2026-04-05T00:00:00Z'};
+assert.equal(resolvePriceLabel({...input,asOf:'2026-03-01T00:00:00Z'}).status,'pending');
+const result=resolvePriceLabel(input); assert.equal(result.label.targetDate,'2026-04-01'); assert.ok(Math.abs(result.label.value-10)<1e-10);
+assert.equal(resolvePriceLabel({...input,observations:[{...bar,date:'2026-04-02'}]}).status,'unresolved');
+assert.equal(resolvePriceLabel({...input,coverage:null}).status,'unresolved');
+assert.equal(resolvePriceLabel({...input,asOf:'2026-04-02T00:00:00Z'}).status,'pending');
+assert.equal(resolvePriceLabel({...input,observations:[{...bar,priceBasis:'adjusted'}]}).status,'excluded');
+assert.equal(resolvePriceLabel({...input,observations:[{...bar,splitDetected:true}]}).status,'excluded');
+assert.throws(()=>resolvePriceLabel({...input,horizonDays:30}));
+console.log('learning-labels: PASS');

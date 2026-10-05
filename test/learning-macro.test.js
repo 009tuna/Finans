@@ -1,0 +1,15 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {collectMacroExamples}=require('../src/learning-macro');
+const event={eventId:'us_nonfarm_payroll_change:2026-01',metric:'us_nonfarm_payroll_change',unit:'thousand_jobs',period:'2026-01',scheduledAt:'2026-02-06T13:30:00Z',observedAt:'2026-01-01T00:00:00Z',sourceUrl:'https://www.bls.gov/schedule/news_release/empsit.htm',contentHash:'a'.repeat(64)};
+const forecast={forecastId:'f1',eventId:event.eventId,metric:event.metric,unit:event.unit,period:event.period,methodId:'seasonal-v1',estimate:100,createdAt:'2026-02-01T00:00:00Z',knowledgeCutoff:'2026-02-01T00:00:00Z',chronologyStatus:'verified',inputVerificationIds:['proof1']};
+const actual={id:'actual1',eventId:event.eventId,metric:event.metric,unit:event.unit,period:event.period,value:80,vintage:'first_release',publishedAt:event.scheduledAt,observedAt:'2026-02-06T14:00:00Z',sourceUrl:'https://www.bls.gov/news.release/empsit.htm',contentHash:'b'.repeat(64),verification:'verified'};
+const outcome={forecastId:'f1',actualId:'actual1',actual:80,resolvedAt:'2026-02-06T15:00:00Z'};
+const payload={events:[event],forecasts:[forecast],observations:[actual],outcomes:[outcome],sourceVerifications:[{id:'proof1',observedAt:'2026-01-01T00:00:00Z',contentHash:'c'.repeat(64),sourceUrl:'https://www.bls.gov/news.release/empsit.htm'}]};
+const r=collectMacroExamples({macroPayload:payload,asOf:'2026-03-01T00:00:00Z'}); assert.equal(r.examples.length,1); assert.equal(r.labels.length,1); assert.equal(r.labels[0].value,80);
+assert.equal(collectMacroExamples({macroPayload:{...payload,forecasts:[forecast,{...forecast,forecastId:'f2',createdAt:'2026-02-02T00:00:00Z'}]},asOf:'2026-03-01T00:00:00Z'}).examples.length,1);
+assert.equal(collectMacroExamples({macroPayload:{...payload,events:[{...event,scheduleVerification:'model-cited-web-research',contentHash:null}]},asOf:'2026-03-01T00:00:00Z'}).examples[0].eligibility.status,'ineligible');
+assert.equal(collectMacroExamples({macroPayload:{...payload,observations:[{...actual,vintage:'revision'}]},asOf:'2026-03-01T00:00:00Z'}).labels.length,0);
+assert.equal(collectMacroExamples({macroPayload:{...payload,outcomes:[{...outcome,recordedAt:'2026-04-01T00:00:00Z',resolvedAt:undefined}]},asOf:'2026-03-01T00:00:00Z'}).labels.length,0);
+console.log('learning-macro: PASS');
+module.exports={payload};
