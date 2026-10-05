@@ -80,7 +80,7 @@ const server = http.createServer(async (req, res) => {
       return res.end(JSON.stringify(result.body));
     }
     if (p === '/api/data') {
-      const data = await getLatestSnapshot();
+      const data = await require('./src/structural-reader').readStructuralSnapshot();
       res.writeHead(200, { 'Content-Type': MIME['.json'] });
       return res.end(JSON.stringify(data || { empty: true }));
     }

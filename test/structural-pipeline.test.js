@@ -21,6 +21,11 @@ async function main(){
   assert.equal(snapshot.crypto[0].decision.trade.currency,'USDT','spot USD cannot restate frozen USDT plan');
   assert.equal(snapshot.crypto[0].decision.structuralRecord.id,r.id);
   assert.equal(snapshot.structural.scorecard.winRate,null);
+  const {hydrateStructuralSnapshot,readStructuralSnapshot}=require('../src/structural-reader');
+  const old={...snapshot,crypto:[{market:'crypto',symbol:'BTC',decision:{trade:{available:true,entry:999,target:1200,stop:900}}}]};
+  assert.equal(hydrateStructuralSnapshot(old,{predictions:[]}).crypto[0].decision.trade.available,false,'old snapshot cannot revive latest-price ATR signals');
+  assert.equal(hydrateStructuralSnapshot(old,{predictions:[r]}).crypto[0].decision.trade.predictionId,r.id,'journal receipt remains visible when snapshot publication failed');
+  await assert.rejects(()=>readStructuralSnapshot({readSnapshot:async()=>old,readJournal:async()=>{throw Error('journal unavailable');}}),/journal unavailable/);
   let requests=0;
   const failedSpot=await collectObservations({}, {predictions:[r,r]},o.sourceObservedAt,{fetchCryptoSeries:async pair=>{requests++;assert.equal(pair,'BTCUSDT');throw Error('source down');}});
   assert.equal(requests,1,'frozen source pair fetched once even without CoinGecko spot');

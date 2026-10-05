@@ -26,11 +26,11 @@ function applyStructuralDecisions(snapshot,journal,observations) {
   const byKey=new Map(observations.map(o=>[o.market+':'+o.symbol,o]));
   const records=journal.predictions || [];
   for(const market of ['us','bist','crypto']) for(const asset of snapshot[market] || []) {
-    const o=byKey.get(market+':'+asset.symbol),current=o?evaluateSignal(o):{status:'watch',reasons:['source-unavailable']};
+    const o=byKey.get(market+':'+asset.symbol),current=o?evaluateSignal(o):asset.decision?.structural || {status:'watch',reasons:['source-unavailable']};
     asset.decision ||= {activeSignal:null};
     const active=selectActiveRecord(records,market,asset.symbol);
     const recent=active || records.filter(r=>isStructural(r)&&r.market===market && r.symbol===asset.symbol).sort((a,b)=>b.createdAt.localeCompare(a.createdAt))[0];
-    asset.decision.structural={strategyVersion:'structural-long-v1',status:current.status,reasons:current.reasons,sourceObservedAt:o?.sourceObservedAt || null,calendarStatus:o?.calendar?.status || 'unverified'};
+    asset.decision.structural={strategyVersion:'structural-long-v1',status:current.status,reasons:current.reasons,sourceObservedAt:o?.sourceObservedAt || asset.decision.structural?.sourceObservedAt || null,calendarStatus:o?.calendar?.status || asset.decision.structural?.calendarStatus || 'unverified'};
     asset.decision.structuralRecord=isStructural(recent)?recent:null;
     if(isStructural(recent)) {
       const p=recent.plan,e=recent.execution,state=classifyRecord(recent);

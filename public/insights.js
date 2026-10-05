@@ -74,7 +74,7 @@
     const d = asset.decision || {};
     const reasons = a.reasons || [];
     const sub = a.sub || {};
-    const currency = asset.currency;
+    const currency = d.structuralRecord?.plan?.currency || asset.currency;
 
     const pros = reasons.filter(function (r) { return r.sentiment === 'pos'; }).map(function (r) { return r.text; });
     const consRaw = reasons.filter(function (r) { return r.sentiment === 'neg'; }).map(function (r) { return r.text; });
@@ -123,6 +123,11 @@
       plan = 'Aktif sistem sinyali ' + money(t.entry, currency) + ' girişinden izleniyor; stop ' + money(t.stop, currency) + ', hedef ' + money(t.target, currency) + '. ' + (typeof t.resultPct === 'number' && Number.isFinite(t.resultPct) ? 'Son ölçülen fiyat değişimi ' + pct(t.resultPct) + '.' : 'Son fiyat değişimi hesaplanamadı.');
     }
     const qBits = [];
+    if(t.structural) {
+      plan = t.available
+        ? (t.entry==null?'Sanal giriş bekleniyor; sabit bölge '+money(t.entryZone?.[0],currency)+' – '+money(t.entryZone?.[1],currency):'Sabit sanal plan; giriş '+money(t.entry,currency))+' '+currency+'. Yapısal stop '+money(t.stop,currency)+', ilk direnç hedefi '+money(t.target,currency)+'.'
+        : 'Yapısal giriş koşulları bekleniyor; teknik puan otomatik alış anlamına gelmez.';
+    }
     if (d.freshness && d.freshness.label) qBits.push(d.freshness.label);
     if (d.confidence && d.confidence.label) qBits.push(d.confidence.label);
     const quality = {
