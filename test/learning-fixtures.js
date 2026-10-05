@@ -4,6 +4,7 @@ function memoryDatabase() {
   const rows = new Map(); let revision = 0;
   return { rows,
     async getCache(key) { return rows.has(key) ? clone(rows.get(key)) : null; },
+    async getCaches(keys) { return Object.fromEntries(keys.map(key=>[key,rows.has(key)?clone(rows.get(key)):null])); },
     async compareAndSetCache(key, value, expected) {
       const old = rows.get(key);
       if ((old ? old.revision : null) !== expected) { const e = new Error('CAS'); e.statusCode = 409; throw e; }

@@ -9,6 +9,21 @@ async function row(database,key) {
   if(found && (!found.value || typeof found.value!=='object' || !found.revision)) throw error('corrupt cache row');
   return found;
 }
+async function rows(database,keys) {
+  const unique=[...new Set(keys)], result={};
+  if(database.getCaches) {
+    const batch=await database.getCaches(unique,{strict:true});
+    for(const key of unique) {
+      if(!Object.prototype.hasOwnProperty.call(batch,key)) throw error('incomplete cache batch');
+      const found=batch[key];
+      if(found&&(!found.value||typeof found.value!=='object'||!found.revision))throw error('corrupt cache row');
+      result[key]=found;
+    }
+  } else {
+    for(let offset=0;offset<unique.length;offset+=6) await Promise.all(unique.slice(offset,offset+6).map(async key=>{result[key]=await row(database,key);}));
+  }
+  return result;
+}
 async function immutable(database,key,value) {
   for(let attempt=0;attempt<3;attempt++) {
     const old=await row(database,key);
@@ -45,7 +60,7 @@ async function appendLearningRecords(batch={}, database=require('./db')) {
   }
   const summary={appended:0,existing:0};
   for(const {type,record,hash} of entries) {
-    await immutable(database,identityKey(type,record.id),{schemaVersion:1,type,id:record.id,hash});
+    await immutable(database,identityKey(type,record.id),{schemaVersion:1,type,id:record.id,hash,record});
     const inserted=await immutable(database,'learning:record:'+hash,{schemaVersion:1,type,record});
     const key=shardKey(type,record);
     await addReference(database,key,'refs',{id:record.id,hash});
@@ -58,7 +73,11 @@ async function readLearningIdentity(type,id,database=require('./db')) {
   const claim=await row(database,identityKey(type,id)); if(!claim) return null;
   if(claim.value.type!==type || claim.value.id!==id || !/^[a-f0-9]{64}$/.test(claim.value.hash)) throw error('corrupt identity claim');
   const saved=await row(database,'learning:record:'+claim.value.hash);
-  if(!saved) return null; // Resumable claim written before its immutable payload.
+  if(!saved) {
+    if(!claim.value.record || canonicalHash(claim.value.record)!==claim.value.hash) throw error('corrupt incomplete identity claim');
+    (type==='example'?validateLearningExample:validateRecord)(claim.value.record);
+    return claim.value.record;
+  }
   if(saved.value.type!==type || canonicalHash(saved.value.record)!==claim.value.hash) throw error('corrupt immutable record');
   return saved.value.record;
 }
@@ -66,20 +85,28 @@ async function readLearningRecords({asOf,kind,cohort}={}, database=require('./db
   const cutoff=asOf?instant(asOf):Infinity, records=[], exclusions=[];
   const index=await row(database,INDEX); if(!index) return {records,exclusions};
   if(index.value.schemaVersion!==1 || !Array.isArray(index.value.shards)) throw error('corrupt learning index');
-  const seen=new Set();
-  for(const ref of index.value.shards) {
+  const refs=index.value.shards.filter(ref=>!(kind&&ref.kind!==kind||cohort&&ref.cohort!==cohort));
+  for(const ref of refs)if(typeof ref.id!=='string'||!ref.id.startsWith('learning:shard:v1:'))throw error('corrupt shard reference');
+  const shards=await rows(database,refs.map(r=>r.id)),recordKeys=[],claimKeys=[];
+  for(const ref of refs) {
+    const shard=shards[ref.id];
+    if(!shard||shard.value.schemaVersion!==1||!Array.isArray(shard.value.refs)||shard.value.refs.length>LIMIT)throw error('corrupt learning shard');
+    for(const item of shard.value.refs){recordKeys.push('learning:record:'+item.hash);claimKeys.push(identityKey(ref.type,item.id));}
+  }
+  const payloads=await rows(database,recordKeys),claims=await rows(database,claimKeys),seen=new Set();
+  for(const ref of refs) {
     if(typeof ref.id!=='string'||!ref.id.startsWith('learning:shard:v1:')) throw error('corrupt shard reference');
     if(kind&&ref.kind!==kind || cohort&&ref.cohort!==cohort) continue;
-    const shard=await row(database,ref.id);
+    const shard=shards[ref.id];
     if(!shard || shard.value.schemaVersion!==1 || !Array.isArray(shard.value.refs) || shard.value.refs.length>LIMIT) throw error('corrupt learning shard');
     for(const item of shard.value.refs) {
-      const stored=await row(database,'learning:record:'+item.hash);
+      const stored=payloads['learning:record:'+item.hash];
       if(!stored || stored.value.type!==ref.type || canonicalHash(stored.value.record)!==item.hash || stored.value.record.id!==item.id) throw error('corrupt immutable record');
       const record=stored.value.record;
       (ref.type==='example'?validateLearningExample:validateRecord)(record);
       if(record.cohort!==ref.cohort||record.kind!==ref.kind) throw error('corrupt cohort reference');
-      const identity=await readLearningIdentity(ref.type,record.id,database);
-      if(!identity || canonicalHash(identity)!==item.hash) throw error('corrupt identity binding');
+      const identity=claims[identityKey(ref.type,record.id)]?.value;
+      if(!identity || identity.type!==ref.type || identity.id!==record.id || identity.hash!==item.hash || identity.record&&canonicalHash(identity.record)!==item.hash) throw error('corrupt identity binding');
       if(instant(record.createdAt)>cutoff) { exclusions.push({id:record.id,reason:'future_record'}); continue; }
       if(!seen.has(item.hash)) { records.push({type:ref.type,hash:item.hash,record}); seen.add(item.hash); }
     }

@@ -45,14 +45,16 @@ async function captureLearningSnapshot({snapshot,sourceSeriesByKey,createdAt=sna
    const {records}=await readLearningRecords({asOf:createdAt},database);
    summary.shadowForecasts=await freezeForCandidates(captured,database,createdAt,records);
    if(summary.conflicts||summary.ineligible)summary.status='partial';
+   await require('./learning-api').writeLearningProjection({database,asOf:createdAt,collectionStatus:summary});
  } catch(_){summary.status='unavailable';summary.errorCode='learning_capture_failed';}
  snapshot.learning={...summary};return summary;
 }
-async function defaultHistory(example,asOf) {
+async function defaultHistory(example,asOf,{live=false}={}) {
  const {fetchAssetChart}=require('./chart-data'),{completedChartHistory}=require('./daily-history');
  const market=example.cohort.split('/')[0];
  const chart=await fetchAssetChart({market,symbol:example.source.symbol,interval:'1d',range:'2y',limit:1000});
- const completed=completedChartHistory(chart,market,instant(asOf)),observedAt=chart.observedAt||chart.technicalData?.fetchedAt;
+ const observedAt=chart.observedAt||chart.technicalData?.fetchedAt;
+ const completed=completedChartHistory(chart,market,instant(live?observedAt:asOf));
  const observations=completed.bars.map(b=>({date:b.date,close:b.close,completed:true,effectiveAt:new Date(Date.parse(b.date+'T00:00:00Z')+86400000-1).toISOString(),observedAt,currency:completed.currency,priceBasis:example.reference.priceBasis,evidenceHash:canonicalHash({provider:chart.source,date:b.date,close:b.close,observedAt})}));
  // A continuous Binance UTC calendar proves expected sessions; Yahoo bars alone
  // cannot prove exchange holidays, missing sessions or corporate-action coverage.
@@ -63,15 +65,17 @@ async function defaultHistory(example,asOf) {
  }
  return {observations,coverage};
 }
-async function refreshLearning({database=require('./db'),asOf=new Date().toISOString(),fetchHistory=defaultHistory,train=false,macroPayload,splitDates}={}) {
+async function refreshLearning({database=require('./db'),asOf,clock=()=>new Date().toISOString(),live=asOf==null,fetchHistory=defaultHistory,train=false,macroPayload,splitDates}={}) {
+ asOf=asOf||clock();
  instant(asOf);const summary={status:'available',checkedAt:asOf,macroExamples:0,newLabels:0,pending:0,unresolved:0,excluded:0,conflicts:0,candidates:0,shadowForecasts:0,training:[]};
  const initial=await readLearningRecords({asOf},database);
  if(!macroPayload) {
    const ledger=(await require('./research-ledger').readLedger(database)).value;
    macroPayload=await require('./macro-store').getMacroPayload({database,researchLedger:ledger,now:asOf});
-   if(macroPayload.status==='unavailable'||macroPayload.families?.us_cpi?.sourceStatus?.status==='unavailable')summary.status='partial';
  }
- const imported=collectMacroExamples({macroPayload,asOf});summary.excluded+=imported.exclusions.length;
+ summary.sourceStatuses={nfp:macroPayload.storeStatus?.status||macroPayload.sourceStatus?.status||macroPayload.status||'unknown',cpi:macroPayload.families?.us_cpi?.sourceStatus?.status||'not_supplied'};
+ if(Object.values(summary.sourceStatuses).some(s=>s==='unavailable'||s==='partial'))summary.status='partial';
+ const imported=collectMacroExamples({macroPayload,asOf,frozenExamples:initial.records.filter(r=>r.type==='example').map(r=>r.record)});summary.excluded+=imported.exclusions.length;
  const captured=[];
  for(const e of imported.examples){const saved=await preserveExample(e,database);if(saved.status==='conflict'){summary.conflicts++;continue;}captured.push(saved.example);summary.macroExamples++;}
  for(const label of imported.labels){const old=await readLearningIdentity('label',label.id,database);await appendLearningRecords({labels:[old||label]},database);if(!old)summary.newLabels++;}
@@ -81,9 +85,10 @@ async function refreshLearning({database=require('./db'),asOf=new Date().toISOSt
    const id='label:'+e.id+':price-return-'+horizonDays+'d';if(known.has(id))continue;
    if(addCalendarDays(e.reference.barDate,horizonDays)>asOf.slice(0,10)){summary.pending++;continue;}
    const key=e.cohort;
-   if(!history.has(key))history.set(key,Promise.resolve().then(()=>fetchHistory(e,asOf)).catch(()=>null));
+   if(!history.has(key))history.set(key,Promise.resolve().then(()=>fetchHistory(e,asOf,{live})).catch(()=>null));
    const data=await history.get(key);if(!data){summary.unresolved++;continue;}
-   const resolved=resolvePriceLabel({example:e,...data,horizonDays,asOf});
+   const resolutionAt=live?clock():asOf;
+   const resolved=resolvePriceLabel({example:e,...data,horizonDays,asOf:resolutionAt});
    if(resolved.label){const old=await readLearningIdentity('label',id,database);await appendLearningRecords({labels:[old||resolved.label]},database);labels.push(old||resolved.label);known.add(id);if(!old)summary.newLabels++;}
    else summary[resolved.status==='excluded'?'excluded':resolved.status==='pending'?'pending':'unresolved']++;
  }
@@ -100,9 +105,14 @@ async function refreshLearning({database=require('./db'),asOf=new Date().toISOSt
      const forecasts=dataset.test.map(r=>({id:'test:'+r.example.id,exampleId:r.example.id,cohort:task.cohort,targetId:task.targetId,estimate:predictModel({artifact:fit.artifact,example:r.example}).estimate,createdAt:r.predictionAt,decisionDate:r.decisionDate}));
      const baselineForecasts=forecasts.map(f=>({...f,id:'baseline:'+f.id,estimate:eligible[0].kind==='macro'?dataset.test.find(r=>r.example.id===f.exampleId).example.features.rawEstimate:0}));
      const evaluation=evaluateForecasts({forecasts,labels:dataset.test.map(r=>r.label),baselineForecasts,asOf});
-     const event=registerCandidate({artifact:fit.artifact,evaluation,policy:DEFAULT_POLICY,createdAt:asOf});await appendLearningRecords({modelEvents:[event]},database);summary.candidates++;
+     const reusedTest=all.some(r=>r.type==='modelEvent'&&r.record.artifact?.finalTestIds?.some(id=>fit.artifact.finalTestIds.includes(id)));
+     const artifact=reusedTest?{...fit.artifact,testUsage:'final_assessment_reused'}:fit.artifact;
+     const event=registerCandidate({artifact,evaluation,policy:DEFAULT_POLICY,createdAt:asOf});await appendLearningRecords({modelEvents:[event]},database);summary.candidates++;
    }
  }
- if(summary.conflicts||summary.unresolved||summary.excluded)summary.status='partial';return summary;
+ if(summary.conflicts||summary.unresolved||summary.excluded)summary.status='partial';
+ summary.checkedAt=live?clock():asOf;
+ await require('./learning-api').writeLearningProjection({database,asOf:summary.checkedAt,collectionStatus:summary});
+ return summary;
 }
 module.exports={captureLearningSnapshot,refreshLearning,defaultHistory,semanticExample};
