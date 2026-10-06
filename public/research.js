@@ -295,7 +295,7 @@
       && exactExpectationTime(item.scheduledAt) && Date.parse(item.scheduledAt) > analysisCutoff && ['unchanged', 'updated', 'abstained'].includes(item.status));
     const ordered = buildExpectationLifecycle(r, { now, storedOpinions, storedOutcomes });
     const sameDay = (date) => Number.isFinite(Date.parse(date)) && Number.isFinite(nowMs) && new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul' }).format(new Date(date)) === new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul' }).format(new Date(nowMs));
-    const rows = compact ? ordered.filter(entry => Date.parse(entry.event.scheduledAt) > nowMs || sameDay(entry.event.scheduledAt)).slice(0, 2) : ordered;
+    const rows = compact ? ordered.filter(entry => Date.parse(entry.event.scheduledAt) > nowMs || sameDay(entry.event.scheduledAt)) : ordered;
     const calendarNotes = (Array.isArray(r.expectationCoverage) ? r.expectationCoverage : []).filter((item) => item && item.scope === 'independent_calendar' && ['unavailable', 'no_upcoming_release', 'schedule_conflict'].includes(item.status));
     const coverageHtml = calendarNotes.length ? '<div class="expectation-coverage" role="status">' + calendarNotes.map((item) => '<p><b>' + esc(item.family === 'us_cpi' ? 'TÜFE takvimi' : item.family === 'us_nonfarm_payroll_change' ? 'İstihdam takvimi' : 'Veri takvimi') + ':</b> ' + esc(item.reason) + ' <small>Kontrol: ' + esc(timestamp(item.checkedAt)) + '</small></p>').join('') + '</div>' : '';
     const rowHtml = (entry) => {
@@ -313,10 +313,13 @@
       const reviewLabel = review && { unchanged: 'Kayıtlı görüş yeniden incelendi ve korundu', updated: 'Model görüşü yeniden incelendi ve güncellendi', abstained: 'Yeni sayısal görüş üretmekten kaçınıldı' }[review.status];
       return '<article class="expectation-entry' + (!f.available ? ' expectation-abstention' : '') + '" data-expectation-status="' + entry.status + '">' +
         '<div class="expectation-event"><h3>' + esc(name) + '</h3><span>' + esc(f.period) + ' dönemi · ' + esc(timestamp(f.scheduledAt)) + '</span>' +
+        (compact && (f.retained || review) ? '<details class="expectation-record-meta"><summary>Kayıt ve yeniden değerlendirme zamanı</summary>' : '') +
         (f.retained ? '<span>Kayıtlı görüş · Bilgi kesiti: ' + esc(timestamp(f.knowledgeCutoff || f.recordedAt)) + (entry.firstOpinion ? ' · İlk kilitli tahmin: ' + esc(expectationValue(entry.firstOpinion.pointEstimate, f.unit)) : ' · İlk kilitli tahmin kaydı doğrulanamadı') + '</span>' : '') +
         (review ? '<span class="expectation-review">' + esc(reviewLabel) + ' · ' + esc(timestamp(r.generatedAt)) + '</span>' : '') +
+        (compact && (f.retained || review) ? '</details>' : '') +
         (passed ? '<span class="expectation-passed">Açıklama saati geçti · bu satır raporun eski görüşüdür. ' + (entry.outcome ? 'Aynı açıklamanın sonuç kaydı aşağıda.' : 'Gerçekleşen veri kaydı doğrulanamadı.') + '</span>' : '') + '</div>' +
         (f.available ? '<dl class="expectation-numbers"><div><dt>Model görüşü</dt><dd>' + esc(expectationValue(f.pointEstimate, f.unit)) + '</dd></div><div><dt>Piyasa konsensüsü</dt><dd>' + esc(consensusKnown ? expectationValue(f.consensus, f.unit) : 'Bu dönem için doğrulanamadı') + '</dd></div><div><dt>Konsensüsten farkı</dt><dd>' + esc(differenceText) + '</dd></div></dl>' : '<p class="expectation-missing"><b>Tahmin üretilemedi.</b> ' + esc(f.reason) + '</p>') +
+        (root.ExpectationScenarios ? root.ExpectationScenarios.html(f, {historical:passed, scenarios:(r.scenarios || []).filter(s => s.eventId === f.eventId), sources:sourceMap}) : '') +
         (!compact && root.FinansExperience ? root.FinansExperience.contextHelpHtml('consensus') : '') +
         (!compact && (f.available || entry.firstOpinion) ? expectationTimelineHtml(entry) : '') +
         '<details class="expectation-reason"><summary>' + (f.available ? 'Gerekçe ve kaynaklar' : 'Eksik kanıt') + '</summary>' +
@@ -334,7 +337,10 @@
     ];
     const rowsHtml = groups.map(([status, label, note]) => {
       const entries = rows.filter(entry => entry.status === status);
-      return entries.length ? '<section class="expectation-group" data-expectation-status="' + status + '"><header><h3>' + label + '</h3><span>' + entries.length + ' kayıt</span></header>' + (!compact ? '<p class="expectation-group-note">' + note + '</p>' : '') + entries.map(rowHtml).join('') + '</section>' : '';
+      const primary = compact ? entries.filter(entry => entry.event.metric === 'us_nonfarm_payroll_change' || entry.event.metric === 'us_cpi_core_mom_sa' || !/^us_cpi_/.test(entry.event.metric)).slice(0, 2) : entries;
+      if (compact && !primary.length && entries.length) primary.push(entries[0]);
+      const other = compact ? entries.filter(entry => !primary.includes(entry)) : [];
+      return entries.length ? '<section class="expectation-group" data-expectation-status="' + status + '"><header><h3>' + label + '</h3><span>' + entries.length + ' kayıt</span></header>' + (!compact ? '<p class="expectation-group-note">' + note + '</p>' : '') + primary.map(rowHtml).join('') + (other.length ? '<details class="observer-other-metrics"><summary>Diğer veri ölçümleri (' + other.length + ')</summary>' + other.map(rowHtml).join('') + '</details>' : '') + '</section>' : '';
     }).join('');
     return '<section class="expectation-ledger' + (compact ? ' is-compact' : '') + '" aria-label="Raporun model veri beklentileri"><header class="expectation-head"><div><h2>Açıklama öncesi kaydedilen görüşler</h2><p>' + (Number.isFinite(cutoff) ? 'Rapor görüşü · ' + esc(timestamp(r.generatedAt)) : 'Kaynaklı model raporu bekleniyor') + '</p></div>' +
       (compact ? '<button class="expectation-workspace-link" type="button" data-open-expectation-report>Raporu oku <span aria-hidden="true">→</span></button>' : '<span class="ai-badge">Model beklentileri</span>') + '</header>' +

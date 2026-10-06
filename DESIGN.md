@@ -1,4 +1,6 @@
 # Finans — Karar Masası
+
+6 Ekim 2026: varsayılan arayüz otomatik gözlem akışıdır. Manuel not/portföy/test/projeksiyon ekranları ana menüden çıktı; verileri korunur. Sinyaller ana menüde ayrı görünür; aktif, geçmiş, başarı ve eski arşiv ayrıdır. Makro ana görünüm dört karşılaştırmalı koşulu gösterir; tekrar eden ölçümler ve yöntem/kanıt geçmişi açılır ayrıntıya taşındı. Piyasa adayları kullanıcı görevi yerine sistemin gerçek yapısal izleme nedenini açar. [Kabul ve sınırlar](docs/design-air/observer-acceptance/README.md).
 2 Ekim 2026 · güncel tasarım: Air
 
 ## Güncel görsel sistem

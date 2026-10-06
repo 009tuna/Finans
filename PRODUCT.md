@@ -1,5 +1,9 @@
 # Finans Otomasyonu - PRODUCT Context
 
+## 6 Ekim 2026 — Varsayılan kullanım
+
+Kullanıcı okur ve izler; not yazma, kişisel tez oluşturma, alarm tanımlama veya elle işlem kaydetme zorunluluğu yoktur. Sistem yapısal koşullarla sinyali kaydeder, kanıtlı sanal giriş/çıkışı takip eder ve ölçüme uygun sonuçları ayırır. Ana ürün akışı Genel Bakış → Sinyaller → Günlük Rapor'dur. Model beklentisi, piyasa konsensüsü, koşullu etki ve gerçekleşen sonuç birbirinden ayrı gösterilir. Sayı veya kaynak eksikse açık eksik durum gösterilir; kullanıcıdan boşluğu doldurması istenmez.
+
 ## Users
 * **Hedef Kitle**: Kendi portföyünü, piyasa puanlarını ve teknik indikatörlerini anlık takip etmek isteyen, gereksiz reklam ve görsel gürültüden uzak, veri yoğunluğuna (data-density) ve matematiksel doğruluğa önem veren bireysel yatırımcılar ve finansal analistler.
 * **Kullanıcı Karakteri**: SRE (Site Reliability Engineer) veya sistem yöneticisi mantığıyla, verileri temiz, organize ve gecikmesiz bir şekilde izlemek isteyen analitik zihinler.
