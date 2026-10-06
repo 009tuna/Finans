@@ -10,7 +10,7 @@ Source observations are content-addressed before journal transitions. Initial re
 
 Cards, charts and reports use the same journal record. Structural results are separated by market, setup, parameter version, execution/resolver version, horizon, source, currency, price basis and cost policy. Net wins, zeroes, losses, exit distribution and holding duration are distinct. n=0 remains null.
 
-Al-and-hold comparison uses the same actual fill opening, the exact exit opening, currency and round-trip costs. Range exits have an unknown intraday timestamp, so their comparison stays unverified/null. Exact holding duration and daily-bar holding bounds are counted separately. This is a per-trade comparison, not portfolio performance.
+Buy-and-hold comparison uses the same actual fill opening, the exact exit opening, currency and round-trip costs. Range exits have an unknown intraday timestamp, so their comparison stays unverified/null. Exact holding duration and daily-bar holding bounds are counted separately. This is a per-trade comparison, not portfolio performance.
 
 The refresh, CLI resolver and offline replay use the same strategy/engine. Replay is explicitly historical simulation with assumed decision-cut eligibility, no fabricated live receipt and no database writes. GitHub observations include crypto weekends. Existing open system records continue under the legacy resolver; no forced conversion/cancellation or structural performance inclusion occurs.
 
@@ -41,3 +41,17 @@ Live equity calendars remain unverified; BIST/US automatic structural registrati
 Thresholds are hypotheses; profitability is unproven. Learning stays in shadow mode and cannot autonomously replace the production strategy. Reliable outcome accumulation and out-of-sample evaluation must precede model promotion. Current-watchlist survivorship, revised provider history and missing split/dividend total return constrain replay.
 
 Primary checkout user data is not staged or replaced. GitHub CI, exact production SHA, API health, public static assets and the live ledger must be verified before claiming publication complete.
+
+
+## Production acceptance — 2026-10-06
+
+- PR #5 merged to master: b55424c7c6eb0ffc9fa96b2404368dd1f74f8308. Its tree exactly matches tested db7cb1f. PR CI 37366789796 and master CI 37367747393 both passed.
+- Production deployment dpl_wZaDQMCZsMw4v9PNBYpAAkhBwriu is READY with that exact Git SHA and the existing finans-dashboard-iota.vercel.app alias. Data/journal/report and both shared structural assets returned HTTP 200.
+- The first manually dispatched observation 37367841613 never acquired a runner during the GitHub Actions incident and failed without executing a source step. Later scheduled runs 37400667435 and 37422494965 completed successfully on the production code, with 12 US, 100 BIST and 21 crypto assets.
+- Latest source cut: 2026-10-06T06:13:19.966Z. All 21 crypto observations are verified. All 112 equity observations explicitly report calendar-unverified. No structural candidate was registered; the structural scorecard correctly remains n=0 with null success/net averages.
+- Before/after live journal comparison retains all 374 prediction IDs and notes. Only one existing legacy US row transitions open to target-hit under its original resolver. Its entry/stop/target fields are preserved; no legacy result enters structural performance. Remaining legacy open records: US 6, BIST 8, crypto 18.
+- Production reload/disclosure and desktop/mobile acceptance passed. Widths: 1434 <= 1440 and 385 <= 390; browser error log empty. production.jpg shows actual live data; desktop.jpg/mobile.jpg remain synthetic fixtures.
+- Learning capture on the second observation reused 132 examples and preserved the first immutable payload for one semantic identity conflict (partial, no ineligible inputs). The public API does not identify its symbol/field, so that diagnosis is unverified. A later macro projection has 151 examples, 135 pending, 16 excluded, zero eligible labels and zero models. This is evidence collection with shadow-only policy, not demonstrated adaptive profitability.
+- Primary checkout preservation was verified after fast-forward: seven dirty tracked file hashes and all 266 preexisting untracked paths unchanged. No user data was staged, reset or deleted.
+
+Successful observation runs: https://github.com/009tuna/Finans/actions/runs/37400667435 and https://github.com/009tuna/Finans/actions/runs/37422494965.

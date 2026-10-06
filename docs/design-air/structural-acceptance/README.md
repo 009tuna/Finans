@@ -7,3 +7,5 @@ Checked 1440x900 and 390x844: pending zone, actual filled entry and missed-entry
 Chart contract tests check entry-zone lines versus actual filled entry and reject a chart with different provider/currency. Source/execution tests, rather than screenshots, establish the trading semantics.
 
 Binance UTC daily/open-time semantics were checked against [official market-data documentation](https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market). Live equities remain blocked without a verified session calendar; observed Yahoo weekdays or daily labels cannot fill that gap.
+
+2026-10-06 production acceptance: `production.jpg` uses actual live observations at the 09:13 TSİ source cut, after both scheduled observation runs succeeded. It shows n=0 and explicit equity calendar gates. Production 1440px and 390px layouts had no horizontal overflow; reload/disclosure worked and error log was empty. See the delivery note for exact SHA and pipeline/journal evidence.
