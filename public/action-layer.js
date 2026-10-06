@@ -914,7 +914,7 @@
     return Object.assign(task, { market: candidate.market || null, symbol: candidate.symbol || null });
   }
 
-  function buildCfoDecisionCockpit(snapshot, journal, reportBase) {
+  function buildCfoDecisionCockpit(snapshot, journal, reportBase, options = {}) {
     const rows = [];
     assetsByMarket(snapshot).forEach(function (asset) {
       const score = asset.analysis.score;
@@ -926,8 +926,8 @@
       const missing = [];
       const hasThesis = !!note && hasNoteText(note.thesis);
       const hasInvalidation = !!note && hasNoteText(note.invalidation);
-      if (!hasThesis) missing.push('tez notu yok');
-      if (!hasInvalidation) missing.push('tezi geçersiz kılan koşul yok');
+      if (!options.automatic && !hasThesis) missing.push('tez notu yok');
+      if (!options.automatic && !hasInvalidation) missing.push('tezi geçersiz kılan koşul yok');
       gaps.forEach(function (g) {
         if (missing.indexOf(g) < 0) missing.push(g);
       });

@@ -1,4 +1,60 @@
 /* Finans / Air — one quiet visual system across every workspace. */
+/* The default product is a reading and observation surface. Saved user data stays intact. */
+.navitem[hidden], .nav-sep[hidden], #dailyWorkBrief, #overviewPortfolioSummary, .review-progress, #quiz-card,
+[data-learning-topic], [data-open-guide],
+.decision-funnel-disclosure, #signalOverlayPanel, #predictionScorecard, #execSummary { display:none !important; }
+.observer-intro { margin:0; color:var(--muted); font-size:12px; line-height:1.7; }
+.observer-intro .text-btn { border:0; background:none; color:var(--accent); font:inherit; padding:0; text-decoration:underline; cursor:pointer; }
+.observer-summary { display:flex; flex-wrap:wrap; gap:12px 28px; align-items:center; border-block:1px solid var(--border); padding:16px 0; font-size:12px; }
+.observer-summary b { font-size:13px; }
+.observer-summary button { margin-left:auto; }
+.observer-ledger { padding:24px; }
+.observer-ledger > header h2 { margin:0 0 8px; font-size:17px; }
+.observer-ledger > header p, .observer-note, .observer-empty p { color:var(--muted); max-width:72ch; font-size:13px; line-height:1.7; }
+.observer-filters { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; padding:20px 0; border-bottom:1px solid var(--border); }
+.observer-tabs { display:flex; flex-wrap:wrap; gap:6px; }
+.observer-tabs button { font:inherit; font-size:12px; border:0; background:transparent; color:var(--muted); min-height:40px; padding:8px 12px; border-radius:var(--control-radius); cursor:pointer; }
+.observer-tabs button[aria-pressed="true"] { background:var(--accent-soft); color:var(--accent); font-weight:600; }
+.observer-tabs button:hover { background:var(--card-2); }
+.observer-tabs span { margin-left:6px; font-variant-numeric:tabular-nums; }
+.observer-filters label { display:flex; gap:10px; align-items:center; font-size:12px; }
+.observer-filters select { font:inherit; color:var(--text); background:var(--card); border:1px solid var(--border-2); padding:9px 12px; border-radius:var(--control-radius); }
+.observer-ledger :is(button,select,summary):focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+.observer-signal-list { list-style:none; padding:0; margin:0 0 20px; }
+.observer-signal-row, .observer-archive-row { border-bottom:1px solid var(--border); }
+.observer-signal-row summary, .observer-archive-row { display:flex; flex-wrap:wrap; gap:12px 24px; align-items:center; padding:16px 0; font-size:12px; }
+.observer-signal-row summary { cursor:pointer; }
+.observer-signal-row summary > span:first-child, .observer-archive-row b { flex:1 1 160px; }
+.observer-signal-row time, .observer-archive-row time { color:var(--muted); }
+.observer-empty { padding:36px 0; }
+.observer-empty h3 { font-size:14px; margin:0 0 10px; }
+.observer-coverage { margin-top:24px; font-size:12px; }
+.observer-coverage summary, .observer-macro-details > summary { cursor:pointer; min-height:40px; line-height:1.7; padding:10px 0; color:var(--muted); }
+.observer-coverage ul { list-style:none; padding:0; }
+.observer-coverage li { display:flex; flex-wrap:wrap; gap:12px 24px; padding:10px 0; }
+.observer-coverage li b { min-width:60px; }
+.observer-coverage p { color:var(--muted); max-width:72ch; line-height:1.7; }
+.observer-ledger .structural-performance { border:0; padding:20px 0; box-shadow:none; }
+.expectation-scenarios { margin:22px 0; }
+.expectation-scenarios h4 { font-size:13px; margin:0 0 12px; }
+.expectation-scenario-row { display:grid; grid-template-columns:minmax(150px, .7fr) minmax(0, 1.6fr); gap:24px; padding:14px 0; border-top:1px solid var(--border); font-size:12px; }
+.expectation-scenario-row span { display:block; color:var(--muted); margin-top:6px; font-variant-numeric:tabular-nums; }
+.expectation-scenario-row p { margin:0; color:var(--text); max-width:72ch; line-height:1.75; }
+.expectation-scenarios details { color:var(--muted); font-size:12px; line-height:1.7; }
+.expectation-scenarios summary { cursor:pointer; padding:10px 0; }
+.expectation-scenarios a { color:var(--accent); }
+.observer-other-metrics > summary { cursor:pointer; padding:14px 0; font-size:12px; color:var(--muted); }
+.expectation-record-meta { font-size:12px; color:var(--muted); }
+.expectation-record-meta summary { cursor:pointer; padding:8px 0; }
+.expectation-record-meta span { display:block; line-height:1.7; }
+@media (max-width:640px) {
+  .observer-ledger { padding:16px; }
+  .observer-summary { gap:12px 20px; }
+  .observer-summary button { margin-left:0; }
+  .observer-tabs { flex-basis:100%; }
+  .observer-tabs button { min-height:44px; }
+  .expectation-scenario-row { grid-template-columns:minmax(0,1fr); gap:10px; }
+}
 .structural-plan { padding: 16px 0; border-top: 1px solid var(--border); font-size: 12px; overflow-wrap: anywhere; }
 .structural-plan-head { display:flex; flex-wrap:wrap; gap:8px 20px; align-items:center; justify-content:space-between; }
 .structural-plan-head h4 { margin:0; font-size:13px; }

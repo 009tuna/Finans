@@ -9,6 +9,7 @@
   function renderWatch(state){return '<p class="decision-muted structural-watch">'+esc(reasonLabel(state?.reasons?.[0] || 'no-structural-trigger'))+'</p>';}
   function renderPlan(r) {
     if(!records.isStructural(r)) return '';
+    if (!r.plan || !Array.isArray(r.plan.entryZone) || r.plan.entryZone.length !== 2 || !r.plan.entryZone.every(Number.isFinite) || !Number.isFinite(r.plan.stop) || !Number.isFinite(r.plan.target) || !r.execution || !Array.isArray(r.evidence?.reasons)) return '<p class="structural-proof-note">Sabit planın alanları eksik; işlem ayrıntısı doğrulanamadı.</p>';
     const state=records.classifyRecord(r),p=r.plan,e=r.execution;
     const cell=(label,value)=>'<div><dt>'+esc(label)+'</dt><dd>'+value+'</dd></div>';
     const entry=e.fillPrice!=null?cell('Gerçek sanal giriş',price(e.fillPrice,p.currency)):cell('Giriş bölgesi',price(p.entryZone[0],p.currency)+' – '+price(p.entryZone[1],p.currency));
@@ -24,12 +25,12 @@
     const coverage=Object.entries(markets).map(([key,label])=>{
       const rows=modern.filter(r=>r.market===key),closed=rows.filter(r=>records.classifyRecord(r).category==='verified').length;
       const blocked=sources.some(s=>s.market===key && s.calendarStatus!=='verified');
-      return '<div><dt>'+label+'</dt><dd>'+closed+' doğrulanmış kapanış · '+rows.filter(r=>!['closed','missed-entry','expired-entry'].includes(r.execution.state)).length+' takipte</dd>'+(blocked?'<p>Seans takvimi kanıtı eksik; yeni otomatik sinyal kapalı.</p>':'')+'</div>';
+      return '<div><dt>'+label+'</dt><dd>'+closed+' doğrulanmış kapanış · '+rows.filter(r=>!['closed','missed-entry','expired-entry'].includes(r.execution?.state)).length+' takipte</dd>'+(blocked?'<p>Seans takvimi kanıtı eksik; yeni otomatik sinyal kapalı.</p>':'')+'</div>';
     }).join('');
     return '<section class="card structural-performance"><div class="card-head"><h2>Sanal işlem defteri</h2><span class="card-sub">Yapısal planlar · maliyet sonrası sonuçlar</span></div><p>'+ (card.verified?'Doğrulanmış kapanış: <b>'+card.verified+'</b>. Sonuçlar her yöntem ve piyasa için ayrı hesaplanır.':'Başarı oranı henüz hesaplanamaz. Doğrulanmış kapanış yok; n=0.')+'</p><dl class="structural-market-status">'+coverage+'</dl>'+
       (card.cohorts.length?'<ul class="structural-cohorts">'+card.cohorts.map(cohort).join('')+'</ul>':'')+
       '<p class="structural-proof-note">Al ve tut karşılaştırması aynı gerçek giriş açılışından kesin çıkış açılışına ve aynı maliyetle hesaplanır. Gün içi çıkışın saati bilinmiyorsa karşılaştırma doğrulanamaz; sanal sonuç portföy getirisi değildir.</p>'+
-      '<p class="structural-proof-note">Bekleyen '+card.exclusions.pending+' · girilmeyen '+card.exclusions['not-entered']+' · belirsiz '+card.exclusions.ambiguous+' · kanıt eksik '+card.exclusions.incomplete+'. Bunlar başarı paydasına girmez. Eski teknik ve manuel kayıtlar ayrı tutulur.</p>'+ (modern.length?'<details><summary>Sabit planları incele ('+modern.length+')</summary>'+modern.slice().sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(renderPlan).join('')+'</details>':'')+'</section>';
+      '<p class="structural-proof-note">Bekleyen '+card.exclusions.pending+' · girilmeyen '+card.exclusions['not-entered']+' · belirsiz '+card.exclusions.ambiguous+' · kanıt eksik '+card.exclusions.incomplete+'. Bunlar başarı paydasına girmez. Eski teknik ve manuel kayıtlar ayrı tutulur.</p>'+ (modern.length?'<details><summary>Sabit planları incele ('+modern.length+')</summary>'+modern.slice().sort((a,b)=>String(b.createdAt || '').localeCompare(String(a.createdAt || ''))).map(renderPlan).join('')+'</details>':'')+'</section>';
   }
   return {reasonLabel,renderWatch,renderPlan,renderPerformance};
 });

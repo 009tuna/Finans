@@ -61,7 +61,8 @@
           </span>
           Genel Bakış
         </button>
-        <button class="navitem" data-view="portfolio" data-nav-order="workspace">
+        <button class="navitem observer-nav" data-view="signals"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 18V6m0 12h16M7 14l4-5 4 3 5-7"/></svg></span>Sinyaller</button>
+        <button class="navitem" data-view="portfolio" data-nav-order="workspace" hidden>
           <span class="ni">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="4" class="pf-safe-body" stroke-width="1.6" />
@@ -133,8 +134,8 @@
           </span>
           Teknik Tarayıcı
         </button>
-        <div class="nav-sep">ANALİZ</div>
-        <button class="navitem" data-view="backtest">
+        <div class="nav-sep" hidden>ANALİZ</div>
+        <button class="navitem" data-view="backtest" hidden>
           <span class="ni">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="5" cy="8" r="2" class="bt-node-in" stroke-width="1.6" />
@@ -148,7 +149,7 @@
           </span>
           Strateji Testi
         </button>
-        <button class="navitem" data-view="forecast">
+        <button class="navitem" data-view="forecast" hidden>
           <span class="ni">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 19h18 M3 5v14" class="fc-axes" stroke-width="1.2" stroke-opacity="0.4" />
@@ -179,7 +180,7 @@
           </span>
           Günlük Rapor
         </button>
-        <button class="navitem" data-view="literacy">
+        <button class="navitem" data-view="literacy" hidden>
           <span class="ni">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 21c-2-2-5-2-8-2V5c3 0 6 0 8 2" class="lt-page-l" stroke-width="1.6" />
@@ -238,10 +239,11 @@
               <div class="overview-task-tabs" role="tablist" aria-label="Genel bakış çalışma alanı">
                 <button id="overview-tab-decisions" class="overview-task-tab" type="button" role="tab" aria-selected="true" aria-controls="overview-panel-decisions" tabindex="0" data-overview-tab="decisions">Piyasa adayları</button>
                 <button id="overview-tab-forecasts" class="overview-task-tab" type="button" role="tab" aria-selected="false" aria-controls="overview-panel-forecasts" tabindex="-1" data-overview-tab="forecasts">Açıklama beklentileri</button>
-                <button id="overview-tab-signals" class="overview-task-tab" type="button" role="tab" aria-selected="false" aria-controls="overview-panel-signals" tabindex="-1" data-overview-tab="signals">Sinyal değişimleri</button>
+                <button id="overview-tab-signals" class="overview-task-tab" type="button" role="tab" aria-selected="false" aria-controls="overview-panel-signals" tabindex="-1" data-overview-tab="signals">Teknik değişimler</button>
               </div>
             </div>
             <div id="overviewWorkspaceStatus" class="workspace-status overview-span-all" role="status" aria-live="polite"></div>
+            <div id="automaticSignalSummary" class="overview-span-all"></div>
             <div id="dailyWorkBrief" class="overview-span-all"></div>
             <div id="overviewPortfolioSummary" class="overview-portfolio-summary overview-span-all"></div>
             <section class="workspace-core" aria-label="Karar çalışma alanı">
@@ -255,7 +257,7 @@
               </section>
               <section id="overview-panel-forecasts" class="overview-task-panel macro-context" role="tabpanel" aria-labelledby="overview-tab-forecasts" tabindex="0" hidden>
                 <div id="morningExpectations"></div>
-                <div id="macroWorkspace" class="macro-workspace" role="status" aria-live="polite">Makro çalışma alanı yükleniyor…</div>
+                <details class="observer-macro-details"><summary>Aylık verilerin tahmin geçmişi, yöntemleri ve kaynak kontrolleri</summary><div id="macroWorkspace" class="macro-workspace" role="status" aria-live="polite">Makro çalışma alanı yükleniyor…</div></details>
               </section>
               <section id="overview-panel-signals" class="overview-task-panel" role="tabpanel" aria-labelledby="overview-tab-signals" tabindex="0" hidden>
                 <div id="dailyDigest" class="workspace-signals"></div>
@@ -282,7 +284,7 @@
               </section>
             </aside>
             <details class="overview-advanced overview-span-all" aria-labelledby="overviewPerformanceTitle">
-              <summary><span id="overviewPerformanceTitle">Sonuçlar ve ek analizler</span><em>Tahmin ölçümü, örnek portföy, piyasa rejimi ve dövizler</em></summary>
+              <summary><span id="overviewPerformanceTitle">Tarama ve öğrenme ayrıntıları</span><em>Öğrenme durumu, piyasa rejimi ve dövizler</em></summary>
               <div class="advanced-stack">
               <div id="execSummary"></div>
               <div id="predictionScorecard"></div>
@@ -316,6 +318,9 @@
         </section>
 
         <!-- PAZAR GÖRÜNÜMÜ (us/bist/crypto) -->
+        <section class="view" id="view-signals" hidden>
+          <div id="automaticSignalLedger" aria-live="polite"></div>
+        </section>
         <section class="view" id="view-market" hidden>
           <header class="market-workspace-head reveal">
             <div><span class="brief-kicker">Piyasa çalışma alanı</span><h2 id="marketWorkspaceTitle">Piyasa seçimi ve varlık detayı</h2></div>
@@ -1042,8 +1047,10 @@
   <script src="learning.js"></script>
   <script src="prediction-evidence.js"></script>
   <script src="structural-ui.js"></script>
+  <script src="observer.js"></script>
   <script src="action-layer.js"></script>
   <script src="report-integrity.js"></script>
+  <script src="expectation-scenarios.js"></script>
   <script src="research.js"></script>
   <script src="experience.js"></script>
   <script src="asset-identity.js"></script>

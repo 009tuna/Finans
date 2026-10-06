@@ -198,16 +198,20 @@ test('abstention gives a visible reason, missing evidence and source without inv
   assert.doesNotMatch(html, /expectation-numbers|<dd>|NaN|undefined|<script>/);
 });
 
-test('compact view presents at most two soonest events and links to the full report', () => {
+test('compact view keeps two primary events and retains other measurements in a disclosure', () => {
   const data = research([
     { ...payroll, metric: 'last_metric', scheduledAt: '2026-10-06T12:30:00Z', rationale: 'Last event reason' },
     { ...payroll, metric: 'second_metric', scheduledAt: '2026-10-04T12:30:00Z', rationale: 'Second event reason' },
     { ...payroll, metric: 'first_metric', scheduledAt: '2026-10-03T12:30:00Z', rationale: 'First event reason' },
   ]);
   const html = render(data, { compact: true });
-  assert.equal(entries(html), 2);
+  assert.equal(entries(html), 3, 'all measurements remain reachable');
+  const primaryHtml = html.slice(0, html.indexOf('<details class="observer-other-metrics">'));
+  assert.equal(entries(primaryHtml), 2, 'only two primary events precede the disclosure');
   assert.ok(html.indexOf('first_metric') < html.indexOf('second_metric'), 'closest announcements appear first');
-  assert.doesNotMatch(html, /last_metric|Last event reason/);
+  assert.doesNotMatch(primaryHtml, /last_metric|Last event reason/);
+  assert.match(html, /Diğer veri ölçümleri \(1\)/);
+  assert.match(html, /Last event reason/);
   assert.match(html, /First event reason/);
   assert.match(html, /Second event reason/);
   assert.equal(numberFor(html, 'Model görüşü'), '250 bin kişi', 'compact view still exposes a model value without opening a disclosure');
