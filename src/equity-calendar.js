@@ -2,7 +2,7 @@
 // Reviewed official schedules, not a weekday-only heuristic. Yahoo daily labels
 // remain labels: only this bounded exchange schedule can attest session times.
 const { hash, localDate } = require('./structural-data');
-const sourceData = require('./data/equity-calendar-sources.json');
+const sourceData = require('./equity-calendar-sources.json');
 const VERSION = 'official-equity-calendars-2025-2027-v1';
 const US = {
   2025: { closed: ['01-01','01-09','01-20','02-17','04-18','05-26','06-19','07-04','09-01','11-27','12-25'], early: ['07-03','11-28','12-24'] },
