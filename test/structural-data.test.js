@@ -32,4 +32,10 @@ assert.equal(equity.series.barStartAt[0],null,'daily bar label cannot manufactur
 assert.equal(equity.series.barStartAt[1],'2026-09-02T13:30:00.000Z');
 assert.equal(equity.series.timestampRole,'bar_label');
 assert.match(normalizeObservation({series:equity.series,market:'us',provider:'yahoo',currency:'USD'},'2026-09-02T22:00:00Z').reasons.join(),/calendar-unverified/);
+const conflictCalendar={status:'unverified',reasons:['session-boundary-conflict'],evidenceHash:'fixture-evidence',sourceUrls:['https://example.invalid/calendar'],sessions:[]};
+const conflictObservation=normalizeObservation({series:{...equity.series,sessionCalendar:conflictCalendar},market:'us',provider:'yahoo',currency:'USD'},'2026-09-02T22:00:00Z');
+assert.equal(conflictObservation.status,'evidence-incomplete');
+assert.equal(conflictObservation.calendar.status,'unverified','retaining source evidence never activates a conflicting calendar');
+assert.ok(conflictObservation.reasons.includes('session-boundary-conflict'));
+assert.deepEqual(conflictObservation.calendar.sourceUrls,conflictCalendar.sourceUrls,'the reason and provenance survive the normalization boundary');
 console.log('structural source evidence OK');

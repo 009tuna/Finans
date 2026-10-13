@@ -10,6 +10,25 @@ const window = {location:{hash:''}, history:{calls:[], pushState(state, title, h
 const context = vm.createContext({window,URLSearchParams,Object,console,VIEW_META:Object.fromEntries(['overview','us','bist','crypto','portfolio','screener','backtest','forecast','report','literacy'].map(x=>[x,[]])),routeApplying:false,assetDeskState:{market:'us',symbol:'MSFT'},marketUi:{us:{symbol:'MSFT'},bist:{symbol:'ASTOR'},crypto:{symbol:'BTCUSDT'}},DATA:{us:[{symbol:'MSFT'}],bist:[{symbol:'ASTOR'}],crypto:[{symbol:'BTCUSDT'}]},setView(view){context.selectedView=view;},$:()=>null});
 vm.runInContext(source.slice(begin,end),context);
 
+// The real view switch must not redirect restored tools when the observer is enabled.
+const toolNames=['overview','signals','portfolio','backtest','forecast','literacy'];
+const toolViews=toolNames.map(name=>({id:'view-'+name,hidden:true,style:{removeProperty(){}},classList:{toggle(){}}}));
+const toolTitle={textContent:''}, toolContent={scrollTop:50};
+const toolContext=vm.createContext({window:{FinansObserver:{}},VIEW_META:Object.fromEntries(toolNames.map(name=>[name,[name,'description','view-'+name]])),activeView:'overview',marketScroll:{},reduceMotion:true,keyboardNavigation:false,
+  document:{querySelectorAll:selector=>selector==='.view'?toolViews:[],getElementById:id=>toolViews.find(v=>v.id===id),activeElement:null},
+  $:selector=>selector==='#viewTitle'?toolTitle:selector==='#content'?toolContent:null,writeRoute(view){toolContext.lastRoute=view;},closeNavigation(){},renderView(){toolContext.rendered=toolContext.activeView;}});
+vm.runInContext(source.slice(source.indexOf('function setView('),source.indexOf('function fullTimestamp(')),toolContext);
+const indexHtml=fs.readFileSync(require('node:path').join(__dirname,'../public/index.html'),'utf8');
+for(const name of ['portfolio','backtest','forecast','literacy']){
+  toolContext.setView(name);
+  assert.equal(toolContext.activeView,name,'observer mode must retain '+name+' navigation');
+  assert.equal(toolContext.rendered,name);
+  assert.equal(toolViews.find(v=>v.id==='view-'+name).hidden,false);
+  assert.equal(toolViews.find(v=>v.id==='view-signals').hidden,true);
+  const button=indexHtml.match(new RegExp('<button[^>]+data-view="'+name+'"[^>]*>'));
+  assert.ok(button,'tool navigation button exists');assert.doesNotMatch(button[0],/\bhidden\b/,'the restored tool must be visible in navigation');
+}
+
 assert.equal(context.routeHash('bist','bist','ASTOR'),'#view=market&market=bist&symbol=ASTOR','market routes use the public deep-link format');
 window.location.hash='#view=market&market=bist&symbol=ASTOR';
 assert.equal(context.readRoute().view,'bist','direct market URL resolves to the BIST screen');

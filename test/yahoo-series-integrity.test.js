@@ -110,6 +110,7 @@ test('fetchSeries records the actual completed retrieval time rather than reques
   payload.chart.result[0].meta.regularMarketTime=seconds('2026-10-02T18:58:00Z');
   const context=vm.createContext({Date:Clock,module:{exports:{}},require:name=>{
     if(name==='./util') return {mapLimit:null,fetchJson:async()=>{tick=Date.parse('2026-10-02T19:01:00.000Z');return payload;}};
+    if(name==='./equity-calendar') return require('../src/equity-calendar');
     throw Error('Unexpected dependency: '+name);
   }});
   vm.runInContext(fs.readFileSync('src/yahoo.js','utf8'),context);

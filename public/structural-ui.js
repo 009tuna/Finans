@@ -5,7 +5,16 @@
   const price=(v,c)=>number(v,Math.abs(v)>=1?2:8)+' '+esc(c || '');
   const time=v=>Number.isFinite(Date.parse(v))?esc(new Date(v).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul',dateStyle:'short',timeStyle:'short'}))+' TSİ':'Doğrulanamadı';
   const reasons={'calendar-unverified':'Seans takvimi doğrulanamadı; otomatik kayıt açılmadı.','completed-session-coverage-gap':'Son tamamlanmış seans veya ara fiyat verisi eksik.','session-coverage-gap':'Beklenen günlük fiyat verisinde boşluk var.','source-stale-or-unverified':'Kaynak gözlemi eski veya zamanı doğrulanamadı.','source-unavailable':'Fiyat geçmişine erişilemiyor.','history-under-220':'En az 220 tamamlanmış günlük gözlem gerekiyor.','ohlcv-unverified':'Gerçek açılış, aralık veya hacim kanıtı eksik.','target-unverified':'Üst direnç hedefi doğrulanamadı; izleme sürüyor.','first-resistance-overlaps':'İlk direnç giriş bölgesine çok yakın.','extension-gate':'Fiyat trendinden fazla uzamış; geri çekilme bekleniyor.','net-risk-reward-gate':'Yapısal risk ve maliyet sonrası getiri koşulları sağlanmadı.','trend-gate':'Orta vadeli yükseliş koşulları tamamlanmadı.','no-structural-trigger':'Teyitli bir yapısal giriş henüz oluşmadı.','support-invalidated':'Önceki destek geçersizleşti; yeni yapı bekleniyor.','breakout-invalidated':'Kırılım sonrası yapı geçersizleşti.','first-required-open-missing':'İlk uygun seansın gerçek açılış kanıtı bekleniyor.','entry-calendar-unverified':'Giriş seansının takvim kanıtı eksik.','source-price-basis-conflict':'Fiyat kaynağı, para birimi veya fiyat temeli değişmiş.','decision-source-revision':'Karar anındaki kaynak verisi sonradan değişmiş.','execution-source-revision':'İşlem sırasında kullanılan kaynak verisi sonradan değişmiş.','entry-source-revision':'Giriş açılışı sonraki kaynak gözlemiyle çelişiyor.','corporate-action-conflict':'Şirket işlemi nedeniyle fiyat temeli doğrulanamıyor.','same-bar-stop-and-target':'Aynı mumda stop ve hedef var; hareket sırası bilinmiyor.'};
-  function reasonLabel(reason){return reasons[reason] || (/required-session-open-missing/.test(reason)?'Ara seansın gerçek açılışı eksik; sonraki sonuç doğrulanamaz.':/required-completed-range-missing/.test(reason)?'Tamamlanmış seans aralığı eksik.':'Kaynak veya işlem kanıtı tamamlanamadı.');}
+  const calendarReasons={
+    'session-boundary-conflict':'Fiyat sağlayıcısının seans saatleri resmî borsa takvimiyle çelişiyor; otomatik işlem kaydı kapalı.',
+    'calendar-coverage-unverified':'Fiyat geçmişinin tamamını kapsayan resmî seans takvimi yok.',
+    'exchange-unverified':'Varlığın borsası doğrulanamadı; doğru seans takvimi seçilemedi.',
+    'opening-time-unverified':'Gerçek açılış anı doğrulanamadı; otomatik giriş kaydı kapalı.',
+    'exchange-metadata-conflict':'Borsa, saat dilimi veya para birimi kaynakta çelişiyor.',
+    'source-session-date-conflict':'Fiyat kaynağının günlük tarihi resmî işlem takvimiyle çelişiyor.',
+    'instrument-type-unverified':'Bu varlık türü için seans takvimi doğrulanamadı.'
+  };
+  function reasonLabel(reason){return calendarReasons[reason] || reasons[reason] || (/required-session-open-missing/.test(reason)?'Ara seansın gerçek açılışı eksik; sonraki sonuç doğrulanamaz.':/required-completed-range-missing/.test(reason)?'Tamamlanmış seans aralığı eksik.':'Kaynak veya işlem kanıtı tamamlanamadı.');}
   function renderWatch(state){return '<p class="decision-muted structural-watch">'+esc(reasonLabel(state?.reasons?.[0] || 'no-structural-trigger'))+'</p>';}
   function renderPlan(r) {
     if(!records.isStructural(r)) return '';

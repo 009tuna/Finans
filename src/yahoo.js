@@ -2,6 +2,7 @@
 // (İndikatörler tek fiyatla değil, fiyat serisiyle hesaplandığı için seri şart.)
 'use strict';
 const { fetchJson, mapLimit } = require('./util');
+const { buildEquityCalendar } = require('./equity-calendar');
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)';
 
 // symbol: tam Yahoo sembolü (örn. "AAPL" ya da "THYAO.IS")
@@ -109,6 +110,7 @@ function normalizeSeries(data, symbol, { observedAt = null } = {}) {
       sourceTimestamps, rangeVerified, volumeVerified,
       dateBasis: dateFormatter ? 'exchange_timezone' : 'unverified', timeZone,
       observedAt: sourceObservedAt, currentTradingPeriod,
+      sessionCalendar: buildEquityCalendar(meta, { dates, observedAt: sourceObservedAt }),
       ...(dateFormatter ? {} : { dateIssue: 'exchange_timezone_unavailable' }) },
   };
 }

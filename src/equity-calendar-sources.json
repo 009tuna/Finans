@@ -1,0 +1,174 @@
+{
+  "version": "official-equity-calendars-2025-2027-v1",
+  "sources": [
+    {
+      "id": "nyse-hours",
+      "url": "https://www.nyse.com/trade/hours-calendars",
+      "reviewedOn": "2026-10-13",
+      "retrievedAt": "2026-10-13T09:52:04.754Z",
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "sha256": "79602f7be5a8f1d39c2b1cac4dd02c4c07f18cf9f92d70602834069154719bad",
+      "byteLength": 109229,
+      "reviewMethod": "primary_page_text_review",
+      "reviewedFacts": {
+        "holidayYears": [
+          2026,
+          2027
+        ],
+        "regularOpenLocal": "09:30",
+        "regularCloseLocal": "16:00",
+        "timeZone": "America/New_York"
+      }
+    },
+    {
+      "id": "nyse-2025",
+      "url": "https://www.nyse.com/publicdocs/ICE_NYSE_2025_Yearly_Trading_Calendar.pdf",
+      "reviewedOn": "2026-10-13",
+      "retrievedAt": "2026-10-13T09:52:05.328Z",
+      "httpStatus": 200,
+      "contentType": "application/pdf",
+      "sha256": "3e8b540ad74474bc12a0aba473dbca28f37e0a5c1795cf66701b9a506a34226e",
+      "byteLength": 115262,
+      "reviewMethod": "primary_document_visual_review"
+    },
+    {
+      "id": "nasdaq-hours-2026",
+      "url": "https://www.nasdaq.com/market-activity/stock-market-holiday-schedule",
+      "reviewedOn": "2026-10-13",
+      "retrievalIssue": "Windows database transport failed (curl 28)",
+      "reviewMethod": "primary_page_text_review",
+      "reviewedVia": "web_tool_primary_page_text",
+      "reviewedFacts": {
+        "weekdays": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "regularOpenLocal": "09:30",
+        "regularCloseLocal": "16:00",
+        "timeZone": "America/New_York",
+        "holidayYear": 2026
+      },
+      "reviewNote": "Primary page text was inspected with web tool; shell retrieval failed and no document hash is claimed."
+    },
+    {
+      "id": "nasdaq-2025",
+      "url": "https://www.nasdaqtrader.com/content/technicalsupport/2025tradingcalendar.pdf",
+      "reviewedOn": "2026-10-13",
+      "retrievedAt": "2026-10-13T09:52:32.710Z",
+      "httpStatus": 200,
+      "contentType": "application/pdf",
+      "sha256": "fb761082d449ef76461d2ca8448ccebb79862a0acd124fad2e914469c9086037",
+      "byteLength": 146717,
+      "reviewMethod": "primary_document_visual_review"
+    },
+    {
+      "id": "nasdaq-carter",
+      "url": "https://www.nasdaqtrader.com/TraderNews.aspx?id=ETA2025-1",
+      "reviewedOn": "2026-10-13",
+      "retrievedAt": "2026-10-13T09:52:33.820Z",
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "sha256": "9105c5bc53468f91d700fc7a9b164cc22ecad661f4a9d9cd9db9eeb4e4688758",
+      "byteLength": 65167,
+      "reviewMethod": "primary_page_text_review"
+    },
+    {
+      "id": "bist-holidays",
+      "url": "https://www.borsaistanbul.com/en/official-holidays",
+      "reviewedOn": "2026-10-13",
+      "retrievedAt": "2026-10-13T09:52:34.689Z",
+      "httpStatus": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "sha256": "7c266a6dc931cb42de2083486cba4f5f123b1964cbb06f9924250c630f48dbd7",
+      "byteLength": 105892,
+      "reviewMethod": "primary_page_text_review"
+    },
+    {
+      "id": "bist-hours",
+      "url": "https://www.borsaistanbul.com/en/markets/equity-market/trading-hours",
+      "reviewedOn": "2026-10-13",
+      "retrievedAt": "2026-10-13T09:52:35.365Z",
+      "httpStatus": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "sha256": "0bc88a5c094f946f298c9a14961d58e7b44a6a2458bd88862c688d4a64c26d62",
+      "byteLength": 85367,
+      "reviewMethod": "primary_page_text_review"
+    },
+    {
+      "id": "bist-full-day-image",
+      "url": "https://www.borsaistanbul.com/file/inline-images/1.png",
+      "reviewedOn": "2026-10-13",
+      "retrievedAt": "2026-10-13T09:52:35.745Z",
+      "httpStatus": 200,
+      "contentType": "image/png",
+      "sha256": "ffd822ca1b47842db27eac66e82225d1025504fdf9e33f45e409bb1aceb6c0b0",
+      "byteLength": 77278,
+      "reviewMethod": "primary_document_visual_review"
+    },
+    {
+      "id": "bist-half-day-image",
+      "url": "https://www.borsaistanbul.com/file/inline-images/3.png",
+      "reviewedOn": "2026-10-13",
+      "retrievedAt": "2026-10-13T09:52:36.156Z",
+      "httpStatus": 200,
+      "contentType": "image/png",
+      "sha256": "ca5ed9a64bf10e0ef6e2183a682ce43868fa9073f32459e990bcb8e3dd323b86",
+      "byteLength": 78796,
+      "reviewMethod": "primary_document_visual_review"
+    },
+    {
+      "id": "bist-2026",
+      "url": "https://www.borsaistanbul.com/files/equity-market-2026-holiday-schedule.pdf",
+      "reviewedOn": "2026-10-13",
+      "retrievedAt": "2026-10-13T09:52:36.620Z",
+      "httpStatus": 200,
+      "contentType": "application/pdf",
+      "sha256": "3a1b39913abc188788da533c5e25000b6bb0a9f94057d21a61f068ef17efe85d",
+      "byteLength": 162092,
+      "reviewMethod": "primary_document_visual_review"
+    },
+    {
+      "id": "nasdaq-trader-2026",
+      "url": "https://www.nasdaqtrader.com/Trader.aspx?id=Calendar",
+      "reviewedOn": "2026-10-13",
+      "reviewMethod": "primary_page_text_review",
+      "retrievedAt": "2026-10-13T09:54:27.431Z",
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "sha256": "d0cbac7b27a52ce2b99118cd5189f0da633c0254e9a95a72feb73800e1afc0d3",
+      "byteLength": 54628
+    }
+  ],
+  "coverage": {
+    "NASDAQ": [
+      2025,
+      2026
+    ],
+    "NYSE": [
+      2025,
+      2026,
+      2027
+    ],
+    "NYSE_AMERICAN": [
+      2025,
+      2026,
+      2027
+    ],
+    "NYSE_ARCA": [
+      2025,
+      2026,
+      2027
+    ],
+    "BIST": {
+      "holidayYears": [
+        2025,
+        2026
+      ],
+      "executionVerified": false
+    }
+  }
+}
