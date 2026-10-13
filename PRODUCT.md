@@ -1,5 +1,9 @@
 # Finans Otomasyonu - PRODUCT Context
 
+## 13 Ekim 2026 — Araçlar ve sinyal kapsamı
+
+Otomatik gözlem ana akıştır; Portföy, Strateji Testi, Finansal Projeksiyon ve Okuryazarlık isteğe bağlı olarak menüden ve doğrudan bağlantıyla erişilebilir kalır. Gözlem modu bu sayfaları Sinyaller'e yönlendirmez. Teknik AL adayları, önceki açık kayıtlar ve yeni yapısal işlemler ayrı gösterilir. Yeni işlem bulunmaması bütün piyasaların veya araçların çalışmadığı anlamına gelmez; kaynak engeli görünür açıklanır.
+
 ## 6 Ekim 2026 — Varsayılan kullanım
 
 Kullanıcı okur ve izler; not yazma, kişisel tez oluşturma, alarm tanımlama veya elle işlem kaydetme zorunluluğu yoktur. Sistem yapısal koşullarla sinyali kaydeder, kanıtlı sanal giriş/çıkışı takip eder ve ölçüme uygun sonuçları ayırır. Ana ürün akışı Genel Bakış → Sinyaller → Günlük Rapor'dur. Model beklentisi, piyasa konsensüsü, koşullu etki ve gerçekleşen sonuç birbirinden ayrı gösterilir. Sayı veya kaynak eksikse açık eksik durum gösterilir; kullanıcıdan boşluğu doldurması istenmez.

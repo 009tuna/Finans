@@ -692,7 +692,6 @@ function initOverviewContextTabs() {
   activateOverviewContext(overviewContextSelection);
 }
 function setView(view, options = {}) {
-  if (window.FinansObserver && ['portfolio','backtest','forecast','literacy'].includes(view)) view = 'signals';
   if (!VIEW_META[view]) view = 'overview';
   const previousView = activeView;
   if (['us', 'bist', 'crypto'].includes(activeView)) {
@@ -799,14 +798,14 @@ function renderView() {
   }
 }
 
-const automaticSignalState = {tab:'active', market:'all', limit:20};
+const automaticSignalState = {tab:'auto', market:'all', limit:20};
 function renderAutomaticSignals() {
   if (!window.FinansObserver) return;
   const summary = $('#automaticSignalSummary'), ledger = $('#automaticSignalLedger');
   // Keep the last accepted reading visible while an automatic reread is in flight.
   if (journalState === 'loading' && validJournalPayload(JOURNAL) && ledger?.dataset.renderKey) return;
   if (summary) {
-    summary.innerHTML = window.FinansObserver.summary(JOURNAL.predictions || [], JOURNAL_READY);
+    summary.innerHTML = window.FinansObserver.summary(JOURNAL.predictions || [], JOURNAL_READY, DATA);
     summary.querySelector('[data-observer-open]')?.addEventListener('click', () => setView('signals'));
   }
   if (!ledger) return;
@@ -814,7 +813,7 @@ function renderAutomaticSignals() {
   if (ledger.dataset.renderKey === renderKey) return;
   const openRecords = new Set(Array.from(ledger.querySelectorAll('[data-signal-id][open]')).map(el => el.dataset.signalId));
   ledger.dataset.renderKey = renderKey;
-  ledger.innerHTML = window.FinansObserver.dashboard(JOURNAL.predictions || [], DATA?.structural?.sources || [], automaticSignalState, JOURNAL_READY);
+  ledger.innerHTML = window.FinansObserver.dashboard(JOURNAL.predictions || [], DATA?.structural?.sources || [], automaticSignalState, JOURNAL_READY, DATA);
   ledger.querySelectorAll('[data-signal-id]').forEach(el => { if (openRecords.has(el.dataset.signalId)) el.open = true; });
   ledger.querySelectorAll('[data-signal-tab]').forEach(button => button.addEventListener('click', () => {
     automaticSignalState.tab = button.dataset.signalTab; automaticSignalState.limit = 20; renderAutomaticSignals();
@@ -825,6 +824,9 @@ function renderAutomaticSignals() {
   });
   ledger.querySelector('[data-signal-more]')?.addEventListener('click', () => { automaticSignalState.limit += 20; renderAutomaticSignals(); ledger.querySelector('[data-signal-more]')?.focus(); });
   ledger.querySelector('[data-observer-retry]')?.addEventListener('click', () => loadJournal());
+  ledger.querySelectorAll('[data-observer-symbol]').forEach(button => button.addEventListener('click', () => {
+    navigateCandidateTask({dataset:{market:button.dataset.observerMarket,symbol:button.dataset.observerSymbol,panel:'notes',target:'thesis'}});
+  }));
 }
 
 /* ---------- Günlük Rapor ---------- */

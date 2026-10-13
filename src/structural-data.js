@@ -42,8 +42,8 @@ function normalizeObservation(input, generationCutoffAt) {
   const binance=market==='crypto' && s.calendar?.provider==='binance' && s.calendar.interval==='1d' && s.calendar.timeZone==='UTC' && s.calendar.basis==='binance_klines_default_timezone';
   const equityCalendar=s.sessionCalendar;
   let calendar=binance?{status:'verified',version:'binance-utc-daily-v1',...s.calendar}:equityCalendar?.status==='verified' && equityCalendar.evidenceHash && Array.isArray(equityCalendar.sessions)
-    ? JSON.parse(JSON.stringify(equityCalendar)) : {status:'unverified',timeZone};
-  if(calendar.status!=='verified') reasons.push('calendar-unverified');
+    ? JSON.parse(JSON.stringify(equityCalendar)) : {...(equityCalendar || {}),status:'unverified',timeZone};
+  if(calendar.status!=='verified') reasons.push(...(Array.isArray(calendar.reasons) ? calendar.reasons.filter(r=>typeof r==='string') : []),'calendar-unverified');
   const bars=[], seen=new Set();
   if(!reasons.includes('array-alignment') && Number.isFinite(cut)) for(let i=0;i<n;i++) {
     const date=s.dates[i], stamp=ms(s.sourceTimestamps[i]);
