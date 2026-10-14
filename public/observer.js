@@ -30,7 +30,7 @@
   }
   function diagnosticsHtml(snapshot, sources, market = 'all') {
     return '<section class="observer-diagnostics" aria-label="Sinyal üretiminin durumu">' + diagnostics(snapshot,sources).filter(row => market === 'all' || row.market === market).map(row => {
-      const status = !row.total ? 'Tarama verisi okunamadı' : row.calendarBlocked === row.total ? 'Yeni kayıt kapalı' : row.calendarBlocked ? 'Tarama kısmen kapalı' : 'Seans kanıtı mevcut';
+      const status = !row.total ? 'Tarama verisi okunamadı' : row.calendarBlocked === row.total ? 'Yeni kayıt kapalı' : row.calendarBlocked ? 'Tarama kısmen kapalı' : 'Seans takvimi doğrulandı';
       const details = !row.total ? 'Veri eksikliği, sinyal yokluğu olarak yorumlanamaz.' : row.calendarBlocked ? row.calendarBlocked + '/' + row.total + ' varlıkta seans takvimi doğrulanamadı.' : 'Destek, trend, giriş ve maliyet koşulları ayrı değerlendiriliyor.';
       const reasons = Object.entries(row.reasons).filter(([key]) => key !== 'calendar-unverified').sort((a,b) => b[1]-a[1]).slice(0,2).map(([reason,count]) => count + ' varlık: ' + ui.reasonLabel(reason)).join(' ');
       return '<div><h3>' + row.label + '<span>' + esc(status) + '</span></h3><p>' + esc(details) + '</p>' + (row.buys ? '<p><b>' + row.buys.length + '</b> teknik AL / GÜÇLÜ AL adayı · işlem kaydı değildir.</p>' : '') + (reasons ? '<p class="muted">' + esc(reasons) + '</p>' : '') + '</div>';
@@ -74,9 +74,9 @@
     const coverage = Object.entries(markets).map(([key,label]) => {
       const rows = sources.filter(s => s.market === key);
       const blocked = rows.some(s => s.calendarStatus !== 'verified');
-      return '<li><b>' + label + '</b><span>' + (blocked ? 'Takvim kanıtı eksik · yeni sinyal kapalı' : rows.length ? 'Takvim kanıtı mevcut · kurulum koşulları izleniyor' : 'Tarama kaynak durumu doğrulanamadı') + '</span></li>';
+      return '<li><b>' + label + '</b><span>' + (blocked ? 'Seans takvimi doğrulanamadı · yeni sinyal kapalı' : rows.length ? 'Seans takvimi doğrulandı · kurulum koşulları izleniyor' : 'Tarama kaynak durumu doğrulanamadı') + '</span></li>';
     }).join('');
-    return '<section class="card observer-ledger"><header><h2>Sinyaller ve adaylar</h2><p>Teknik aday, kayıtlı işlem ve ölçülmüş sonuç ayrı gösterilir. Eksik seans veya fiyat kanıtı yeni işlem kaydını durdurur.</p></header>' + diagnosticsHtml(snapshot,sources,market) + nav + content + '<details class="observer-coverage"><summary>Piyasa kapsamı ve ölçüm kuralları</summary><ul>' + coverage + '</ul><p>Bekleyen, girilmeyen, belirsiz ve kanıtı eksik kayıtlar başarı paydasına girmez. Sanal sonuçlar gerçek portföy getirisi değildir.</p></details></section>';
+    return '<section class="card observer-ledger"><header><h2>Sinyaller ve adaylar</h2><p>Sistem adayları tarar, koşullar tamamlanınca sanal işlemi kaydeder ve hedef/stop sonucunu otomatik takip eder. Elle işlem kaydı gerekmez.</p></header>' + diagnosticsHtml(snapshot,sources,market) + nav + content + '<details class="observer-coverage"><summary>Otomatik takip nasıl ölçülüyor?</summary><ul>' + coverage + '</ul><p>Seans takvimi veya fiyat verisi doğrulanamayan piyasada yeni işlem açılmaz; otomasyon sonraki çalışmada yeniden kontrol eder. Bekleyen, girilmeyen ve sonucu belirlenemeyen kayıtlar başarı hesabına katılmaz. Sanal sonuçlar gerçek portföy getirisi değildir.</p></details></section>';
   }
   function rationale(asset, predictions = []) {
     const record = records.selectActiveRecord(predictions, asset.market, asset.symbol);
@@ -86,7 +86,7 @@
   function task(asset, predictions = []) {
     const r = records.selectActiveRecord(predictions, asset.market, asset.symbol);
     if (r && !records.isStructural(r)) return {panel:'notes',target:'thesis',field:null,label:'Önceki kayıt takipte',reason:'Eski açık kayıt kapanmadan aynı varlıkta yeni işlem kaydı açılmaz.'};
-    return {panel:'notes', target:'thesis', field:null, label:records.isStructural(r) ? records.classifyRecord(r).label : 'Kurulum izleniyor', reason:records.isStructural(r) ? 'Sabit plan ve işlem kanıtı otomatik takip ediliyor.' : ui.reasonLabel(asset.decision?.structural?.reasons?.[0] || 'no-structural-trigger')};
+    return {panel:'notes', target:'thesis', field:null, label:records.isStructural(r) ? records.classifyRecord(r).label : 'Kurulum izleniyor', reason:records.isStructural(r) ? 'İlk plan korunuyor; fiyat ve hedef/stop sonucu otomatik takip ediliyor.' : ui.reasonLabel(asset.decision?.structural?.reasons?.[0] || 'no-structural-trigger')};
   }
   return {groups, diagnostics, summary, dashboard, rationale, task};
 });
