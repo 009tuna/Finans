@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-13T19:43:52.250Z",
+  "snapshotGeneratedAt": "2026-10-13T19:13:19.283Z",
+  "mode": "read-only",
+  "scope": "Latest US source compared with the first frozen example for the same reference date; no original evidence payload is reconstructed.",
+  "rows": [
+    {
+      "market": "us",
+      "symbol": "AAPL",
+      "referenceDate": "2026-10-12",
+      "status": "changed",
+      "originalRecordedAt": "2026-10-12T21:14:32.893Z",
+      "observedAt": "2026-10-13T19:43:28.269Z",
+      "changedFields": [
+        "features",
+        "evidenceHash"
+      ],
+      "featureChanges": [
+        "atrPct",
+        "distanceSma50Atr",
+        "distanceSma200Atr"
+      ],
+      "originalEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "incomingEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "referenceChanged": false,
+      "originalRegime": null,
+      "incomingRegime": null,
+      "evidenceChanged": true
+    },
+    {
+      "market": "us",
+      "symbol": "MSFT",
+      "referenceDate": "2026-10-12",
+      "status": "changed",
+      "originalRecordedAt": "2026-10-12T21:14:32.893Z",
+      "observedAt": "2026-10-13T19:43:31.292Z",
+      "changedFields": [
+        "evidenceHash"
+      ],
+      "featureChanges": [],
+      "originalEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "incomingEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "referenceChanged": false,
+      "originalRegime": null,
+      "incomingRegime": null,
+      "evidenceChanged": true
+    },
+    {
+      "market": "us",
+      "symbol": "NVDA",
+      "referenceDate": "2026-10-12",
+      "status": "changed",
+      "originalRecordedAt": "2026-10-12T21:14:32.893Z",
+      "observedAt": "2026-10-13T19:43:33.467Z",
+      "changedFields": [
+        "features",
+        "evidenceHash"
+      ],
+      "featureChanges": [
+        "atrPct",
+        "distanceSma50Atr",
+        "distanceSma200Atr"
+      ],
+      "originalEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "incomingEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "referenceChanged": false,
+      "originalRegime": null,
+      "incomingRegime": null,
+      "evidenceChanged": true
+    },
+    {
+      "market": "us",
+      "symbol": "GOOGL",
+      "referenceDate": "2026-10-12",
+      "status": "changed",
+      "originalRecordedAt": "2026-10-12T21:14:32.893Z",
+      "observedAt": "2026-10-13T19:43:35.729Z",
+      "changedFields": [
+        "evidenceHash"
+      ],
+      "featureChanges": [],
+      "originalEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "incomingEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "referenceChanged": false,
+      "originalRegime": null,
+      "incomingRegime": null,
+      "evidenceChanged": true
+    },
+    {
+      "market": "us",
+      "symbol": "AMZN",
+      "referenceDate": "2026-10-12",
+      "status": "changed",
+      "originalRecordedAt": "2026-10-12T21:14:32.893Z",
+      "observedAt": "2026-10-13T19:43:37.513Z",
+      "changedFields": [
+        "evidenceHash"
+      ],
+      "featureChanges": [],
+      "originalEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "incomingEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "referenceChanged": false,
+      "originalRegime": null,
+      "incomingRegime": null,
+      "evidenceChanged": true
+    },
+    {
+      "market": "us",
+      "symbol": "META",
+      "referenceDate": "2026-10-12",
+      "status": "changed",
+      "originalRecordedAt": "2026-10-12T21:14:32.893Z",
+      "observedAt": "2026-10-13T19:43:39.787Z",
+      "changedFields": [
+        "features",
+        "evidenceHash"
+      ],
+      "featureChanges": [
+        "atrPct",
+        "distanceSma50Atr",
+        "distanceSma200Atr"
+      ],
+      "originalEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "incomingEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "referenceChanged": false,
+      "originalRegime": null,
+      "incomingRegime": null,
+      "evidenceChanged": true
+    },
+    {
+      "market": "us",
+      "symbol": "TSLA",
+      "referenceDate": "2026-10-12",
+      "status": "changed",
+      "originalRecordedAt": "2026-10-12T21:14:32.893Z",
+      "observedAt": "2026-10-13T19:43:41.444Z",
+      "changedFields": [
+        "evidenceHash"
+      ],
+      "featureChanges": [],
+      "originalEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "incomingEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "referenceChanged": false,
+      "originalRegime": null,
+      "incomingRegime": null,
+      "evidenceChanged": true
+    },
+    {
+      "market": "us",
+      "symbol": "AMD",
+      "referenceDate": "2026-10-12",
+      "status": "changed",
+      "originalRecordedAt": "2026-10-12T21:14:32.893Z",
+      "observedAt": "2026-10-13T19:43:43.643Z",
+      "changedFields": [
+        "evidenceHash"
+      ],
+      "featureChanges": [],
+      "originalEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "incomingEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "referenceChanged": false,
+      "originalRegime": null,
+      "incomingRegime": null,
+      "evidenceChanged": true
+    },
+    {
+      "market": "us",
+      "symbol": "AVGO",
+      "referenceDate": "2026-10-12",
+      "status": "changed",
+      "originalRecordedAt": "2026-10-12T21:14:32.893Z",
+      "observedAt": "2026-10-13T19:43:45.247Z",
+      "changedFields": [
+        "evidenceHash"
+      ],
+      "featureChanges": [],
+      "originalEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "incomingEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "referenceChanged": false,
+      "originalRegime": null,
+      "incomingRegime": null,
+      "evidenceChanged": true
+    },
+    {
+      "market": "us",
+      "symbol": "NFLX",
+      "referenceDate": "2026-10-12",
+      "status": "changed",
+      "originalRecordedAt": "2026-10-12T21:14:32.893Z",
+      "observedAt": "2026-10-13T19:43:46.718Z",
+      "changedFields": [
+        "evidenceHash"
+      ],
+      "featureChanges": [],
+      "originalEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "incomingEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "referenceChanged": false,
+      "originalRegime": null,
+      "incomingRegime": null,
+      "evidenceChanged": true
+    },
+    {
+      "market": "us",
+      "symbol": "PLTR",
+      "referenceDate": "2026-10-12",
+      "status": "changed",
+      "originalRecordedAt": "2026-10-12T21:14:32.893Z",
+      "observedAt": "2026-10-13T19:43:48.666Z",
+      "changedFields": [
+        "features",
+        "evidenceHash"
+      ],
+      "featureChanges": [
+        "atrPct",
+        "distanceSma50Atr",
+        "distanceSma200Atr"
+      ],
+      "originalEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "incomingEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "referenceChanged": false,
+      "originalRegime": null,
+      "incomingRegime": null,
+      "evidenceChanged": true
+    },
+    {
+      "market": "us",
+      "symbol": "COIN",
+      "referenceDate": "2026-10-12",
+      "status": "changed",
+      "originalRecordedAt": "2026-10-12T21:14:32.893Z",
+      "observedAt": "2026-10-13T19:43:50.315Z",
+      "changedFields": [
+        "evidenceHash"
+      ],
+      "featureChanges": [],
+      "originalEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "incomingEligibility": {
+        "status": "eligible",
+        "reasons": []
+      },
+      "referenceChanged": false,
+      "originalRegime": null,
+      "incomingRegime": null,
+      "evidenceChanged": true
+    }
+  ]
+}

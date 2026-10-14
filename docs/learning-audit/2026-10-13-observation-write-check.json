@@ -1,0 +1,41 @@
+{
+  "checkedAt": "2026-10-13T20:01:58.366Z",
+  "mode": "append-learning-evidence",
+  "scope": {
+    "markets": [
+      "us"
+    ],
+    "assetCount": 12
+  },
+  "summary": {
+    "status": "partial",
+    "appended": 0,
+    "existing": 8,
+    "conflicts": 4,
+    "ineligible": 0,
+    "shadowForecasts": 0,
+    "checkedAt": "2026-10-13T19:55:34.750Z",
+    "scope": {
+      "markets": [
+        "us"
+      ],
+      "assetCount": 12
+    },
+    "contextChanges": 0,
+    "evidenceChanges": 8,
+    "sourceRevisions": 4,
+    "eligibilityChanges": 0,
+    "unclassifiedChanges": 0,
+    "observationsAppended": 12,
+    "observationsExisting": 0,
+    "reasonCounts": {
+      "source_evidence_changed": 12,
+      "features_changed": 4
+    }
+  },
+  "preservedOriginalExamples": 12,
+  "journalUnchangedDuringCheck": true,
+  "journalWriteCapability": false,
+  "trainingInvoked": false,
+  "activationInvoked": false
+}
