@@ -1,5 +1,9 @@
 # Finans Otomasyonu - PRODUCT Context
 
+## 14 Ekim 2026 — Otomatik öğrenme
+
+Öğrenme ve sinyal ölçümü otomatik alınan fiyat, gösterge, veri zamanı ve resmî açıklamalarla yürür. Kullanıcıdan belge, gerçek emir gerçekleşmesi, not veya elle işlem kaydı istenmez. Kaynak doğrulaması sistemin veri kontrolüdür; kullanıcı görevi değildir. İlk karar korunur, sonraki kaynak değişimleri ayrı saklanır. Öğrenme modülünün 90/180 günlük fiyat sonucu ile sanal işlem hedef/stop sonucu ve gerçek kişisel portföy getirisi ayrı ölçümlerdir. Ana görünüm neyin toplandığını ve hangi sonucun beklendiğini anlatır; kaynak/kayıt teknik ayrıntıları açılır bölümde kalır.
+
 ## 13 Ekim 2026 — Araçlar ve sinyal kapsamı
 
 Otomatik gözlem ana akıştır; Portföy, Strateji Testi, Finansal Projeksiyon ve Okuryazarlık isteğe bağlı olarak menüden ve doğrudan bağlantıyla erişilebilir kalır. Gözlem modu bu sayfaları Sinyaller'e yönlendirmez. Teknik AL adayları, önceki açık kayıtlar ve yeni yapısal işlemler ayrı gösterilir. Yeni işlem bulunmaması bütün piyasaların veya araçların çalışmadığı anlamına gelmez; kaynak engeli görünür açıklanır.
