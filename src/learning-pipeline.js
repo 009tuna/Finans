@@ -8,16 +8,92 @@ const {buildLearningDataset}=require('./learning-dataset');
 const {fitMacroBias,fitPriceRidge,predictModel}=require('./learning-models');
 const {registerCandidate,freezeShadowForecast,DEFAULT_POLICY}=require('./learning-registry');
 const {evaluateForecasts}=require('./learning-evaluation');
+const TEMPORAL_FIELDS=new Set(['createdAt','knowledgeCutoff','sourceObservedAt']);
+const FIELD_REASONS={reference:'reference_changed',features:'features_changed',evidenceHash:'source_evidence_changed',eligibility:'eligibility_changed',marketRegime:'market_regime_changed',candidate:'candidate_context_changed'};
 function semanticExample(e) { const {createdAt,knowledgeCutoff,sourceObservedAt,...semantic}=e; return canonicalHash(semantic); }
-async function preserveExample(example,database) {
+function exampleDifference(original,incoming) {
+ const fields=[...new Set([...Object.keys(original),...Object.keys(incoming)])].filter(k=>!TEMPORAL_FIELDS.has(k)).sort().filter(k=>canonicalHash(Object.hasOwn(original,k)?{value:original[k]}:{})!==canonicalHash(Object.hasOwn(incoming,k)?{value:incoming[k]}:{}));
+ const reasons=[...new Set(fields.map(k=>FIELD_REASONS[k]||'other_semantic_change'))];
+ const knownCandidate=c=>c&&typeof c==='object'&&!Array.isArray(c)&&Object.keys(c).every(k=>['strategyVersion','reason'].includes(k)&&typeof c[k]==='string');
+ const unknownCandidate=fields.includes('candidate')&&(!knownCandidate(original.candidate)||!knownCandidate(incoming.candidate));
+ if(unknownCandidate&&!reasons.includes('other_semantic_change'))reasons.push('other_semantic_change');
+ const blocking=unknownCandidate||fields.some(k=>!['marketRegime','candidate','evidenceHash'].includes(k));
+ const classification=blocking?(fields.includes('eligibility')?'eligibility_change':fields.some(k=>['reference','features'].includes(k))?'source_revision':'unclassified_change'):fields.includes('evidenceHash')?'evidence_change':'context_change';
+ return {fields,reasons,blocking,classification};
+}
+function evidenceSummary(evidence) {
+ if(!evidence||!Array.isArray(evidence.bars))return null;
+ const hash=canonicalHash(evidence);
+ return {barCount:evidence.bars.length,firstBarDate:evidence.bars[0]?.date||null,lastBarDate:evidence.bars.at(-1)?.date||null,evidenceHash:hash,cacheKey:'learning:evidence:v1:'+hash};
+}
+function verifiedEvidence(row,hash) {
+ if(!row)return null;
+ if(!row.revision||row.value?.schemaVersion!==1||row.value.evidenceHash!==hash||canonicalHash(row.value.evidence)!==hash)throw Error('corrupt learning evidence');
+ return row.value.evidence;
+}
+function evidenceDifference(original,incoming) {
+ if(!original||!incoming)return null;
+ const before=new Map(original.bars.map(b=>[b.date,b])),after=new Map(incoming.bars.map(b=>[b.date,b]));
+ const changes=[],valueFields=['close','high','low','volume'];let numericBarChanges=0,metadataBarChanges=0;
+ for(const [date,b] of before){const a=after.get(date);if(!a)continue;const fields=[...valueFields,'sourceTimestamp'].filter(k=>canonicalHash(b[k]??null)!==canonicalHash(a[k]??null));if(!fields.length)continue;if(fields.some(k=>valueFields.includes(k)))numericBarChanges++;if(fields.includes('sourceTimestamp'))metadataBarChanges++;if(changes.length<10)changes.push({date,fields});}
+ return {originalBarCount:before.size,incomingBarCount:after.size,addedBars:[...after.keys()].filter(d=>!before.has(d)).length,removedBars:[...before.keys()].filter(d=>!after.has(d)).length,numericBarChanges,metadataBarChanges,changes,limit:10};
+}
+async function preserveEvidence(evidence,hash,database) {
+ if(!evidence)return;
+ if(canonicalHash(evidence)!==hash)throw Error('learning evidence hash mismatch');
+ // Keep full source cuts out of the all-record catalog and never truncate a
+ // body while claiming its original hash. Current Yahoo/Binance inputs fit.
+ if(evidence.bars.length>512||Buffer.byteLength(JSON.stringify(evidence),'utf8')>131072)throw Error('learning evidence capacity exceeded');
+ const key='learning:evidence:v1:'+hash;
+ for(let attempt=0;attempt<3;attempt++){
+   if(verifiedEvidence(await database.getCache(key,{strict:true}),hash))return;
+   try{await database.compareAndSetCache(key,{schemaVersion:1,evidenceHash:hash,evidence},null);}
+   catch(e){if(e.statusCode===409)continue;throw e;}
+   if(!verifiedEvidence(await database.getCache(key,{strict:true}),hash))throw Error('learning evidence write verification failed');
+   return;
+ }
+ throw Error('learning evidence CAS retry exhausted');
+}
+async function preserveObservation(record,database) {
+ const old=await readLearningIdentity('run',record.id,database);
+ if(old){await appendLearningRecords({runs:[old]},database);return 'existing';}
+ try{await appendLearningRecords({runs:[record]},database);return 'appended';}
+ catch(e){if(e.code!=='identity_conflict')throw e;const won=await readLearningIdentity('run',record.id,database);if(!won)throw e;await appendLearningRecords({runs:[won]},database);return 'existing';}
+}
+async function preserveExample(example,database,{observedAt=example.createdAt,evidence=null}={}) {
+ await preserveEvidence(evidence,example.evidenceHash,database);
  const existing=await readLearningIdentity('example',example.id,database);
  if(existing) {
-   if(semanticExample(existing)!==semanticExample(example))return {status:'conflict',example:existing};
-   // Also completes a previous shard/catalog interruption with the FIRST payload.
-   await appendLearningRecords({examples:[existing]},database); return {status:'existing',example:existing};
+   // Always complete an interrupted catalog write with the FIRST payload.
+   await appendLearningRecords({examples:[existing]},database);
+   if(semanticExample(existing)===semanticExample(example))return {status:'existing',example:existing};
+   instant(observedAt);if(instant(observedAt)<instant(existing.createdAt))throw Error('observation precedes frozen example');
+   const difference=exampleDifference(existing,example),incomingHash=semanticExample(example);
+   // Macro proof changes can affect label provenance even when the estimate is
+   // identical. The nonblocking evidence-only rule is specific to price cuts.
+   if(existing.kind!=='price'&&difference.fields.includes('evidenceHash')){difference.blocking=true;if(difference.classification==='evidence_change')difference.classification='unclassified_change';}
+   const originalEvidence=existing.kind==='price'?verifiedEvidence(await database.getCache('learning:evidence:v1:'+existing.evidenceHash,{strict:true}),existing.evidenceHash):null;
+   const evidenceComparison=evidenceDifference(originalEvidence,evidence);
+   if(evidenceComparison?.numericBarChanges){difference.blocking=true;if(difference.classification!=='eligibility_change')difference.classification='source_revision';difference.reasons.push('source_bar_values_changed');}
+   const observation={schemaVersion:1,id:'observation:'+canonicalHash({exampleId:example.id,incomingHash}),recordType:'exampleObservation',kind:existing.kind,cohort:existing.cohort,exampleId:existing.id,createdAt:observedAt,
+     classification:difference.classification,blocking:difference.blocking,reasons:difference.reasons,changedFields:difference.fields.slice(0,16),changedFieldCount:difference.fields.length,
+     originalHash:semanticExample(existing),incomingHash,originalEvidenceHash:existing.evidenceHash,incomingEvidenceHash:example.evidenceHash,
+     originalFeatureHash:canonicalHash(existing.features),incomingFeatureHash:canonicalHash(example.features),
+     originalReference:existing.reference||null,incomingReference:example.reference||null,incomingEvidence:evidenceSummary(evidence),evidenceComparison,
+     comparisonLimit:existing.kind!=='price'?'source_evidence_body_not_recorded':originalEvidence?null:'original_evidence_body_not_recorded',incomingExample:example};
+   const observationStatus=await preserveObservation(observation,database);
+   return {status:difference.blocking?'conflict':'existing',example:existing,observation,observationStatus};
  }
  try {await appendLearningRecords({examples:[example]},database);return {status:'appended',example};}
- catch(e){if(e.code!=='identity_conflict')throw e;const won=await readLearningIdentity('example',example.id,database);if(won&&semanticExample(won)===semanticExample(example)){await appendLearningRecords({examples:[won]},database);return {status:'existing',example:won};}return {status:'conflict',example:won};}
+ catch(e){if(e.code!=='identity_conflict')throw e;return preserveExample(example,database,{observedAt,evidence});}
+}
+function observationCounters(){return {contextChanges:0,evidenceChanges:0,sourceRevisions:0,eligibilityChanges:0,unclassifiedChanges:0,observationsAppended:0,observationsExisting:0,reasonCounts:{}};}
+function countObservation(summary,result) {
+ if(!result.observation)return;
+ const keys={context_change:'contextChanges',evidence_change:'evidenceChanges',source_revision:'sourceRevisions',eligibility_change:'eligibilityChanges',unclassified_change:'unclassifiedChanges'};
+ summary[keys[result.observation.classification]]++;
+ summary[result.observationStatus==='appended'?'observationsAppended':'observationsExisting']++;
+ for(const reason of result.observation.reasons)summary.reasonCounts[reason]=(summary.reasonCounts[reason]||0)+1;
 }
 async function freezeForCandidates(examples,database,asOf,records) {
  const candidates=records.filter(r=>r.type==='modelEvent'&&r.record.status==='candidate').map(r=>r.record);
@@ -34,12 +110,13 @@ async function freezeForCandidates(examples,database,asOf,records) {
  return frozen;
 }
 async function captureLearningSnapshot({snapshot,sourceSeriesByKey,createdAt=snapshot.generatedAt,database=require('./db')}) {
- const summary={status:'available',appended:0,existing:0,conflicts:0,ineligible:0,shadowForecasts:0,checkedAt:createdAt},captured=[];
+ const scopeMarkets=['us','bist','crypto'].filter(m=>Array.isArray(snapshot[m])&&snapshot[m].length);
+ const summary={status:'available',appended:0,existing:0,conflicts:0,ineligible:0,shadowForecasts:0,checkedAt:createdAt,scope:{markets:scopeMarkets,assetCount:scopeMarkets.reduce((n,m)=>n+snapshot[m].length,0)},...observationCounters()},captured=[];
  try {
    for(const market of ['us','bist','crypto']) for(const asset of snapshot[market]||[]) {
-     const {example}=buildSignalExample({asset:{...asset,market},sourceSeries:sourceSeriesByKey[market+':'+asset.symbol],createdAt,knowledgeCutoff:createdAt,marketRegime:snapshot.marketRegime?.[market]?.regime});
-     const result=await preserveExample(example,database);summary[result.status==='conflict'?'conflicts':result.status]++;
-     if(result.example?.eligibility.status==='ineligible')summary.ineligible++;
+     const {example,evidence}=buildSignalExample({asset:{...asset,market},sourceSeries:sourceSeriesByKey[market+':'+asset.symbol],createdAt,knowledgeCutoff:createdAt,marketRegime:snapshot.marketRegime?.[market]?.regime});
+     const result=await preserveExample(example,database,{observedAt:createdAt,evidence});summary[result.status==='conflict'?'conflicts':result.status]++;countObservation(summary,result);
+     if(example.eligibility.status==='ineligible'||result.example?.eligibility.status==='ineligible')summary.ineligible++;
      if(result.status!=='conflict')captured.push(result.example);
    }
    const {records}=await readLearningRecords({asOf:createdAt},database);
@@ -67,7 +144,7 @@ async function defaultHistory(example,asOf,{live=false}={}) {
 }
 async function refreshLearning({database=require('./db'),asOf,clock=()=>new Date().toISOString(),live=asOf==null,fetchHistory=defaultHistory,train=false,macroPayload,splitDates}={}) {
  asOf=asOf||clock();
- instant(asOf);const summary={status:'available',checkedAt:asOf,macroExamples:0,newLabels:0,pending:0,unresolved:0,excluded:0,conflicts:0,candidates:0,shadowForecasts:0,training:[]};
+ instant(asOf);const summary={status:'available',checkedAt:asOf,macroExamples:0,newLabels:0,pending:0,unresolved:0,excluded:0,conflicts:0,candidates:0,shadowForecasts:0,training:[],...observationCounters()};
  const initial=await readLearningRecords({asOf},database);
  if(!macroPayload) {
    const ledger=(await require('./research-ledger').readLedger(database)).value;
@@ -76,9 +153,9 @@ async function refreshLearning({database=require('./db'),asOf,clock=()=>new Date
  summary.sourceStatuses={nfp:macroPayload.storeStatus?.status||macroPayload.sourceStatus?.status||macroPayload.status||'unknown',cpi:macroPayload.families?.us_cpi?.sourceStatus?.status||'not_supplied'};
  if(Object.values(summary.sourceStatuses).some(s=>s==='unavailable'||s==='partial'))summary.status='partial';
  const imported=collectMacroExamples({macroPayload,asOf,frozenExamples:initial.records.filter(r=>r.type==='example').map(r=>r.record)});summary.excluded+=imported.exclusions.length;
- const captured=[];
- for(const e of imported.examples){const saved=await preserveExample(e,database);if(saved.status==='conflict'){summary.conflicts++;continue;}captured.push(saved.example);summary.macroExamples++;}
- for(const label of imported.labels){const old=await readLearningIdentity('label',label.id,database);await appendLearningRecords({labels:[old||label]},database);if(!old)summary.newLabels++;}
+ const captured=[],conflictedExamples=new Set();
+ for(const e of imported.examples){const saved=await preserveExample(e,database,{observedAt:asOf});countObservation(summary,saved);if(saved.status==='conflict'){summary.conflicts++;conflictedExamples.add(e.id);continue;}captured.push(saved.example);summary.macroExamples++;}
+ for(const label of imported.labels){if(conflictedExamples.has(label.exampleId))continue;const old=await readLearningIdentity('label',label.id,database);await appendLearningRecords({labels:[old||label]},database);if(!old)summary.newLabels++;}
  const all=(await readLearningRecords({asOf},database)).records,examples=all.filter(r=>r.type==='example').map(r=>r.record),labels=all.filter(r=>r.type==='label').map(r=>r.record),history=new Map();
  const known=new Set(labels.map(l=>l.id));
  for(const e of examples.filter(e=>e.kind==='price'&&e.eligibility.status==='eligible')) for(const horizonDays of [90,180]) {
