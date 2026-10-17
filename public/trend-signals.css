@@ -32,3 +32,10 @@
 .ts-summary .btn { margin-left: auto; }
 .legacy-signals { margin-top: 28px; }
 .legacy-signals > summary { cursor: pointer; font-size: 12px; color: var(--muted); padding: 8px 0; }
+.trend-signals > *, .ts-head > div { min-width: 0; }
+.ts-head > div { flex: 1 1 280px; }
+.ts-head p { overflow-wrap: anywhere; }
+@media (max-width: 720px) {
+  .ts-table { font-size: 12px; }
+  .ts-table th, .ts-table td { padding-right: 8px; }
+}

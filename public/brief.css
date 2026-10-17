@@ -41,3 +41,4 @@
   .brief-table td { border: 0; padding: 0; }
   .brief-table td:last-child { grid-column: 1 / -1; color: var(--muted); }
 }
+.report-reading-flow.brief > *, .brief-section > * { min-width: 0; }
