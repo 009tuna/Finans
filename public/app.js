@@ -912,6 +912,7 @@ async function renderReport() {
   const sc = s.label === 'Pozitif' ? 'sent-pos' : s.label === 'Nötr' ? 'sent-neu' : 'sent-cau';
   const aiBadge = ai ? '<span class="ai-badge">Model araştırması</span>' : '';
 
+  const reportMarketViews = ai && ai.research && ai.research.marketViews && window.FinansAnalystViews ? ai.research.marketViews : null;
   let h = workBriefHtml(base, ai && ai.research);
   const reportTimestamp = integrity.analysisAsOf || base.generatedAt;
   h += '<header class="report-masthead"><div><h2>Günün araştırma notu</h2><div class="report-meta"><span>' + esc(fullTimestamp(reportTimestamp)) + '</span><span>' + esc(String(s.total == null ? '–' : s.total)) + ' varlık</span><span>' + esc(String(s.buys == null ? '–' : s.buys)) + ' olumlu teknik sinyal</span><span>' + esc(String(s.gainers == null ? '–' : s.gainers)) + ' yükselen</span></div></div><div class="report-badges">' + aiBadge + '<span class="sent-pill ' + sc + '">' + esc(s.label || 'Duyarlılık bilinmiyor') + ' · ' + esc(String(s.avg == null ? '–' : s.avg)) + '/100</span></div></header>' +
@@ -919,6 +920,7 @@ async function renderReport() {
     FinansResearch.automationHtml(data.automation);
   h += '<nav class="report-toc" aria-label="Rapor bölümleri"><a href="#report-summary">Özet</a><a href="#report-expectations">Veri takvimi</a><a href="#report-developments">Gelişmeler</a><a href="#report-impact">Piyasa etkileri</a><a href="#report-calendar">Takvim</a><a href="#researchEvaluation">Tahmin sonuçları</a></nav>';
   h += '<div id="reportReadingResume"></div><section class="report-section" id="report-summary"><div class="report-reader-card"><div class="card-head"><h2>Özet</h2><span class="card-sub">Model yorumu ayrı okunur</span></div><p>' + FinansResearch.proseHtml(ai && ai.todayFocus ? ai.todayFocus : 'Teknik skor, piyasa genişliği ve takvimi birlikte değerlendirin.') + '</p>' + (ai ? FinansResearch.modelContextHtml(integrity, true) : '') + (ai && (ai.literacyTip || ai.quiz) ? '<button type="button" class="btn btn-secondary" data-open-report-learning>Bu raporun öğrenme notunu' + (ai.quiz ? ' ve sorusunu' : '') + ' aç</button>' : '') + '</div>';
+  if (reportMarketViews) h += '<div class="report-reader-card"><div class="analyst-views-head"><h2>Piyasa görüşü</h2><span>AI analist · önümüzdeki 1–2 hafta</span></div>' + window.FinansAnalystViews.marketViewsHtml(reportMarketViews, ai.commentary) + '</div>';
   h += '</section><section class="report-section" id="report-expectations"><h2>Veri takvimi</h2><div id="reportEconCalendar" role="region" aria-label="Ekonomik veri takvimi">Takvim yükleniyor…</div><details class="report-secondary"><summary>Önceki model tahmin kayıtları</summary>' + FinansResearch.expectationsHtml(ai && ai.research, { storedOpinions }) + '</details></section><section class="report-section" id="report-developments"><h2>Gelişmeler</h2>' +
     '<div id="marketNewsWorkspace" class="market-news-report" role="region" aria-label="Kaynaklı piyasa haberleri">Haber akışı yükleniyor…</div>';
   if (ai && ai.macroSummary) h += '<div class="report-reader-card"><div class="card-head"><h2>Makro görünüm</h2><span class="ai-badge">Yapay zeka yorumu</span></div><p class="rep-macro">' + FinansResearch.proseHtml(ai.macroSummary) + '</p></div>';
@@ -977,7 +979,7 @@ async function renderReport() {
 
   // Yapay zeka pazar yorumu
   h += '</details>';
-  if (ai && ai.commentary) {
+  if (ai && ai.commentary && !reportMarketViews) {
     const c = ai.commentary;
     h += '<div class="card reveal"><div class="card-head"><h2>Piyasa bazında yorum</h2><span class="ai-badge">Model görüşü</span></div><div class="commentary">' +
       (c.us ? '<div class="comm"><h4>ABD</h4><p>' + FinansResearch.proseHtml(c.us) + '</p></div>' : '') +
@@ -1075,7 +1077,7 @@ async function renderReport() {
   if (window.FinansMacro && typeof window.FinansMacro.refresh === 'function') window.FinansMacro.refresh();
   el.querySelectorAll('.report-toc a').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); const target = el.querySelector(link.getAttribute('href')); if (target) { target.tabIndex = -1; target.scrollIntoView({ behavior: reduceMotion ? 'instant' : 'smooth', block: 'start' }); target.focus({ preventScroll: true }); } }));
   FinansResearch.loadEvaluation($('#researchEvaluation'));
-  renderEconCalendar($('#reportEconCalendar'), base);
+  renderEconCalendar($('#reportEconCalendar'), base, ai && ai.research);
   triggerRevealAnimations(el);
 }
 function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
@@ -1210,13 +1212,16 @@ async function loadEconCalendar() {
   if (payload && Array.isArray(payload.events)) econCalendarState = { at: Date.now(), payload };
   return payload;
 }
-async function renderEconCalendar(target, base) {
+async function renderEconCalendar(target, base, research) {
   if (!target || !window.FinansEconCalendar) return;
   let payload = await loadEconCalendar();
   const stored = base && base.calendar && Array.isArray(base.calendar.events) ? base.calendar : null;
   if ((!payload || !payload.events || !payload.events.length) && stored && stored.events.length) payload = { events: stored.events, coverage: stored.eventsCoverage };
+  payload = payload || { events: [], coverage: { status: 'unavailable' } };
+  // AI'ın olay analizleri ve Türkiye takvimi canlı takvimle birleşir.
+  if (research) payload = Object.assign({}, payload, { events: window.FinansEconCalendar.mergeAnalysis(payload.events, research) });
   if (!target.isConnected) return;
-  target.innerHTML = window.FinansEconCalendar.calendarHtml(payload || { events: [], coverage: { status: 'unavailable' } });
+  target.innerHTML = window.FinansEconCalendar.calendarHtml(payload);
 }
 
 /* ---------- Genel bakış ---------- */
@@ -1247,7 +1252,13 @@ async function renderOverviewBriefing() {
     expectations.innerHTML = FinansResearch.expectationsHtml(research, { compact: true, storedOpinions });
     expectations.querySelectorAll('[data-open-expectation-report]').forEach((button) => button.addEventListener('click', () => setView('report')));
   }
-  renderEconCalendar($('#econCalendar'), base);
+  const overviewResearch = report && report.integrity && report.integrity.usableResearch && ai ? ai.research : null;
+  renderEconCalendar($('#econCalendar'), base, overviewResearch);
+  const viewsEl = $('#overviewMarketViews');
+  if (viewsEl) {
+    const views = overviewResearch && overviewResearch.marketViews && window.FinansAnalystViews ? window.FinansAnalystViews.marketViewsHtml(overviewResearch.marketViews, null, { compact: true }) : '';
+    viewsEl.innerHTML = views ? '<div class="analyst-views-head"><h2>AI piyasa görüşü</h2><span>Önümüzdeki 1–2 hafta</span></div>' + views : '';
+  }
 
   const matchesSnapshot = base && window.FinansReportIntegrity.assess(base, ai, DATA).baseStatus === 'current';
   const s = matchesSnapshot && base.sentiment ? base.sentiment : null;

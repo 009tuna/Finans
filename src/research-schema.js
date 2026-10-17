@@ -29,4 +29,12 @@ schema.properties.forecastAbstentions = array({ market, metric: string, unit: st
   scheduledAt: string, reason: string, missingEvidence: strings, sourceIds: strings });
 schema.properties.expectationReassessments = array({ market, metric: string, unit: string, period: string,
   scheduledAt: string, status: { type: 'string', enum: ['unchanged', 'updated', 'abstained'] }, reason: string, sourceIds: strings });
+// Analist katmanı (sol-research-v8). Eski çalışmalar bu alanlar olmadan geçerli kalır.
+const perMarket = object({ us: string, bist: string, crypto: string });
+const conviction = { type: 'string', enum: ['düşük', 'orta', 'yüksek'] };
+const marketView = object({ stance: { type: 'string', enum: ['olumlu', 'nötr', 'olumsuz'] }, conviction, thesis: string, drivers: strings, risks: strings, watch: string });
+schema.properties.marketViews = object({ us: marketView, bist: marketView, crypto: marketView });
+schema.properties.calendarAnalysis = array({ eventId: string, view: string, forecast: string, conviction, above: perMarket, below: perMarket, sourceIds: strings });
+schema.properties.turkeyCalendar = array({ id: string, title: string, scheduledAt: string, impact: { type: 'string', enum: ['high', 'medium'] },
+  previous: string, forecast: string, actual: string, view: string, conviction, above: perMarket, below: perMarket, sourceIds: strings });
 module.exports = schema;

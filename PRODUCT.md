@@ -1,5 +1,9 @@
 # Finans Otomasyonu - PRODUCT Context
 
+## 17 Ekim 2026 — Veri takvimi ve AI analist katmanı
+
+Her önemli veri açıklaması önceki değer, piyasa beklentisi ve gerçekleşen değerle gösterilir; gerçekleşen beklentiye göre üstü/altı/paralel olarak işaretlenir. Takvim Forex Factory haftalık akışı ile Nasdaq ekonomik takviminden otomatik gelir; Türkiye verilerini (TCMB, TÜİK) günlük AI araştırması ekler. AI her veri için kendi görüşünü, güven düzeyini ve beklenti üstü/altı durumda ABD, BIST ve kripto için ayrı etkiyi yazar; ayrıca her piyasa için 1–2 haftalık yön görüşü (olumlu/nötr/olumsuz, tez, destekleyenler, bozacaklar, izlenecek koşul) verir. Doğrulama ve kaynak denetimi arka planda kalır; görünen metin analist notu gibidir. NFP/CPI ölçülebilir tahmin kayıtları ayrı ve değiştirilemez olarak sürer.
+
 ## 14 Ekim 2026 — Otomatik öğrenme
 
 Öğrenme ve sinyal ölçümü otomatik alınan fiyat, gösterge, veri zamanı ve resmî açıklamalarla yürür. Kullanıcıdan belge, gerçek emir gerçekleşmesi, not veya elle işlem kaydı istenmez. Kaynak doğrulaması sistemin veri kontrolüdür; kullanıcı görevi değildir. İlk karar korunur, sonraki kaynak değişimleri ayrı saklanır. Öğrenme modülünün 90/180 günlük fiyat sonucu ile sanal işlem hedef/stop sonucu ve gerçek kişisel portföy getirisi ayrı ölçümlerdir. Ana görünüm neyin toplandığını ve hangi sonucun beklendiğini anlatır; kaynak/kayıt teknik ayrıntıları açılır bölümde kalır.

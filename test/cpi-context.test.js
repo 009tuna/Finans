@@ -55,7 +55,7 @@ async function main() {
   assert.ok(prompt.includes('resolution.provider=bls-first-release'));
   for (const name of ['cpiHeadlineMomSa', 'cpiCoreMomSa', 'cpiHeadlineYoyNsa', 'cpiCoreYoyNsa']) assert.ok(prompt.includes(name));
   assert.equal(MODEL, 'gpt-6.1-sol');
-  assert.equal(PROMPT_VERSION, 'sol-research-v7');
+  assert.equal(PROMPT_VERSION, 'sol-research-v8');
   console.log('CPI typed research context: isolated families, completion cutoff, empty sample and prompt policy passed');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

@@ -251,6 +251,55 @@
     return out;
   }
 
+  // AI çıktısındaki serbest biçimli sayı ("%33,3", "33.3%", "180 bin") → figür.
+  function parseLooseFigure(input) {
+    if (input == null) return null;
+    let t = String(input).trim().replace(/\s+/g, '');
+    if (!t) return null;
+    if (t[0] === '%') t = t.slice(1) + '%';
+    if (/^-?\d+,\d+(%|[KMBT])?$/i.test(t)) t = t.replace(',', '.');
+    t = t.replace(/bin$/i, 'K').replace(/(mn|milyon)$/i, 'M').replace(/(mlr|milyar)$/i, 'B');
+    return parseFigure(t);
+  }
+
+  // AI analist katmanını takvime bağlar: olay analizi kimlikle (kaynak değişmişse ad + zamanla) eşleşir;
+  // Türkiye takvimi ayrı olay olarak eklenir.
+  function mergeAnalysis(events, research) {
+    const list = (events || []).map((e) => Object.assign({}, e));
+    const analyses = (research && Array.isArray(research.calendarAnalysis)) ? research.calendarAnalysis : [];
+    analyses.forEach((item) => {
+      if (!item || !item.eventId || !item.above || !item.below) return;
+      let target = list.find((e) => e.id === item.eventId);
+      if (!target) {
+        // Kimlik: ÜLKE:başlık-slug:YYYY-MM-DDTHH:MM. Kaynak değiştiyse aynı ülke ve dakikada en benzer başlık.
+        const id = String(item.eventId), minute = id.slice(-16), country = id.split(':')[0];
+        const tokens = titleTokens(id.slice(country.length + 1, -17).replace(/-/g, ' '));
+        let best = 0;
+        list.forEach((e) => {
+          if (e.country !== country || e.scheduledAt.slice(0, 16) !== minute) return;
+          const sim = jaccard(tokens, titleTokens(e.title));
+          if (sim >= 0.5 && sim > best) { best = sim; target = e; }
+        });
+      }
+      if (target) target.ai = { view: item.view, forecast: item.forecast || '', conviction: item.conviction, scenarios: { above: item.above, below: item.below } };
+    });
+    const turkey = (research && Array.isArray(research.turkeyCalendar)) ? research.turkeyCalendar : [];
+    turkey.forEach((item) => {
+      const at = Date.parse(item && item.scheduledAt);
+      if (!Number.isFinite(at) || !item.title || !item.above || !item.below) return;
+      const scheduledAt = new Date(at).toISOString();
+      const istanbul = new Date(at + 3 * 3600000).toISOString();
+      list.push({
+        id: 'TR:' + slug(item.id), source: 'ai', currency: 'TRY', country: 'TR', countryLabel: 'Türkiye',
+        title: item.title, titleTr: item.title, category: /faiz|ppk/i.test(item.title) ? 'policy-rate' : 'other', impact: item.impact === 'high' ? 'high' : 'medium',
+        scheduledAt, localDate: istanbul.slice(0, 10), localTime: istanbul.slice(11, 16),
+        forecast: parseLooseFigure(item.forecast), previous: parseLooseFigure(item.previous), actual: parseLooseFigure(item.actual), revisedPrevious: null,
+        ai: { view: item.view, forecast: '', conviction: item.conviction, scenarios: { above: item.above, below: item.below } },
+      });
+    });
+    return list.sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
+  }
+
   // Gerçekleşenin beklentiye göre konumu. Eşitlik, beklentinin yazıldığı hassasiyete göre ölçülür.
   function surpriseOf(event) {
     const a = event && event.actual, f = event && event.forecast;
@@ -382,10 +431,10 @@
     if (!speech) {
       h += '<dl class="ec-figures"><div><dt>Önceki</dt><dd>' + esc(fmtFigure(event.previous)) + (event.revisedPrevious ? ' <small>rev. ' + esc(fmtFigure(event.revisedPrevious)) + '</small>' : '') + '</dd></div>' +
         '<div><dt>Beklenti</dt><dd>' + esc(fmtFigure(event.forecast)) + '</dd></div>' +
-        (event.ai && event.ai.forecast ? '<div class="ec-ai-fig"><dt>AI tahmini</dt><dd>' + esc(event.ai.forecast) + '</dd></div>' : '') +
+        (event.ai && event.ai.forecast ? '<div class="ec-ai-fig"><dt>AI tahmini</dt><dd>' + esc(parseLooseFigure(event.ai.forecast) ? fmtFigure(parseLooseFigure(event.ai.forecast)) : event.ai.forecast) + '</dd></div>' : '') +
         '<div class="ec-actual"><dt>Gerçekleşen</dt><dd>' + (event.actual ? esc(fmtFigure(event.actual)) + (surprise ? ' <span class="ec-surprise is-' + surprise.direction + '">' + esc(SURPRISE_TR[surprise.direction]) + (surprise.direction !== 'inline' ? ' · ' + esc(fmtDiff(surprise)) : '') + '</span>' : '') : status === 'awaiting' ? 'Bekleniyor' : '–') + '</dd></div></dl>';
     }
-    if (event.ai && event.ai.view) h += '<p class="ec-view"><b>AI görüşü:</b> ' + esc(event.ai.view) + '</p>';
+    if (event.ai && event.ai.view) h += '<p class="ec-view"><b>AI görüşü' + (event.ai.conviction ? ' · güven ' + esc(event.ai.conviction) : '') + ':</b> ' + esc(event.ai.view) + '</p>';
     if (surprise && surprise.direction === 'inline') h += '<p class="ec-note">Veri beklentiye paralel geldi; fiyat tepkisini alt kalemler ve diğer gelişmeler belirler.</p>';
     const columns = '<div class="ec-scenarios">' + scenarioColumn(speech ? speech[0] : 'Beklenti üstü gelirse', scn.above, realized === 'above') +
       scenarioColumn(speech ? speech[1] : 'Beklenti altı gelirse', scn.below, realized === 'below') + '</div>';
@@ -416,11 +465,13 @@
       return h + '<p class="ec-empty">' + (payload && payload.coverage && payload.coverage.status === 'unavailable' ? 'Takvim kaynağına şu an ulaşılamıyor.' : 'Bu dönem için takvimde önemli veri yok.') + '</p></div>';
     }
     // Yüksek etkili veri yoksa orta etkili veriler kart olarak öne çıkar (sakin haftada boş ekran olmasın).
-    const hasHigh = upcoming.some((e) => e.impact === 'high');
-    const highUpcoming = hasHigh ? upcoming.filter((e) => e.impact === 'high') : upcoming.slice(0, 6);
-    const mediumUpcoming = hasHigh ? upcoming.filter((e) => e.impact !== 'high') : upcoming.slice(6);
+    // AI'ın analiz ettiği veriler de kart olarak gösterilir.
+    const featured = (e) => e.impact === 'high' || !!(e.ai && e.ai.view);
+    const hasHigh = upcoming.some(featured);
+    const highUpcoming = hasHigh ? upcoming.filter(featured) : upcoming.slice(0, 6);
+    const mediumUpcoming = hasHigh ? upcoming.filter((e) => !featured(e)) : upcoming.slice(6);
     if (highUpcoming.length) {
-      if (!hasHigh) h += '<p class="ec-note">Önümüzdeki ' + (opts.aheadDays || 7) + ' günde yüksek etkili veri yok; orta etkili veriler gösteriliyor.</p>';
+      if (!upcoming.some((e) => e.impact === 'high') && !hasHigh) h += '<p class="ec-note">Önümüzdeki ' + (opts.aheadDays || 7) + ' günde yüksek etkili veri yok; orta etkili veriler gösteriliyor.</p>';
       let day = null;
       highUpcoming.forEach((e) => {
         const key = dayKey(e.scheduledAt);
@@ -444,7 +495,7 @@
   }
 
   return {
-    COUNTRIES, titleTr, categoryOf, parseFigure, sameFigure, normalizeForexFactory, normalizeNasdaqDay, easternToUtc, titleTokens, attachActuals,
+    COUNTRIES, titleTr, categoryOf, parseFigure, parseLooseFigure, sameFigure, normalizeForexFactory, normalizeNasdaqDay, easternToUtc, titleTokens, attachActuals, mergeAnalysis,
     surpriseOf, statusOf, ruleScenarios, scenariosFor, fmtFigure, fmtDiff, eventCardHtml, calendarHtml,
   };
 });

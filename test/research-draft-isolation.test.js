@@ -40,7 +40,9 @@ async function main() {
       commentary: { us: 'Synthetic test', bist: 'Missing evidence in test', crypto: 'Missing evidence in test' },
       coverage: ['us', 'bist', 'crypto'].map(market => ({ market, status: 'insufficient_evidence', reason: 'Synthetic fixture only' })),
       sources: [], events: [], forecasts: [], scenarios: [], signals: [], unresolvedQuestions: [],
-      forecastAbstentions: [], expectationReassessments: [] };
+      forecastAbstentions: [], expectationReassessments: [],
+      marketViews: Object.fromEntries(['us', 'bist', 'crypto'].map(market => [market, { stance: 'nötr', conviction: 'düşük', thesis: 'Synthetic test', drivers: [], risks: [], watch: '' }])),
+      calendarAnalysis: [], turkeyCalendar: [] };
     fs.writeFileSync(mockResponse, JSON.stringify(schemaValidMissingReview));
     const target = { market: 'us', metric: 'us_cpi_core_mom_sa', unit: 'percent', period: '2026-09',
       scheduledAt: new Date(Date.now() + 86400000).toISOString(), firstFrozenForecast: { pointEstimate: 0.3 } };

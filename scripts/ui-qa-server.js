@@ -45,7 +45,7 @@ async function readLiveDraft(paths) {
     pe:Number.isFinite(asset.pe) ? asset.pe : null, marketCap:Number.isFinite(asset.marketCap) ? asset.marketCap : null,
   })));
   requireMatch(isDeepStrictEqual(frozenAssets, context.assets), 'fiyatlar veya fiyat zamanları gerçek model girdisinden farklı');
-  requireMatch(research.model === 'gpt-6.1-sol' && research.promptVersion === 'sol-research-v7'
+  requireMatch(research.model === 'gpt-6.1-sol' && research.promptVersion === require('../src/research-runner').PROMPT_VERSION
     && validation.model === research.model && validation.promptVersion === research.promptVersion, 'model veya üretim sözleşmesi farklı');
   // These existing validators are pure here: no generation, ledger, publication or database method is called.
   const schema = require('../src/research-schema');

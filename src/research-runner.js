@@ -7,8 +7,9 @@ const { createHash } = require('crypto');
 const schema = require('./research-schema');
 const { validateResearch } = require('./research-ledger');
 const { buildExpectationAgenda, buildExpectationCoverage, attachExpectationContext, validateExpectationCoverage } = require('./research-expectations');
+const { buildDataCalendar, sanitizeAnalystLayer } = require('./research-analyst');
 const MODEL = 'gpt-6.1-sol';
-const PROMPT_VERSION = 'sol-research-v7';
+const PROMPT_VERSION = 'sol-research-v8';
 function checkSchema(value, spec = schema, location = 'research') {
   const types = Array.isArray(spec.type) ? spec.type : [spec.type];
   const actual = value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value;
@@ -29,8 +30,10 @@ function checkSchema(value, spec = schema, location = 'research') {
 }
 function buildContext(base, snapshot, evaluation, independent = {}) {
   const analysisAsOf = new Date().toISOString();
+  const { events: _calendarEvents, eventsCoverage: _calendarCoverage, ...calendar } = base.calendar || {};
   return { runId: base.runId, snapshotId: base.snapshotId, analysisAsOf,
-    quality: base.quality, calendar: base.calendar, markets: base.markets, evaluation, independent,
+    quality: base.quality, calendar, markets: base.markets, evaluation, independent,
+    dataCalendar: buildDataCalendar(base.calendar, analysisAsOf),
     expectationAgenda: buildExpectationAgenda(independent, analysisAsOf),
     expectationCoverage: buildExpectationCoverage(independent, analysisAsOf),
     assets: ['us', 'bist', 'crypto'].flatMap((market) => (snapshot[market] || []).map((x) => ({
@@ -101,7 +104,7 @@ async function generate(context, { onProgress = () => {}, timeoutMs = 12 * 60 * 
       throw e;
     }
     if (!webSearches && research.sources.length) throw new Error('Web arastirmasi kaniti olmadan kaynakli rapor kabul edilmez');
-    return { ...contextualResearch, model: MODEL, promptVersion: PROMPT_VERSION,
+    return { ...sanitizeAnalystLayer(contextualResearch, context, now), model: MODEL, promptVersion: PROMPT_VERSION,
       promptHash: createHash('sha256').update(prompt).digest('hex'), analysisAsOf: context.analysisAsOf,
       sourceVerification: 'model-cited-web-research', generatedAt: now, usage, webSearches };
   } finally {

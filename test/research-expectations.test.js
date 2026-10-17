@@ -43,7 +43,10 @@ assert.throws(() => validateExpectationCoverage({ ...current, expectationReasses
 assert.equal(validateResearch(current, now), true, 'no source is fabricated when the source itself is unavailable');
 checkSchema(research); // Historical records need no backfill or new timestamps.
 assert.throws(() => checkSchema(research, { ...schema, required: Object.keys(schema.properties) }), /forecastAbstentions.*eksik/);
-checkSchema(current, { ...schema, required: Object.keys(schema.properties) });
+const view = { stance: 'nötr', conviction: 'düşük', thesis: 'Fixture', drivers: [], risks: [], watch: '' };
+const analystFields = { marketViews: { us: view, bist: view, crypto: view }, calendarAnalysis: [], turkeyCalendar: [] };
+assert.throws(() => checkSchema(current, { ...schema, required: Object.keys(schema.properties) }), /marketViews.*eksik/, 'the v8 generator requires the analyst layer');
+checkSchema({ ...current, ...analystFields }, { ...schema, required: Object.keys(schema.properties) });
 const gapOnly = { ...current, expectationReassessments: [] };
 const ledger = addResearch(empty(), { runId: 'abstention-only', research: gapOnly }, now);
 assert.equal(ledger.forecasts.length, 0, 'abstentions never increase the scored sample');

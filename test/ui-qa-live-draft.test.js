@@ -14,7 +14,8 @@ async function main() {
   const research={macroSummary:'Synthetic acceptance fixture',todayFocus:'Synthetic fixture only',commentary:{us:'Evidence missing',bist:'Evidence missing',crypto:'Evidence missing'},
     coverage:['us','bist','crypto'].map(market=>({market,status:'insufficient_evidence',reason:'Synthetic acceptance fixture'})),
     sources:[],events:[],forecasts:[],scenarios:[],signals:[],unresolvedQuestions:[],forecastAbstentions:[],expectationReassessments:[],
-    model:'gpt-6.1-sol',promptVersion:'sol-research-v7',runId:'draft-run',snapshotId:cut,analysisAsOf:'2026-10-03T10:10:00.000Z',generatedAt:generated};
+    marketViews:Object.fromEntries(['us','bist','crypto'].map(market=>[market,{stance:'nötr',conviction:'düşük',thesis:'Synthetic fixture',drivers:[],risks:[],watch:''}])),calendarAnalysis:[],turkeyCalendar:[],
+    model:'gpt-6.1-sol',promptVersion:require('../src/research-runner').PROMPT_VERSION,runId:'draft-run',snapshotId:cut,analysisAsOf:'2026-10-03T10:10:00.000Z',generatedAt:generated};
   const ai=toAiReport(research,{...stage.base,runId:'draft-run',signalOverlay:null});
   const draft={status:'isolated_draft',persistedToPublication:false,persistedToLedger:false,sourceRunId:'source-run',draftRunId:'draft-run',pricesAsOf:cut,analysisAsOf:research.analysisAsOf,generatedAt:generated,ai};
   const input={status:'isolated_draft_input',sourceRunId:'source-run',draftRunId:'draft-run',pricesAsOf:cut,baseGeneratedAt:stage.base.generatedAt,context:{runId:'draft-run',snapshotId:cut,analysisAsOf:research.analysisAsOf,assets:[],expectationAgenda:[]}};

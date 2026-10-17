@@ -16,7 +16,7 @@ const research = { macroSummary: 'Test', todayFocus: 'Test', commentary: { us: '
   forecasts: [forecast], scenarios: [], signals: [], unresolvedQuestions: [] };
 checkSchema(research);
 assert.equal(MODEL, 'gpt-6.1-sol');
-assert.equal(PROMPT_VERSION, 'sol-research-v7');
+assert.equal(PROMPT_VERSION, 'sol-research-v8');
 const researchPrompt = fs.readFileSync(require.resolve('../routines/sol-research.md'), 'utf8');
 assert.match(researchPrompt, /evidenceStatus=official_announcement_text ve sourceId=spk_announcements/);
 assert.match(researchPrompt, /publishedAt=null ise saat veya gece yarısı üretme/);
