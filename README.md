@@ -41,8 +41,8 @@ Yerel Codex araştırması her gün 09:30 (Europe/Berlin) için zamanlanmıştı
 ## Veri takvimi ve AI analisti
 Takvim Forex Factory haftalık akışı (beklenti, önceki) ve Nasdaq ekonomik takviminden (gerçekleşen, ileri günler) otomatik gelir; `/api/report?resource=calendar`. Türkiye verilerini (TCMB, TÜİK) ve her veri için beklenti üstü/altı senaryolarını (ABD / BIST / Kripto ayrı) günlük AI araştırması yazar (`routines/sol-research.md`, sol-research-v8).
 
-## Long / short sinyalleri
-`src/trend-signals.js` (trend-signals-v1): SMA50/SMA200 rejimi + 55 günlük kırılım veya trend içi geri çekilme; giriş ertesi açılış, stop 2×ATR, hedef 2R, en fazla 40 seans. Short ABD, kripto ve VİOP vadelisi olan BIST paylarında (`src/bist-universe.json`); diğer BIST paylarında azalt/çık uyarısı. Sanal işlem defteri her veri yenilemesinde ilerler. Geçmiş testi: `node scripts/backtest-trend-signals.js --save`.
+## Sinyaller (trend-signals-v2)
+`src/trend-signals.js`: Strateji karşılaştırmasına göre (`docs/research-audit/2026-10-17-strateji-karsilastirma.md`) işlem sinyali yalnız trend yönündeki 55 günlük kırılımdır (long). Giriş ertesi açılış, stop 2×ATR, hedef 2R, en fazla 40 seans. Önerilen ağırlık sabit risklidir (stop olursa sermayenin %1'i; tek pozisyon en fazla %20, en fazla 8 pozisyon). Geri çekilmeler yalnız izlenir; düşüş yönündeki tetikler "uzak dur / çık" uyarısıdır. Koruma katmanı her varlık için 200 günlük ortalamanın üstünde/altında olmayı gösterir. Sanal işlem defteri her veri yenilemesinde ilerler. Geçmiş testi: `node scripts/backtest-trend-signals.js --save`; strateji karşılaştırması: `node scripts/compare-strategies.js --range 10y`.
 
 ## Teknik indikatörler (her varlık)
 RSI(14), MACD(12,26,9), SMA 20/50/200, EMA 12/26, Bollinger (%B, genişlik), ATR, yıllık volatilite,

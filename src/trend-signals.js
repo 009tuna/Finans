@@ -1,4 +1,11 @@
-// İki yönlü trend sinyal motoru (long / short) — saf; canlı sinyal, sanal işlem takibi ve geçmiş testi aynı kodu kullanır.
+// Trend sinyal motoru v2 — saf; canlı sinyal, sanal işlem takibi ve geçmiş testi aynı kodu kullanır.
+//
+// v2 (17 Ekim 2026, docs/research-audit/2026-10-17-strateji-karsilastirma.md): 10 yıllık karşılaştırmada
+// yalnız trend yönündeki long kırılım her piyasada ve dönemde değer kattı. Bu yüzden:
+//   işlem sinyali   — yalnız long kırılım (sanal defterde izlenir, pozisyon boyutu önerisi verilir);
+//   izleme          — long geri çekilme (işlem açılmaz);
+//   uzak dur / çık  — düşüş yönündeki kırılım veya geri çekilme (short işlem önerilmez);
+//   koruma katmanı  — kapanış 200 günlük ortalamanın üstünde mi (pozisyonda kalınabilir / nakitte bekle).
 //
 // Rejim: yükseliş = kapanış > SMA200 ve SMA50 > SMA200; düşüş = tersi.
 // Tetik (son tamamlanmış gün):
@@ -11,8 +18,9 @@
 'use strict';
 const { roundTripCost } = require('./costs');
 
-const STRATEGY = 'trend-signals-v1';
-const DEFAULTS = Object.freeze({ breakoutBars: 55, pullbackLookback: 3, stopAtr: 2, rewardRisk: 2, maxHoldBars: 40, minBars: 210 });
+const STRATEGY = 'trend-signals-v2';
+// riskPerTrade: stop olursa kaybedilecek sermaye payı; maxWeight: tek pozisyonun sermayedeki üst sınırı.
+const DEFAULTS = Object.freeze({ breakoutBars: 55, pullbackLookback: 3, stopAtr: 2, rewardRisk: 2, maxHoldBars: 40, minBars: 210, riskPerTrade: 0.01, maxWeight: 0.2, maxPositions: 8 });
 
 function rollingSma(values, period) {
   const out = new Array(values.length).fill(null);
@@ -130,14 +138,15 @@ function advanceTrade(trade, ind, uptoIndex, config = DEFAULTS, cost = 0) {
 }
 
 // Bütün geçmiş üzerinde örtüşmeyen işlemler (aynı varlıkta bir işlem kapanmadan yenisi açılmaz).
-function backtest(bars, { market, allowShort = true, config = DEFAULTS } = {}) {
+// setups: yalnız bu kurulumlar işlem açar (v2 canlı kuralı: allowShort false, setups ['breakout']).
+function backtest(bars, { market, allowShort = true, setups = null, config = DEFAULTS } = {}) {
   const ind = prepare(bars);
   const cost = roundTripCost(market);
   const trades = [];
   let t = config.minBars;
   while (t < ind.closes.length - 1) {
     const trig = triggerAt(ind, t, config);
-    if (!trig || (trig.direction === 'short' && !allowShort)) { t++; continue; }
+    if (!trig || (trig.direction === 'short' && !allowShort) || (setups && !setups.includes(trig.setup))) { t++; continue; }
     const plan = planFromEntry(trig.direction, ind.opens[t + 1], ind.atr[t], config);
     const trade = advanceTrade({ direction: trig.direction, setup: trig.setup, signalDate: ind.dates[t], entryDate: ind.dates[t + 1], entryIndex: t + 1, ...plan }, ind, ind.closes.length - 1, config, cost);
     if (trade.status !== 'closed') break;
@@ -164,18 +173,29 @@ function summarize(trades) {
   };
 }
 
-// Canlı durum: son tamamlanmış günde tetik var mı? shortMode: 'trade' (short işlem) | 'reduce' (azalt/çık uyarısı).
-function evaluateLatest(bars, { market, shortMode = 'trade', config = DEFAULTS } = {}) {
+// Sabit risk boyutu: stop olursa sermayenin riskPerTrade kadarı kaybedilecek ağırlık, maxWeight ile sınırlı.
+function positionSize(entry, stop, config = DEFAULTS) {
+  const stopPct = Math.abs(entry - stop) / entry;
+  if (!(stopPct > 0)) return null;
+  const weight = Math.min(config.maxWeight, config.riskPerTrade / stopPct);
+  return { weight, stopPct, riskPerTrade: config.riskPerTrade, capped: weight === config.maxWeight };
+}
+
+// Canlı durum (son tamamlanmış gün). status: signal (long kırılım işlemi) | watch-pullback | avoid | watch | insufficient.
+function evaluateLatest(bars, { market, config = DEFAULTS } = {}) {
   const ind = prepare(bars);
   const t = ind.closes.length - 1;
   if (t < config.minBars) return { strategy: STRATEGY, status: 'insufficient', reason: 'history-under-' + config.minBars, bars: ind.closes.length };
   const regime = regimeAt(ind, t);
   const trig = triggerAt(ind, t, config);
-  const base = { strategy: STRATEGY, regime, date: ind.dates[t], close: ind.closes[t], atr: ind.atr[t], rsi: ind.rsi[t], sma50: ind.sma50[t], sma200: ind.sma200[t] };
+  const base = { strategy: STRATEGY, regime, date: ind.dates[t], close: ind.closes[t], atr: ind.atr[t], rsi: ind.rsi[t], sma50: ind.sma50[t], sma200: ind.sma200[t],
+    aboveSma200: Number.isFinite(ind.sma200[t]) ? ind.closes[t] > ind.sma200[t] : null };
   if (!trig) return { ...base, status: 'watch' };
-  const action = trig.direction === 'short' && shortMode !== 'trade' ? 'reduce' : trig.direction;
-  const plan = planFromEntry(trig.direction, ind.closes[t], ind.atr[t], config);
-  return { ...base, status: 'signal', direction: trig.direction, action, setup: trig.setup, level: trig.level, indicativePlan: { ...plan, basis: 'signal-close' }, costRoundTrip: roundTripCost(market) };
+  if (trig.direction === 'short') return { ...base, status: 'avoid', action: 'avoid', direction: 'short', setup: trig.setup, level: trig.level };
+  if (trig.setup !== 'breakout') return { ...base, status: 'watch-pullback', action: 'watch', direction: 'long', setup: trig.setup, level: trig.level };
+  const plan = planFromEntry('long', ind.closes[t], ind.atr[t], config);
+  return { ...base, status: 'signal', direction: 'long', action: 'long', setup: 'breakout', level: trig.level, indicativePlan: { ...plan, basis: 'signal-close' },
+    sizing: positionSize(plan.entry, plan.stop, config), costRoundTrip: roundTripCost(market) };
 }
 
-module.exports = { STRATEGY, DEFAULTS, prepare, regimeAt, triggerAt, planFromEntry, advanceTrade, backtest, summarize, evaluateLatest, rollingSma, rollingAtr, rollingRsi };
+module.exports = { STRATEGY, DEFAULTS, prepare, regimeAt, triggerAt, planFromEntry, positionSize, advanceTrade, backtest, summarize, evaluateLatest, rollingSma, rollingAtr, rollingRsi };

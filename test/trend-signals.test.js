@@ -73,23 +73,36 @@ const s = TS.summarize([{ r: 2, returnPct: 0.04, exitReason: 'target', entryInde
 assert.strictEqual(s.trades, 2); assert.strictEqual(s.winRate, 0.5); assert.strictEqual(s.profitFactor, 2); assert.strictEqual(s.maxDrawdownR, 1);
 console.log('   ✓ Örtüşmeyen işlemler ve özet istatistikler.');
 
-console.log('5. Short izni: ABD/kripto ve VİOP vadelisi olan BIST payı...');
-assert.strictEqual(J.shortModeFor('us', 'AAPL'), 'trade');
-assert.strictEqual(J.shortModeFor('crypto', 'BTC'), 'trade');
-assert.strictEqual(J.shortModeFor('bist', 'THYAO'), 'trade');
-assert.strictEqual(J.shortModeFor('bist', 'BERA'), 'reduce');
-assert.strictEqual(TS.evaluateLatest(breakdown, { market: 'bist', shortMode: 'reduce' }).action, 'reduce');
-assert.strictEqual(TS.evaluateLatest(breakdown, { market: 'us', shortMode: 'trade' }).action, 'short');
-console.log('   ✓ Vadelisi olmayan BIST payında short yerine azalt/çık.');
+console.log('5. v2 durumları: kırılım işlem, geri çekilme izleme, düşüş uzak dur; boyut önerisi...');
+assert.strictEqual(TS.STRATEGY, 'trend-signals-v2');
+const longState = TS.evaluateLatest(breakout, { market: 'us' });
+assert.strictEqual(longState.status, 'signal'); assert.strictEqual(longState.action, 'long');
+assert.ok(longState.sizing.weight > 0 && longState.sizing.weight <= TS.DEFAULTS.maxWeight);
+assert.strictEqual(longState.aboveSma200, true);
+const avoidState = TS.evaluateLatest(breakdown, { market: 'us' });
+assert.strictEqual(avoidState.status, 'avoid'); assert.strictEqual(avoidState.action, 'avoid');
+assert.strictEqual(avoidState.aboveSma200, false);
+const noisy = series(uptrend(520, 0.004, 0.08, 6)), noisyInd = TS.prepare(noisy);
+let pullbackAt = -1;
+for (let t = 210; t < 520 && pullbackAt < 0; t++) { const g = TS.triggerAt(noisyInd, t); if (g && g.setup === 'pullback') pullbackAt = t; }
+assert.ok(pullbackAt > 0, 'Fixture içinde geri çekilme bulunmalı');
+const cut = (bars, n) => Object.fromEntries(Object.entries(bars).map(([k, v]) => [k, v.slice(0, n)]));
+assert.strictEqual(TS.evaluateLatest(cut(noisy, pullbackAt + 1), { market: 'us' }).status, 'watch-pullback');
+const size = TS.positionSize(100, 90);
+assert.strictEqual(Math.round(size.weight * 1000) / 1000, 0.1, '%1 risk / %10 stop = %10 ağırlık');
+assert.strictEqual(TS.positionSize(100, 99).capped, true, 'Dar stopta üst sınır');
+assert.ok(TS.backtest(noisy, { market: 'us', allowShort: false, setups: ['breakout'] }).every((t) => t.direction === 'long' && t.setup === 'breakout'));
+console.log('   ✓ Durumlar, sabit risk boyutu ve canlı kuralla aynı geçmiş testi.');
 
 console.log('6. Sanal işlem defteri: sinyal → giriş → kapanış...');
-const backtest = { summary: { 'us:long:breakout': { trades: 120, profitFactor: 1.81, winRate: 0.49, avgR: 0.43 }, 'bist:short:breakout': { trades: 77, profitFactor: 0.3, winRate: 0.18, avgR: -0.58 } } };
+const backtest = { summary: { 'us:long:breakout': { trades: 120, profitFactor: 1.81, winRate: 0.49, avgR: 0.43 }, 'bist:long:breakout': { trades: 12, profitFactor: 1.9, winRate: 0.5, avgR: 0.4 } } };
 const NOW = '2026-10-17T12:00:00.000Z';
 const day1 = J.processJournal(null, [{ market: 'us', symbol: 'TEST', bars: breakout }], { now: NOW, backtest });
 assert.strictEqual(day1.journal.records.length, 1);
 const rec = day1.journal.records[0];
 assert.strictEqual(rec.status, 'pending'); assert.strictEqual(rec.direction, 'long');
 assert.strictEqual(rec.evidence.status, 'proven');
+assert.ok(rec.sizing && rec.sizing.weight > 0, 'Sinyal kaydı önerilen ağırlığı taşır');
 const again = J.processJournal(day1.journal, [{ market: 'us', symbol: 'TEST', bars: breakout }], { now: NOW, backtest });
 assert.strictEqual(again.journal.records.length, 1, 'Aynı gün tekrar çalışma kayıt çoğaltmaz');
 const lastClose = breakout.closes.at(-1);
@@ -100,6 +113,7 @@ assert.strictEqual(opened.status, 'open');
 assert.strictEqual(opened.entryDate, nextBars.dates[breakout.dates.length]);
 assert.strictEqual(opened.entry, Math.round(lastClose * 1e6) / 1e6, 'Giriş sinyalden sonraki ilk açılış');
 assert.ok(Number.isFinite(opened.unrealizedR));
+assert.ok(opened.sizing.weight > 0, 'Giriş fiyatıyla ağırlık yeniden hesaplanır');
 const crash = extend(nextBars, [lastClose * 0.6]);
 const day3 = J.processJournal(day2.journal, [{ market: 'us', symbol: 'TEST', bars: crash }], { now: NOW, backtest });
 const closed = day3.journal.records.find((r) => r.id === rec.id);
@@ -107,19 +121,32 @@ assert.strictEqual(closed.status, 'closed'); assert.strictEqual(closed.exitReaso
 assert.ok(closed.r < -1, 'Boşluklu stop 1R üstü kayıp olabilir');
 const stale = J.processJournal({ records: [{ ...rec, signalDate: '2026-09-01' }] }, [{ market: 'us', symbol: 'TEST', bars: series(up.slice(0, 220)) }], { now: NOW, backtest });
 assert.strictEqual(stale.journal.records[0].status, 'expired');
-const advisory = J.processJournal(null, [{ market: 'bist', symbol: 'BERA', bars: breakdown }], { now: NOW, backtest });
-assert.strictEqual(advisory.journal.records[0].status, 'advisory');
-assert.strictEqual(advisory.journal.records[0].action, 'reduce');
+for (const market of ['us', 'bist', 'crypto']) {
+  const advisory = J.processJournal(null, [{ market, symbol: 'X', bars: breakdown }], { now: NOW, backtest });
+  assert.strictEqual(advisory.journal.records[0].status, 'advisory', market + ' düşüşü işlem değil uyarı');
+  assert.strictEqual(advisory.journal.records[0].action, 'avoid');
+}
+const legacy = { records: [
+  { id: 'v1-short', strategy: 'trend-signals-v1', market: 'bist', symbol: 'A', direction: 'short', setup: 'breakout', status: 'pending', signalDate: '2026-10-16' },
+  { id: 'v1-pull', strategy: 'trend-signals-v1', market: 'crypto', symbol: 'B', direction: 'long', setup: 'pullback', status: 'pending', signalDate: '2026-10-16' },
+  { id: 'v1-bo', strategy: 'trend-signals-v1', market: 'us', symbol: 'C', direction: 'long', setup: 'breakout', status: 'pending', signalDate: '2026-10-16' },
+  { id: 'v1-closed', strategy: 'trend-signals-v1', market: 'us', symbol: 'D', direction: 'short', setup: 'breakout', status: 'closed', signalDate: '2026-09-01' },
+] };
+const migrated = J.processJournal(legacy, [], { now: NOW }).journal.records;
+assert.deepStrictEqual(migrated.map((r) => r.status), ['cancelled', 'cancelled', 'pending', 'closed'], 'v1 short ve geri çekilme bekleyenleri iptal edilir, kırılım ve geçmiş korunur');
+assert.strictEqual(migrated[0].cancelReason, 'strategy-v2');
 console.log('   ✓ Bekleyen, açık, kapanan, süresi dolan ve uyarı kayıtları.');
 
 console.log('7. Panel görünümü...');
 const view = J.buildView(day3.journal, day3.latest, { now: NOW, backtest });
 assert.strictEqual(view.closed.length, 1);
 assert.strictEqual(view.live.all.trades, 1);
-assert.strictEqual(view.evidence['us:long:breakout'].status, 'proven');
-assert.strictEqual(view.evidence['bist:short:breakout'].status, 'weak');
-assert.strictEqual(view.evidence['crypto:short:pullback'].status, 'untested');
-assert.strictEqual(view.futuresUniverse.count, 48);
+assert.strictEqual(view.evidence.us.status, 'proven');
+assert.strictEqual(view.evidence.bist.status, 'weak', '30 işlemden az örnek kanıt sayılmaz');
+assert.strictEqual(view.evidence.crypto.status, 'untested');
+const prot = J.protectionLayer([{ market: 'us', aboveSma200: true }, { market: 'us', aboveSma200: true }, { market: 'us', aboveSma200: false }, { market: 'bist', aboveSma200: false }, { market: 'crypto', aboveSma200: null }]);
+assert.deepStrictEqual(prot.us, { total: 3, above: 2, share: 0.667, state: 'healthy' });
+assert.strictEqual(prot.bist.state, 'weak'); assert.strictEqual(prot.crypto.state, 'unknown');
 console.log('   ✓ Görünüm özetleri doğru.');
 
 console.log('8. Kalıcı yazma: karşılaştırmalı kayıt, çakışmada yeniden dener...');
@@ -145,14 +172,15 @@ console.log('8. Kalıcı yazma: karşılaştırmalı kayıt, çakışmada yenide
   console.log('9. Panel HTML...');
   const UI = require('../public/trend-signals-ui');
   const html = UI.dashboardHtml(view, { market: 'all' });
-  assert.ok(html.includes('Long / short sinyalleri') && html.includes('Kapanan işlemler') && html.includes('Stop'));
+  assert.ok(html.includes('Trend koruma katmanı') && html.includes('Kapanan işlemler') && html.includes('Uzak dur / çık'));
   assert.ok(UI.dashboardHtml(offline.trendSignals, { market: 'all' }).includes('Test edilmedi'), 'Geçmiş testi okunamazsa kanıt iddiası yok');
   assert.ok(UI.dashboardHtml(J.buildView(stored, [], { now: breakout.dates.at(-1) + 'T20:00:00.000Z', backtest }), { market: 'all' }).includes('Geçmişte çalıştı'));
-  assert.ok(UI.dashboardHtml(offline.trendSignals, { market: 'bist' }).includes('Son 3 günde yeni sinyal yok'), 'Piyasa filtresi');
+  assert.ok(UI.dashboardHtml(offline.trendSignals, { market: 'bist' }).includes('Son 3 günde yeni long kırılımı yok'), 'Piyasa filtresi');
+  assert.ok(UI.dashboardHtml(J.buildView(stored, [], { now: breakout.dates.at(-1) + 'T20:00:00.000Z', backtest }), { market: 'all' }).includes('Önerilen ağırlık'));
   assert.ok(UI.dashboardHtml(null).includes('henüz üretilmedi'));
   const evil = J.buildView({ records: [{ ...rec, symbol: '<img src=x>', signalDate: breakout.dates.at(-1) }] }, [], { now: breakout.dates.at(-1) + 'T20:00:00.000Z' });
   assert.ok(!/<img/.test(UI.dashboardHtml(evil, { market: 'all' })));
-  assert.ok(UI.summaryHtml(offline.trendSignals).includes('1</b> yeni sinyal (1 long, 0 short)'));
+  assert.ok(UI.summaryHtml(offline.trendSignals).includes('1</b> yeni long sinyali'));
   console.log('   ✓ Görünüm, filtre ve kaçış doğru.');
   console.log('\n🎉 Tüm trend sinyal testleri geçti.');
 })().catch((e) => { console.error(e); process.exitCode = 1; });

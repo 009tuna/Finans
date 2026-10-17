@@ -1,5 +1,5 @@
-// trend-signals-v1 kurallarının geçmiş testi: ABD ve BIST için Yahoo 5 yıllık, kripto için Binance ~1000 günlük veri.
-// Sonuç piyasa × yön × kurulum bazında özetlenir; --save ile api_cache'e (trend_backtest_v1) yazılır.
+// Trend sinyal motorunun canlı işlem kuralının (v2: yalnız trend yönünde long kırılım) geçmiş testi: ABD ve BIST için Yahoo 5 yıllık, kripto için Binance ~1000 günlük veri.
+// Sonuç piyasa × yön × kurulum bazında özetlenir; --save ile api_cache'e (trend_backtest_v2) yazılır.
 'use strict';
 try { require('dotenv').config({ path: require('path').join(__dirname, '..', '.env.local') }); } catch (_) {}
 const fs = require('fs');
@@ -59,7 +59,7 @@ async function run({ save = false } = {}) {
   await mapLimit(jobs, 4, async (job) => {
     const bars = await job.load();
     if (!bars || bars.closes.length < DEFAULTS.minBars + 20) { missing.push(job.market + ':' + job.symbol); return; }
-    backtest(bars, { market: job.market, allowShort: job.allowShort }).forEach((trade) => all.push({ market: job.market, symbol: job.symbol, ...trade }));
+    backtest(bars, { market: job.market, allowShort: false, setups: ['breakout'] }).forEach((trade) => all.push({ market: job.market, symbol: job.symbol, ...trade }));
   });
   const groups = {};
   const add = (key, trade) => { (groups[key] = groups[key] || []).push(trade); };
@@ -72,7 +72,7 @@ async function run({ save = false } = {}) {
   const result = { strategy: STRATEGY, config: DEFAULTS, generatedAt: new Date().toISOString(), period: { from: dates[0] || null, to: dates.at(-1) || null },
     universe: { assets: jobs.length - missing.length, missing, bistShortEligible: [...futures].filter((s) => cfg.watchlists.bist.includes(s)).length },
     summary, recentTrades: all.sort((a, b) => b.exitDate.localeCompare(a.exitDate)).slice(0, 40).map((t) => ({ market: t.market, symbol: t.symbol, direction: t.direction, setup: t.setup, entryDate: t.entryDate, exitDate: t.exitDate, exitReason: t.exitReason, r: Math.round(t.r * 100) / 100, returnPct: Math.round(t.returnPct * 10000) / 100 })) };
-  if (save) await require('../src/db').setCache('trend_backtest_v1', result);
+  if (save) await require('../src/db').setCache(require('../src/trend-signal-journal').BACKTEST_KEY, result);
   return result;
 }
 

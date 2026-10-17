@@ -1,5 +1,9 @@
 # Finans Otomasyonu - PRODUCT Context
 
+## 17 Ekim 2026 — Sinyal motoru v2
+
+10 yıllık strateji karşılaştırmasında yalnız trend yönündeki long kırılım her piyasada ve dönemde değer kattı; short'lar ve geri çekilme sonucu kötüleştirdi. Bu yüzden işlem sinyali yalnız long kırılımdır ve sabit riskli ağırlık önerisiyle gelir. Düşüş tetikleri "uzak dur / çık" uyarısıdır, geri çekilmeler izlenir. 200 günlük ortalama, her varlık ve piyasa için koruma katmanıdır (pozisyonda kalınabilir / nakitte bekle).
+
 ## 17 Ekim 2026 — Veri takvimi ve AI analist katmanı
 
 Her önemli veri açıklaması önceki değer, piyasa beklentisi ve gerçekleşen değerle gösterilir; gerçekleşen beklentiye göre üstü/altı/paralel olarak işaretlenir. Takvim Forex Factory haftalık akışı ile Nasdaq ekonomik takviminden otomatik gelir; Türkiye verilerini (TCMB, TÜİK) günlük AI araştırması ekler. AI her veri için kendi görüşünü, güven düzeyini ve beklenti üstü/altı durumda ABD, BIST ve kripto için ayrı etkiyi yazar; ayrıca her piyasa için 1–2 haftalık yön görüşü (olumlu/nötr/olumsuz, tez, destekleyenler, bozacaklar, izlenecek koşul) verir. Doğrulama ve kaynak denetimi arka planda kalır; görünen metin analist notu gibidir. NFP/CPI ölçülebilir tahmin kayıtları ayrı ve değiştirilemez olarak sürer.

@@ -4579,22 +4579,22 @@ async function renderCfoDecisionCockpit() {
   if (window.FinansAssetIdentity) window.FinansAssetIdentity.bindLogoFallback(el);
 }
 
-// Aday kartı için yeni sinyal motorunun durumu: açık işlem, yeni sinyal veya trend rejimi.
+// Aday kartı için sinyal motorunun durumu: açık işlem, yeni long sinyali, uzak dur uyarısı veya 200 günlük koruma durumu.
 function trendStateFor(market, symbol) {
   const view = DATA && DATA.trendSignals;
   if (!view) return null;
   const mine = (record) => record.market === market && record.symbol === symbol;
-  const side = (record) => record.action === 'reduce' ? 'Azalt / çık' : record.direction === 'long' ? 'Long' : 'Short';
-  const setup = (record) => record.setup === 'breakout' ? 'kırılım' : 'geri çekilme';
   const day = (value) => value ? value.slice(8, 10) + '.' + value.slice(5, 7) : '';
   const open = (view.open || []).find(mine);
-  if (open) return { label: 'Açık ' + side(open) + ' işlem', detail: 'Giriş ' + day(open.entryDate) + ' · anlık ' + (Number.isFinite(open.unrealizedR) ? (open.unrealizedR > 0 ? '+' : '') + open.unrealizedR.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + 'R' : '–') };
-  const fresh = (view.newSignals || []).concat(view.advisories || []).find(mine);
-  if (fresh) return { label: side(fresh) + ' sinyali · ' + setup(fresh), detail: day(fresh.signalDate) + ' kapanışı · ' + (fresh.evidence && fresh.evidence.status === 'proven' ? 'geçmişte çalışan kurulum' : 'zayıf geçmiş, izleme') };
+  if (open) return { label: 'Açık long işlem', detail: 'Giriş ' + day(open.entryDate) + ' · anlık ' + (Number.isFinite(open.unrealizedR) ? (open.unrealizedR > 0 ? '+' : '') + open.unrealizedR.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + 'R' : '–') };
+  const fresh = (view.newSignals || []).find(mine);
+  if (fresh) return { label: 'Long sinyali · kırılım', detail: day(fresh.signalDate) + ' kapanışı' + (fresh.sizing ? ' · önerilen ağırlık %' + Math.round(fresh.sizing.weight * 100) : '') };
+  const avoid = (view.avoid || []).find(mine);
+  if (avoid) return { label: 'Uzak dur / çık', detail: day(avoid.signalDate) + ' · ' + (avoid.setup === 'breakout' ? '55 günlük dip kırıldı' : 'düşüş trendinde tepki satışı') };
   const state = (view.assets || []).find(mine);
-  if (!state) return null;
-  const regime = { up: 'Trend yükselişte', down: 'Trend düşüşte', neutral: 'Yön belirsiz', unknown: 'Geçmiş yetersiz' }[state.regime] || 'Veri yetersiz';
-  return { label: regime, detail: state.regime === 'up' || state.regime === 'down' ? 'Kırılım veya geri çekilme bekleniyor' : 'Sinyal koşulu yok' };
+  if (!state || state.aboveSma200 == null) return null;
+  if (state.status === 'watch-pullback') return { label: 'İzlemede · geri çekilme', detail: 'Trend yukarı; işlem açılmaz' };
+  return state.aboveSma200 ? { label: 'Pozisyonda kalınabilir', detail: '200 günlük ortalamanın üstünde · kırılım bekleniyor' } : { label: 'Nakitte bekle', detail: '200 günlük ortalamanın altında' };
 }
 
 function renderPredictionScorecard() {

@@ -1,25 +1,20 @@
-// trend-signals-v1 sanal işlem defteri: günlük sinyali kaydeder, girişi sinyalden sonraki ilk seans açılışından
-// doldurur ve stop / hedef / trend / süre çıkışını geçmiş testiyle aynı kuralla izler. Kayıt api_cache'te tutulur.
+// Trend sinyal defteri (v2): long kırılımı sanal işlem olarak kaydeder, girişi sinyalden sonraki ilk seans açılışından
+// doldurur ve stop / hedef / trend / süre çıkışını geçmiş testiyle aynı kuralla izler. Düşüş yönündeki tetikler
+// "uzak dur / çık" uyarısıdır; geri çekilmeler yalnız izlenir. Kayıt api_cache'te tutulur.
 'use strict';
-const { STRATEGY, DEFAULTS, prepare, planFromEntry, advanceTrade, evaluateLatest } = require('./trend-signals');
+const { STRATEGY, DEFAULTS, prepare, planFromEntry, positionSize, advanceTrade, evaluateLatest } = require('./trend-signals');
 const { roundTripCost } = require('./costs');
-const universe = require('./bist-universe.json');
 
 const JOURNAL_KEY = 'trend_signal_journal_v1';
-const BACKTEST_KEY = 'trend_backtest_v1';
+const BACKTEST_KEY = 'trend_backtest_v2';
 const DAY = 86400000;
 const PENDING_DAYS = 7;
 const NEW_SIGNAL_DAYS = 3;
-const FUTURES = new Set(universe.viopStockFutures.symbols);
+const isTradeRule = (record) => record.direction === 'long' && record.setup === 'breakout';
 
-// Short yalnız ABD, kripto ve VİOP'ta vadelisi olan BIST paylarında işlemdir; diğer BIST paylarında azalt/çık uyarısıdır.
-function shortModeFor(market, symbol) {
-  return market === 'bist' && !FUTURES.has(symbol) ? 'reduce' : 'trade';
-}
-
-// Geçmiş testinde bu piyasa × yön × kurulumun sonucu. Kanıtlı: en az 30 işlem ve kâr faktörü ≥ 1,2.
-function evidenceFor(backtest, market, direction, setup) {
-  const s = backtest && backtest.summary && backtest.summary[market + ':' + direction + ':' + setup];
+// Geçmiş testinde bu piyasanın long kırılım sonucu. Kanıtlı: en az 30 işlem ve kâr faktörü ≥ 1,2.
+function evidenceFor(backtest, market) {
+  const s = backtest && backtest.summary && backtest.summary[market + ':long:breakout'];
   if (!s || !s.trades) return { status: 'untested' };
   return { status: s.trades >= 30 && s.profitFactor >= 1.2 ? 'proven' : 'weak', trades: s.trades, winRate: s.winRate, avgR: s.avgR, profitFactor: s.profitFactor };
 }
@@ -36,13 +31,16 @@ function finish(record, trade, ind) {
   }
   return out;
 }
+const sizingOf = (sizing) => sizing ? { weight: round(sizing.weight, 4), stopPct: round(sizing.stopPct, 4), riskPerTrade: sizing.riskPerTrade, capped: sizing.capped } : null;
 
 // assets: [{ market, symbol, bars }] — yalnız tamamlanmış günler. journal: { records: [] }.
 function processJournal(journal, assets, { now = new Date().toISOString(), backtest = null, config = DEFAULTS } = {}) {
   const nowMs = Date.parse(now);
-  const records = ((journal && journal.records) || []).map((r) => Object.assign({}, r));
+  // v1'den kalan ve v2'de işlem sayılmayan (short, geri çekilme) bekleyen kayıtlar dolmadan iptal edilir.
+  const records = ((journal && journal.records) || []).map((r) => r.status === 'pending' && !isTradeRule(r)
+    ? Object.assign({}, r, { status: 'cancelled', cancelReason: 'strategy-v2', updatedAt: now }) : Object.assign({}, r));
   const byAsset = new Map();
-  records.forEach((r) => { const key = r.market + ':' + r.symbol; if (!byAsset.has(key)) byAsset.set(key, []); byAsset.get(key).push(r); });
+  records.forEach((r, i) => { const key = r.market + ':' + r.symbol; if (!byAsset.has(key)) byAsset.set(key, []); byAsset.get(key).push(i); });
   const latest = [];
   for (const asset of assets) {
     if (!asset || !asset.bars) continue;
@@ -50,39 +48,39 @@ function processJournal(journal, assets, { now = new Date().toISOString(), backt
     const last = ind.closes.length - 1;
     if (last < 1) continue;
     const cost = roundTripCost(asset.market);
-    const own = byAsset.get(asset.market + ':' + asset.symbol) || [];
-    for (const record of own) {
-      const index = records.indexOf(record);
-      if (record.status === 'pending') {
-        const entryIndex = ind.dates.findIndex((d) => d > record.signalDate);
+    for (const index of byAsset.get(asset.market + ':' + asset.symbol) || []) {
+      const current = records[index];
+      if (current.status === 'pending') {
+        const entryIndex = ind.dates.findIndex((d) => d > current.signalDate);
         if (entryIndex < 0) {
-          if (nowMs - Date.parse(record.signalDate + 'T00:00:00Z') > PENDING_DAYS * DAY) records[index] = Object.assign({}, record, { status: 'expired', updatedAt: now });
+          if (nowMs - Date.parse(current.signalDate + 'T00:00:00Z') > PENDING_DAYS * DAY) records[index] = Object.assign({}, current, { status: 'expired', updatedAt: now });
           continue;
         }
-        const plan = planFromEntry(record.direction, ind.opens[entryIndex], record.atr, config);
-        const opened = Object.assign({}, record, { entryDate: ind.dates[entryIndex], entry: round(plan.entry, 6), stop: round(plan.stop, 6), target: round(plan.target, 6), risk: round(plan.risk, 6) });
-        const trade = advanceTrade({ direction: record.direction, entry: plan.entry, stop: plan.stop, target: plan.target, risk: plan.risk, entryIndex }, ind, last, config, cost);
+        const plan = planFromEntry(current.direction, ind.opens[entryIndex], current.atr, config);
+        const opened = Object.assign({}, current, { entryDate: ind.dates[entryIndex], entry: round(plan.entry, 6), stop: round(plan.stop, 6), target: round(plan.target, 6), risk: round(plan.risk, 6),
+          sizing: sizingOf(positionSize(plan.entry, plan.stop, config)) });
+        const trade = advanceTrade({ direction: current.direction, entry: plan.entry, stop: plan.stop, target: plan.target, risk: plan.risk, entryIndex }, ind, last, config, cost);
         records[index] = Object.assign(finish(opened, trade, ind), { updatedAt: now });
-      } else if (record.status === 'open') {
-        const entryIndex = ind.dates.indexOf(record.entryDate), lastIndex = ind.dates.indexOf(record.lastDate);
+      } else if (current.status === 'open') {
+        const entryIndex = ind.dates.indexOf(current.entryDate), lastIndex = ind.dates.indexOf(current.lastDate);
         if (entryIndex < 0 || lastIndex < 0 || lastIndex >= last) continue;
-        const trade = advanceTrade({ direction: record.direction, entry: record.entry, stop: record.stop, target: record.target, risk: record.risk, entryIndex, lastIndex }, ind, last, config, cost);
-        records[index] = Object.assign(finish(record, trade, ind), { updatedAt: now });
+        const trade = advanceTrade({ direction: current.direction, entry: current.entry, stop: current.stop, target: current.target, risk: current.risk, entryIndex, lastIndex }, ind, last, config, cost);
+        records[index] = Object.assign(finish(current, trade, ind), { updatedAt: now });
       }
     }
-    const shortMode = shortModeFor(asset.market, asset.symbol);
-    const state = evaluateLatest(asset.bars, { market: asset.market, shortMode, config });
-    latest.push({ market: asset.market, symbol: asset.symbol, status: state.status, regime: state.regime || null, date: state.date || null, action: state.action || null });
-    if (state.status !== 'signal') continue;
+    const state = evaluateLatest(asset.bars, { market: asset.market, config });
+    latest.push({ market: asset.market, symbol: asset.symbol, status: state.status, regime: state.regime || null, date: state.date || null,
+      setup: state.setup || null, aboveSma200: state.aboveSma200 == null ? null : state.aboveSma200 });
+    if (state.status !== 'signal' && state.status !== 'avoid') continue;
     const id = [STRATEGY, asset.market, asset.symbol, state.date, state.direction].join(':');
     if (records.some((r) => r.id === id)) continue;
-    const busy = records.some((r) => r.market === asset.market && r.symbol === asset.symbol && (r.status === 'pending' || r.status === 'open'));
-    if (state.action !== 'reduce' && busy) continue;
+    if (state.status === 'signal' && records.some((r) => r.market === asset.market && r.symbol === asset.symbol && (r.status === 'pending' || r.status === 'open'))) continue;
     records.push({
-      id, strategy: STRATEGY, market: asset.market, symbol: asset.symbol, direction: state.direction, action: state.action, setup: state.setup, shortMode,
-      signalDate: state.date, signalClose: round(state.close, 6), atr: round(state.atr, 6), level: round(state.level, 6), indicativePlan: { stop: round(state.indicativePlan.stop, 6), target: round(state.indicativePlan.target, 6) },
-      evidence: evidenceFor(backtest, asset.market, state.direction, state.setup), costRoundTrip: state.costRoundTrip,
-      status: state.action === 'reduce' ? 'advisory' : 'pending', createdAt: now, updatedAt: now,
+      id, strategy: STRATEGY, market: asset.market, symbol: asset.symbol, direction: state.direction, action: state.action, setup: state.setup,
+      signalDate: state.date, signalClose: round(state.close, 6), atr: round(state.atr, 6), level: round(state.level, 6),
+      ...(state.status === 'signal' ? { indicativePlan: { stop: round(state.indicativePlan.stop, 6), target: round(state.indicativePlan.target, 6) }, sizing: sizingOf(state.sizing),
+        evidence: evidenceFor(backtest, asset.market), costRoundTrip: state.costRoundTrip } : {}),
+      status: state.status === 'signal' ? 'pending' : 'advisory', createdAt: now, updatedAt: now,
     });
   }
   return { journal: { schemaVersion: 1, strategy: STRATEGY, updatedAt: now, records }, latest };
@@ -92,30 +90,45 @@ function liveStats(records) {
   const closed = records.filter((r) => r.status === 'closed' && Number.isFinite(r.r));
   const group = (list) => list.length ? { trades: list.length, winRate: round(list.filter((r) => r.r > 0).length / list.length, 3), totalR: round(list.reduce((a, r) => a + r.r, 0), 2), avgR: round(list.reduce((a, r) => a + r.r, 0) / list.length, 3) } : { trades: 0 };
   const out = { all: group(closed) };
-  for (const market of ['us', 'bist', 'crypto']) for (const direction of ['long', 'short']) out[market + ':' + direction] = group(closed.filter((r) => r.market === market && r.direction === direction));
+  for (const market of ['us', 'bist', 'crypto']) out[market] = group(closed.filter((r) => r.market === market));
   return out;
 }
 
-// Panelde gösterilecek özet: yeni sinyaller, açık işlemler, kapananlar, uyarılar, geçmiş testi ve canlı sonuç.
+// Koruma katmanı: her piyasada 200 günlük ortalamanın üstündeki varlık payı.
+function protectionLayer(latest) {
+  const out = {};
+  for (const market of ['us', 'bist', 'crypto']) {
+    const list = latest.filter((x) => x.market === market && x.aboveSma200 != null);
+    const above = list.filter((x) => x.aboveSma200).length;
+    const share = list.length ? above / list.length : null;
+    out[market] = { total: list.length, above, share: round(share, 3), state: share == null ? 'unknown' : share >= 0.6 ? 'healthy' : share >= 0.4 ? 'mixed' : 'weak' };
+  }
+  return out;
+}
+
+// Panelde gösterilecek özet.
 function buildView(journal, latest, { now = new Date().toISOString(), backtest = null, persisted = true } = {}) {
   const nowMs = Date.parse(now), records = (journal && journal.records) || [];
   const recent = (r) => nowMs - Date.parse(r.signalDate + 'T00:00:00Z') <= NEW_SIGNAL_DAYS * DAY;
   const byNewest = (a, b) => String(b.signalDate).localeCompare(String(a.signalDate));
-  const evidence = backtest && backtest.summary ? Object.fromEntries(['us', 'bist', 'crypto'].flatMap((m) => ['long', 'short'].flatMap((d) => ['breakout', 'pullback'].map((s) => [m + ':' + d + ':' + s, evidenceFor(backtest, m, d, s)])))) : null;
+  const trades = records.filter(isTradeRule);
+  const open = trades.filter((r) => r.status === 'open').sort(byNewest);
   return {
     strategy: STRATEGY, generatedAt: now, persisted,
-    rules: { stopAtr: DEFAULTS.stopAtr, rewardRisk: DEFAULTS.rewardRisk, maxHoldBars: DEFAULTS.maxHoldBars, breakoutBars: DEFAULTS.breakoutBars },
-    newSignals: records.filter((r) => r.action !== 'reduce' && recent(r) && (r.status === 'pending' || r.status === 'open')).sort(byNewest),
-    open: records.filter((r) => r.status === 'open').sort(byNewest),
-    pending: records.filter((r) => r.status === 'pending').sort(byNewest),
-    closed: records.filter((r) => r.status === 'closed').sort((a, b) => String(b.exitDate).localeCompare(String(a.exitDate))).slice(0, 40),
-    advisories: records.filter((r) => r.status === 'advisory' && recent(r)).sort(byNewest),
-    live: liveStats(records),
+    rules: { stopAtr: DEFAULTS.stopAtr, rewardRisk: DEFAULTS.rewardRisk, maxHoldBars: DEFAULTS.maxHoldBars, breakoutBars: DEFAULTS.breakoutBars,
+      riskPerTrade: DEFAULTS.riskPerTrade, maxWeight: DEFAULTS.maxWeight, maxPositions: DEFAULTS.maxPositions },
+    newSignals: trades.filter((r) => recent(r) && (r.status === 'pending' || r.status === 'open')).sort(byNewest),
+    open,
+    pending: trades.filter((r) => r.status === 'pending').sort(byNewest),
+    closed: trades.filter((r) => r.status === 'closed').sort((a, b) => String(b.exitDate).localeCompare(String(a.exitDate))).slice(0, 40),
+    avoid: records.filter((r) => r.status === 'advisory' && r.action === 'avoid' && recent(r)).sort(byNewest),
+    watch: latest.filter((x) => x.status === 'watch-pullback'),
+    exposure: { openPositions: open.length, weight: round(open.reduce((a, r) => a + ((r.sizing && r.sizing.weight) || 0), 0), 3) },
+    protection: protectionLayer(latest),
+    live: liveStats(trades),
+    evidence: backtest ? Object.fromEntries(['us', 'bist', 'crypto'].map((m) => [m, evidenceFor(backtest, m)])) : null,
     backtest: backtest ? { generatedAt: backtest.generatedAt, period: backtest.period, assets: backtest.universe && backtest.universe.assets, summary: Object.fromEntries(Object.entries(backtest.summary || {}).filter(([k]) => k.split(':').length <= 2)) } : null,
-    evidence,
     assets: latest,
-    coverage: { assets: latest.length, regimes: latest.reduce((acc, x) => { const k = x.market + ':' + (x.regime || x.status); acc[k] = (acc[k] || 0) + 1; return acc; }, {}) },
-    futuresUniverse: { source: universe.viopStockFutures.source, sourceDate: universe.viopStockFutures.sourceDate, count: FUTURES.size },
   };
 }
 
@@ -136,4 +149,4 @@ async function processTrendSignals(snapshot, assets, { db = require('./db'), now
   return snapshot.trendSignals;
 }
 
-module.exports = { JOURNAL_KEY, BACKTEST_KEY, shortModeFor, evidenceFor, processJournal, buildView, liveStats, processTrendSignals };
+module.exports = { JOURNAL_KEY, BACKTEST_KEY, evidenceFor, processJournal, buildView, liveStats, protectionLayer, processTrendSignals };
