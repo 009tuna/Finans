@@ -553,17 +553,17 @@ function updateFreshness() {
 
 /* ---------- Görünüm yönetimi ---------- */
 const VIEW_META = {
-  signals: ['Sinyaller', 'Otomatik kayıt, sanal işlem takibi ve ölçülmüş sonuçlar', 'view-signals'],
-  overview: ['Genel Bakış', 'Veri beklentileri ve piyasa adayları', 'view-overview'],
-  us: ['ABD Hisseleri', '12 hisse · teknik analiz + analist konsensüsü', 'view-market'],
-  bist: ['BIST 100', 'En büyük 100 şirket · teknik analiz', 'view-market'],
-  crypto: ['Kripto', '21 coin · teknik momentum analizi', 'view-market'],
-  portfolio: ['Portföyüm', 'Maliyet, kâr/zarar ve portföy sağlık analizi', 'view-portfolio'],
-  screener: ['Teknik Tarayıcı', 'Kritik indikatör sinyalleri ve alarmlar', 'view-screener'],
-  backtest: ['Strateji Testi', 'Geçmiş fiyat verileriyle teknik puan stratejisi testi', 'view-backtest'],
-  forecast: ['Finansal Projeksiyon', 'Olasılıksal portföy simülasyonu, stres testleri ve DCF analizleri', 'view-forecast'],
-  report: ['Günlük Rapor', 'Teknik rapor, model araştırması ve kaynak kapsamı', 'view-report'],
-  literacy: ['Finansal Okuryazarlık', 'İndikatör ve risk rehberi', 'view-literacy'],
+  signals: ['Sinyaller', 'Long kırılımlar, uzak dur uyarıları ve trend koruması', 'view-signals'],
+  overview: ['Genel bakış', 'Bugünün özeti, AI görüşü ve piyasa adayları', 'view-overview'],
+  us: ['ABD', '12 hisse · teknik görünüm ve analist konsensüsü', 'view-market'],
+  bist: ['BIST', 'BIST 30 dahil 101 hisse · teknik görünüm', 'view-market'],
+  crypto: ['Kripto', '21 coin · teknik görünüm', 'view-market'],
+  portfolio: ['Portföy', 'Maliyet, kâr/zarar ve risk', 'view-portfolio'],
+  screener: ['Teknik tarayıcı', 'İndikatör koşullarına göre tarama', 'view-screener'],
+  backtest: ['Strateji testi', 'Teknik puan stratejisinin geçmiş fiyatlarla testi', 'view-backtest'],
+  forecast: ['Projeksiyon', 'Portföy simülasyonu, stres testi ve değerleme', 'view-forecast'],
+  report: ['Günlük brif', 'AI analisti, veri takvimi ve gelişmeler', 'view-report'],
+  literacy: ['Rehber', 'İndikatörler, risk ve kavramlar', 'view-literacy'],
 };
 function routeHash(view, market, symbol) {
   const params = new URLSearchParams();
