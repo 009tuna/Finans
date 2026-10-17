@@ -27,8 +27,8 @@ async function getJson(url) {
   return null;
 }
 // Son çubuk (devam eden gün olabilir) her zaman çıkarılır.
-async function yahooBars(symbol) {
-  const data = await getJson('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(symbol) + '?interval=1d&range=5y');
+async function yahooBars(symbol, range = '5y') {
+  const data = await getJson('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(symbol) + '?interval=1d&range=' + range);
   const r = data && data.chart && data.chart.result && data.chart.result[0];
   if (!r || !r.timestamp) return null;
   const q = r.indicators.quote[0], offset = (r.meta.gmtoffset || 0) * 1000;
