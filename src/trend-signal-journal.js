@@ -3,7 +3,7 @@
 'use strict';
 const { STRATEGY, DEFAULTS, prepare, planFromEntry, advanceTrade, evaluateLatest } = require('./trend-signals');
 const { roundTripCost } = require('./costs');
-const universe = require('./data/bist-universe.json');
+const universe = require('./bist-universe.json');
 
 const JOURNAL_KEY = 'trend_signal_journal_v1';
 const BACKTEST_KEY = 'trend_backtest_v1';

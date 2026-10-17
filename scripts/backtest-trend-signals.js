@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { backtest, summarize, STRATEGY, DEFAULTS } = require('../src/trend-signals');
 const { mapLimit } = require('../src/util');
-const universe = require('../src/data/bist-universe.json');
+const universe = require('../src/bist-universe.json');
 
 const UA = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', Accept: 'application/json' };
 const BINANCE = { bitcoin: 'BTC', ethereum: 'ETH', solana: 'SOL', binancecoin: 'BNB', ripple: 'XRP', cardano: 'ADA', 'avalanche-2': 'AVAX', dogecoin: 'DOGE',
