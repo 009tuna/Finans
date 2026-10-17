@@ -289,7 +289,7 @@ async function testReportContentSurvivesLayoutChange() {
   assert.doesNotMatch(rendered, /href="javascript:|<img/);
   assert.match(rendered, /Rapor güncel fiyat verisiyle eşleşmiyor/);
   assert.match(rendered, /Veri kapsamı eksik/);
-  const sectionIds = ['report-summary', 'report-developments', 'report-impact', 'report-calendar', 'report-evaluation'];
+  const sectionIds = ['report-summary', 'report-views', 'report-expectations', 'report-developments', 'report-candidates', 'report-details', 'report-calendar', 'report-evaluation'];
   for (let index = 1; index < sectionIds.length; index++) {
     assert.ok(rendered.indexOf('id="' + sectionIds[index - 1] + '"') < rendered.indexOf('id="' + sectionIds[index] + '"'), 'report reading order is preserved');
   }

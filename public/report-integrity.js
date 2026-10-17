@@ -22,8 +22,11 @@
       && Date.parse(ai.generatedAt) >= Date.parse(base.generatedAt) && isFresh(base.generatedAt, now) && isFresh(ai.generatedAt, now));
     var aiStatus = !ai ? 'missing' : !isFresh(ai.generatedAt, now) ? 'stale'
       : !base || baseStatus !== 'current' || !ordered ? 'context-mismatch' : 'current';
+    // Newer prices are judged against the price cut the report was built on, not the report's
+    // generation time: a refresh that started before the report but was written after it is still newer.
+    var baseCut = base && Number.isFinite(Date.parse(base.snapshotId)) ? Date.parse(base.snapshotId) : Date.parse(base && base.generatedAt);
     var hasNewerPrices = !!(currentId && snapshot && ai && ai.snapshotId !== currentId && isFresh(snapshot.generatedAt, now)
-      && Number.isFinite(Date.parse(snapshot.generatedAt)) && Date.parse(snapshot.generatedAt) >= Date.parse(base && base.generatedAt));
+      && Number.isFinite(Date.parse(snapshot.generatedAt)) && Date.parse(snapshot.generatedAt) > baseCut);
     var aiTime = ai && Date.parse(ai.generatedAt), baseTime = base && Date.parse(base.generatedAt), nowTime = Date.parse(now);
     var researchStatus = !ai ? 'missing'
       : !Number.isFinite(aiTime) || !Number.isFinite(baseTime) || aiTime > nowTime || baseTime > nowTime ? 'context-mismatch'

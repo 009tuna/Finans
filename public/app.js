@@ -908,98 +908,91 @@ async function renderReport() {
     el.innerHTML = '<div class="card reveal"><div class="rep-empty">Henüz rapor bulunamadı. Günlük veri ve rapor akışının tamamlanması bekleniyor.</div></div>';
     return;
   }
-  const s = base.sentiment || {};
-  const sc = s.label === 'Pozitif' ? 'sent-pos' : s.label === 'Nötr' ? 'sent-neu' : 'sent-cau';
-  const aiBadge = ai ? '<span class="ai-badge">Model araştırması</span>' : '';
-
-  const reportMarketViews = ai && ai.research && ai.research.marketViews && window.FinansAnalystViews ? ai.research.marketViews : null;
-  let h = workBriefHtml(base, ai && ai.research);
+  // Günlük brif: okunan akış kısa; denetim, kaynak ve teknik ayrıntılar tek açılır bölümde.
+  const views = ai && ai.research && ai.research.marketViews && window.FinansAnalystViews ? ai.research.marketViews : null;
   const reportTimestamp = integrity.analysisAsOf || base.generatedAt;
-  h += '<header class="report-masthead"><div><h2>Günün araştırma notu</h2><div class="report-meta"><span>' + esc(fullTimestamp(reportTimestamp)) + '</span><span>' + esc(String(s.total == null ? '–' : s.total)) + ' varlık</span><span>' + esc(String(s.buys == null ? '–' : s.buys)) + ' olumlu teknik sinyal</span><span>' + esc(String(s.gainers == null ? '–' : s.gainers)) + ' yükselen</span></div></div><div class="report-badges">' + aiBadge + '<span class="sent-pill ' + sc + '">' + esc(s.label || 'Duyarlılık bilinmiyor') + ' · ' + esc(String(s.avg == null ? '–' : s.avg)) + '/100</span></div></header>' +
-    FinansResearch.reportIntegrityHtml({ integrity, hasResearch: !!ai, partial: !!(base.quality && base.quality.status === 'partial'), loadError }) +
-    FinansResearch.automationHtml(data.automation);
-  h += '<nav class="report-toc" aria-label="Rapor bölümleri"><a href="#report-summary">Özet</a><a href="#report-expectations">Veri takvimi</a><a href="#report-developments">Gelişmeler</a><a href="#report-impact">Piyasa etkileri</a><a href="#report-calendar">Takvim</a><a href="#researchEvaluation">Tahmin sonuçları</a></nav>';
-  h += '<div id="reportReadingResume"></div><section class="report-section" id="report-summary"><div class="report-reader-card"><div class="card-head"><h2>Özet</h2><span class="card-sub">Model yorumu ayrı okunur</span></div><p>' + FinansResearch.proseHtml(ai && ai.todayFocus ? ai.todayFocus : 'Teknik skor, piyasa genişliği ve takvimi birlikte değerlendirin.') + '</p>' + (ai ? FinansResearch.modelContextHtml(integrity, true) : '') + (ai && (ai.literacyTip || ai.quiz) ? '<button type="button" class="btn btn-secondary" data-open-report-learning>Bu raporun öğrenme notunu' + (ai.quiz ? ' ve sorusunu' : '') + ' aç</button>' : '') + '</div>';
-  if (reportMarketViews) h += '<div class="report-reader-card"><div class="analyst-views-head"><h2>Piyasa görüşü</h2><span>AI analist · önümüzdeki 1–2 hafta</span></div>' + window.FinansAnalystViews.marketViewsHtml(reportMarketViews, ai.commentary) + '</div>';
-  h += '</section><section class="report-section" id="report-expectations"><h2>Veri takvimi</h2><div id="reportEconCalendar" role="region" aria-label="Ekonomik veri takvimi">Takvim yükleniyor…</div><details class="report-secondary"><summary>Önceki model tahmin kayıtları</summary>' + FinansResearch.expectationsHtml(ai && ai.research, { storedOpinions }) + '</details></section><section class="report-section" id="report-developments"><h2>Gelişmeler</h2>' +
-    '<div id="marketNewsWorkspace" class="market-news-report" role="region" aria-label="Kaynaklı piyasa haberleri">Haber akışı yükleniyor…</div>';
-  if (ai && ai.macroSummary) h += '<div class="report-reader-card"><div class="card-head"><h2>Makro görünüm</h2><span class="ai-badge">Yapay zeka yorumu</span></div><p class="rep-macro">' + FinansResearch.proseHtml(ai.macroSummary) + '</p></div>';
-  h += FinansResearch.researchHtml(ai && ai.research) || '<div class="card"><p class="muted">Doğrulanmış araştırma gelişmesi henüz yok.</p></div>';
-  h += '</section><section class="report-section" id="report-impact"><h2>Piyasa etkileri</h2>' + reportSignalOverlayHtml(base, integrity);
+  const mismatch = integrity.baseStatus && integrity.baseStatus !== 'current';
+  const integrityHtml = FinansResearch.reportIntegrityHtml({ integrity, hasResearch: !!ai, partial: !!(base.quality && base.quality.status === 'partial'), loadError });
+  const briefDate = new Intl.DateTimeFormat('tr-TR', { timeZone: 'Europe/Istanbul', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(base.generatedAt));
+  let h = '<header class="brief-head"><h2>Günlük brif</h2><p class="brief-meta"><span>' + esc(briefDate) + '</span><span>Fiyat verisi ' + esc(fullTimestamp(base.snapshotId || base.generatedAt)) + '</span>' +
+    (ai ? '<span>AI analizi ' + esc(fullTimestamp(ai.generatedAt || reportTimestamp)) + '</span>' : '<span>AI analizi bekleniyor</span>') + '</p>' +
+    (mismatch || loadError ? integrityHtml : '') + '</header>';
+  h += '<nav class="report-toc" aria-label="Rapor bölümleri"><a href="#report-summary">Bugün</a>' + (views || (ai && ai.commentary) ? '<a href="#report-views">Piyasa görüşü</a>' : '') +
+    '<a href="#report-expectations">Veri takvimi</a><a href="#report-developments">Gelişmeler</a><a href="#report-candidates">Adaylar</a><a href="#report-details">Ayrıntılar</a></nav>';
+  h += '<div id="reportReadingResume"></div>';
 
-  // Yapay zeka makro + haber
-  const researchTitles = new Set(((ai && ai.research && ai.research.events) || []).map((event) => String(event.title || '').trim().toLocaleLowerCase('tr-TR')));
-  const uniqueWorldNews = ((ai && ai.worldNews) || []).filter((item) => !researchTitles.has(String(item.title || '').trim().toLocaleLowerCase('tr-TR')));
-  if (uniqueWorldNews.length) {
-    h += '<div class="card reveal"><div class="card-head"><h2>Dünya gelişmeleri</h2><span class="ai-badge">Yapay zeka</span></div>';
-    if (uniqueWorldNews.length) {
-      h += '<div class="rep-section"><h3>Öne çıkan gelişmeler</h3>' +
-        uniqueWorldNews.map((n) => {
-          const imp = (n.impact || '').toLowerCase();
-          // "olumsuz" da "olum" içerir — önce olumsuz/negatifi kontrol et
-          const cls = imp.includes('olums') || imp.includes('neg') ? 'imp-neg' : imp.includes('oluml') || imp.includes('pos') ? 'imp-pos' : 'imp-neutral';
-          const lbl = cls === 'imp-neg' ? 'olumsuz' : cls === 'imp-pos' ? 'olumlu' : 'nötr';
-          return '<div class="news-item"><span class="news-impact ' + cls + '">' + lbl + '</span><span>' + esc(n.title || '') + '</span></div>';
-        }).join('') + '</div>';
-    }
-    h += '</div>';
-  }
+  // 1. Bugün
+  h += '<section class="report-section brief-section" id="report-summary"><h2>Bugün</h2>' +
+    '<p class="brief-lead">' + FinansResearch.proseHtml(ai && ai.todayFocus ? ai.todayFocus : 'AI analizi henüz yayınlanmadı; veri takvimi ve teknik adaylar güncel.') + '</p>' +
+    (ai && ai.macroSummary ? '<p class="brief-macro">' + FinansResearch.proseHtml(ai.macroSummary) + '</p>' : '') + '</section>';
 
-  // Haftalık Retro
-  if (ai && ai.weeklyRetro) {
-    h += '<details class="report-secondary"><summary>Geçen haftanın yorumunu incele</summary><div class="card reveal"><p class="rep-macro">' + esc(ai.weeklyRetro) + '</p></div></details>';
-  }
-
-  // Bu hafta: katalizör takvimi + finans direktörü senaryo analizi
-  const calendarSection = '</section><section class="report-section" id="report-calendar">' + weeklyHtml(base, ai) + '</section>';
-
-  // Fırsatlar
-  h += '<details class="report-secondary"><summary>Teknik tarama ayrıntıları · puanlar ve sinyaller</summary>';
-  if (base.opportunities && base.opportunities.length) {
-    h += '<div class="card reveal"><div class="card-head"><h2>Teknik puanda öne çıkanlar</h2><span class="card-sub">Puan sıralaması</span></div>' +
-      base.opportunities.map((o, i) =>
-        '<div class="opp-row"><span class="rank">' + (i + 1) + '</span><div class="opp-meta"><div class="psym">' + esc(o.symbol) + ' <span class="pmkt">· ' + esc(o.market) + '</span></div><div class="opp-sum">' + esc(o.summary || '') + '</div></div><span class="badge tone-buy">' + esc(technicalSignalLabel(o.tone || o.label)) + ' · ' + esc(String(o.score == null ? '–' : o.score)) + '</span></div>'
-      ).join('') + '</div>';
-  }
-
-  // Teknik sinyaller
-  const sig = base.signals || {};
-  const sigGroup = (title, arr, cls) => (arr && arr.length) ? '<div class="rep-section"><h3>' + title + '</h3><div class="chips">' + arr.map((t) => '<span class="chip">' + esc(t) + '</span>').join('') + '</div></div>' : '';
-  const anySig = ['overbought', 'oversold', 'goldenCross', 'deathCross', 'volumeSpike', 'strongMomentum'].some((k) => sig[k] && sig[k].length);
-  if (anySig) {
-    h += '<div class="card reveal"><div class="card-head"><h2>Teknik Sinyaller</h2></div>' +
-      sigGroup('Güçlü momentum (MACD↑)', sig.strongMomentum) +
-      sigGroup('Hacim patlaması', sig.volumeSpike) +
-      sigGroup('Altın kesişim', sig.goldenCross) +
-      sigGroup('Aşırı alım (RSI≥70)', sig.overbought) +
-      sigGroup('Aşırı satım (RSI≤30)', sig.oversold) +
-      sigGroup('Ölüm kesişimi', sig.deathCross) +
-      '</div>';
-  }
-
-  // Yapay zeka pazar yorumu
-  h += '</details>';
-  if (ai && ai.commentary && !reportMarketViews) {
+  // 2. Piyasa görüşü
+  if (views) h += '<section class="report-section brief-section" id="report-views"><div class="analyst-views-head"><h2>Piyasa görüşü</h2><span>AI analist · önümüzdeki 1–2 hafta</span></div>' + window.FinansAnalystViews.marketViewsHtml(views, ai.commentary) + '</section>';
+  else if (ai && ai.commentary) {
     const c = ai.commentary;
-    h += '<div class="card reveal"><div class="card-head"><h2>Piyasa bazında yorum</h2><span class="ai-badge">Model görüşü</span></div><div class="commentary">' +
+    h += '<section class="report-section brief-section" id="report-views"><h2>Piyasa görüşü</h2><div class="commentary">' +
       (c.us ? '<div class="comm"><h4>ABD</h4><p>' + FinansResearch.proseHtml(c.us) + '</p></div>' : '') +
       (c.bist ? '<div class="comm"><h4>BIST</h4><p>' + FinansResearch.proseHtml(c.bist) + '</p></div>' : '') +
-      (c.crypto ? '<div class="comm"><h4>Kripto</h4><p>' + FinansResearch.proseHtml(c.crypto) + '</p></div>' : '') +
-      '</div></div>';
+      (c.crypto ? '<div class="comm"><h4>Kripto</h4><p>' + FinansResearch.proseHtml(c.crypto) + '</p></div>' : '') + '</div></section>';
   }
 
-  // Riskler
-  if (base.risks && base.risks.length) {
-    h += '<div class="card reveal"><div class="card-head"><h2>Dikkat / Riskler</h2></div><div class="chips">' +
-      base.risks.map((r) => '<span class="chip"><b>' + esc(marketShortLabel(r.market)) + ' ' + esc(r.symbol) + '</b> — ' + esc(r.reason) + '</span>').join('') + '</div></div>';
-  }
+  // 3. Veri takvimi
+  h += '<section class="report-section brief-section" id="report-expectations"><h2>Veri takvimi</h2><div id="reportEconCalendar" role="region" aria-label="Ekonomik veri takvimi">Takvim yükleniyor…</div></section>';
 
+  // 4. Gelişmeler
+  h += '<section class="report-section brief-section" id="report-developments"><h2>Gelişmeler</h2>' + briefEventsHtml(ai && ai.research) + '</section>';
+
+  // 5. Teknik adaylar ve takip listesinin bilançoları
+  const watchEarnings = ((base.calendar && base.calendar.earnings) || []).filter((e) => e.watch);
+  h += '<section class="report-section brief-section" id="report-candidates"><h2>Teknik adaylar</h2>' +
+    ((base.opportunities || []).length ? '<table class="brief-table"><thead><tr><th>Varlık</th><th>Piyasa</th><th>Sinyal</th><th>Gerekçe</th></tr></thead><tbody>' +
+      base.opportunities.map((o) => '<tr><td><b>' + esc(o.symbol) + '</b></td><td>' + esc(marketShortLabel(o.market)) + '</td><td class="num">' + esc(technicalSignalLabel(o.tone || o.label)) + ' · ' + esc(String(o.score == null ? '–' : o.score)) + '</td><td>' + esc(o.summary || '') + '</td></tr>').join('') +
+      '</tbody></table>' : '<p class="muted">Teknik aday yok.</p>') +
+    '<p class="brief-note">Teknik puan getiri olasılığı değildir. İşlem kayıtları <button class="text-btn" type="button" data-open-signals>Sinyaller</button> ekranında.</p>' +
+    (watchEarnings.length ? '<h3 class="brief-sub">Takip listesinde bu hafta bilanço</h3><p>' + watchEarnings.map((e) => '<b>' + esc(e.symbol) + '</b> ' + esc(new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' }).format(new Date(e.date + 'T12:00:00Z'))) + (e.hour === 'bmo' ? ' · açılış öncesi' : e.hour === 'amc' ? ' · kapanış sonrası' : '')).join(' · ') + '</p>' : '') +
+    '</section>';
+
+  // 6. Ayrıntılar
+  let d = '<div class="brief-details-body">';
+  d += '<section><h3>Veri durumu</h3>' + (mismatch || loadError ? '' : integrityHtml) + FinansResearch.automationHtml(data.automation) + '</section>';
+  const sourceRecords = ai && ai.research && Array.isArray(ai.research.sources) ? ai.research.sources : [];
+  const sourceRows = sourceRecords.map((source) => {
+    const title = source && source.title ? String(source.title) : 'Kaynak';
+    const published = FinansResearch.sourcePublicationText(source && source.publishedAt);
+    let titleHtml = esc(title);
+    try {
+      const url = new URL(source && source.url);
+      if (['https:', 'http:'].includes(url.protocol)) {
+        titleHtml = '<a href="' + esc(url.href).replace(/"/g, '&quot;') + '" target="_blank" rel="noopener noreferrer">' + esc(title) + '</a>';
+      }
+    } catch (_) { /* keep the title and truthful unknown publication state */ }
+    return '<li><span class="source-ledger-title">' + titleHtml + '</span><span>' + esc(published) + '</span></li>';
+  }).join('');
+  d += '<section class="source-ledger"><h3>Kaynaklar <span class="source-ledger-count">' + sourceRecords.length + ' kayıt</span></h3>' + (sourceRecords.length ? '<p class="source-ledger-footnote">Yayın saatleri İstanbul (UTC+3).</p><ul>' + sourceRows + '</ul>' : '<p class="muted">Bu raporla eşleşen araştırma kaynağı yok.</p>') + '</section>';
+  d += '<section><h3>Araştırma kapsamı ve ayrıntılı olay notları</h3>' + (FinansResearch.researchHtml(ai && ai.research) || '<p class="muted">Araştırma kaydı yok.</p>') + '</section>';
+  d += '<section><h3>Önceki model tahmin kayıtları</h3>' + FinansResearch.expectationsHtml(ai && ai.research, { storedOpinions }) + '</section>';
+  d += '<section><h3>Kaynaklı piyasa haberleri</h3><div id="marketNewsWorkspace" class="market-news-report" role="region" aria-label="Kaynaklı piyasa haberleri">Haber akışı yükleniyor…</div></section>';
+  d += '<section><h3>Makro sinyal katmanı</h3>' + (reportSignalOverlayHtml(base, integrity) || '<p class="muted">Aktif katman yok.</p>') + '</section>';
+
+  const researchTitles = new Set(((ai && ai.research && ai.research.events) || []).map((event) => String(event.title || '').trim().toLocaleLowerCase('tr-TR')));
+  const uniqueWorldNews = ((ai && ai.worldNews) || []).filter((item) => !researchTitles.has(String(item.title || '').trim().toLocaleLowerCase('tr-TR')));
+  if (uniqueWorldNews.length) d += '<section><h3>Dünya gelişmeleri</h3><ul>' + uniqueWorldNews.map((n) => '<li>' + esc(n.title || '') + '</li>').join('') + '</ul></section>';
+  if (ai && ai.weeklyRetro) d += '<section><h3>Geçen haftanın yorumu</h3><p class="rep-macro">' + esc(ai.weeklyRetro) + '</p></section>';
+
+  const sig = base.signals || {};
+  const sigGroup = (title, arr) => (arr && arr.length) ? '<div class="rep-section"><h4>' + title + '</h4><div class="chips">' + arr.map((t) => '<span class="chip">' + esc(t) + '</span>').join('') + '</div></div>' : '';
+  d += '<section><h3>Teknik tarama</h3>' +
+    sigGroup('Güçlü momentum (MACD↑)', sig.strongMomentum) + sigGroup('Hacim patlaması', sig.volumeSpike) + sigGroup('Altın kesişim', sig.goldenCross) +
+    sigGroup('Aşırı alım (RSI≥70)', sig.overbought) + sigGroup('Aşırı satım (RSI≤30)', sig.oversold) + sigGroup('Ölüm kesişimi', sig.deathCross) +
+    ((base.risks || []).length ? sigGroup('Teknik zayıflık', base.risks.map((r) => marketShortLabel(r.market) + ' ' + r.symbol + ' — ' + r.reason)) : '') + '</section>';
+  d += '<section id="report-calendar"><h3>Şirket takvimi ve haberleri</h3>' + weeklyHtml(base, ai) + '</section>';
+  d += '<section id="report-evaluation"><h3>Tahmin sonuçları</h3><div class="research-card" id="researchEvaluation" aria-live="polite">Tahmin ölçümleri yükleniyor…</div></section>';
   // Günün odağı özet bölümünde bir kez gösterilir; okuryazarlık ipucu bağımsız kalır.
-  if (ai && (ai.literacyTip || ai.quiz)) h += '<details class="report-secondary" id="reportLearning"><summary>Bu raporun öğrenme notu' + (ai.quiz ? ' ve sorusu' : '') + '</summary>';
+  if (ai && (ai.literacyTip || ai.quiz)) d += '<details class="report-secondary" id="reportLearning"><summary>Bu raporun öğrenme notu' + (ai.quiz ? ' ve sorusu' : '') + '</summary>';
   if (ai && ai.literacyTip) {
-    h += '<div class="card reveal">';
-    if (ai.literacyTip) h += '<div class="tip-card report-tip"><h4>' + esc(ai.literacyTip.title || 'Günün dersi') + '</h4><p>' + esc(ai.literacyTip.body || '') + '</p></div>';
-    h += '</div>';
+    d += '<div class="card reveal">';
+    if (ai.literacyTip) d += '<div class="tip-card report-tip"><h4>' + esc(ai.literacyTip.title || 'Günün dersi') + '</h4><p>' + esc(ai.literacyTip.body || '') + '</p></div>';
+    d += '</div>';
   }
 
   // Daily Quiz
@@ -1010,13 +1003,13 @@ async function renderReport() {
     const streak = parseInt(localStorage.getItem('finans-quiz-streak') || '0', 10);
     const hasPlayedToday = lastPlayed === quizDate;
     
-    h += '<div class="card reveal report-quiz" id="quiz-card">';
-    h += '<div class="card-head"><h2>Günün Finansal Akıl Yürütme Sorusu</h2><span class="ai-badge">Günlük Soru</span></div>';
-    h += '<p style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">' + esc(ai.quiz.question) + '</p>';
+    d += '<div class="card reveal report-quiz" id="quiz-card">';
+    d += '<div class="card-head"><h2>Günün Finansal Akıl Yürütme Sorusu</h2><span class="ai-badge">Günlük Soru</span></div>';
+    d += '<p style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">' + esc(ai.quiz.question) + '</p>';
     
     if (hasPlayedToday) {
       const selectedIndex = parseInt(localStorage.getItem('finans-quiz-last-selected') || '0', 10);
-      h += '<div class="quiz-options">';
+      d += '<div class="quiz-options">';
       ai.quiz.options.forEach((opt, idx) => {
         const isCorrect = idx === correctIndex;
         const isSelected = idx === selectedIndex;
@@ -1032,53 +1025,60 @@ async function renderReport() {
           bgStyle = 'background: rgba(220, 38, 38, 0.1);';
           icon = '🔴 ';
         }
-        h += '<div style="padding: 10px 14px; border-radius: 6px; font-size: 13px; ' + borderStyle + ' ' + bgStyle + '">' + icon + esc(opt) + '</div>';
+        d += '<div style="padding: 10px 14px; border-radius: 6px; font-size: 13px; ' + borderStyle + ' ' + bgStyle + '">' + icon + esc(opt) + '</div>';
       });
-      h += '</div>';
-      h += '<div class="quiz-result">';
-      h += '<b class="' + (selectedIndex === correctIndex ? 'quiz-correct' : 'quiz-incorrect') + '">' + (selectedIndex === correctIndex ? 'Tebrikler! Doğru cevap.' : 'Yanlış cevap.') + '</b>';
-      h += '<p>' + esc(ai.quiz.explanation) + '</p>';
-      h += '</div>';
-      h += '<div class="quiz-streak">Ardışık doğru yanıt: ' + streak + '</div>';
+      d += '</div>';
+      d += '<div class="quiz-result">';
+      d += '<b class="' + (selectedIndex === correctIndex ? 'quiz-correct' : 'quiz-incorrect') + '">' + (selectedIndex === correctIndex ? 'Tebrikler! Doğru cevap.' : 'Yanlış cevap.') + '</b>';
+      d += '<p>' + esc(ai.quiz.explanation) + '</p>';
+      d += '</div>';
+      d += '<div class="quiz-streak">Ardışık doğru yanıt: ' + streak + '</div>';
     } else {
-      h += '<div class="quiz-options" id="quiz-options-container">';
+      d += '<div class="quiz-options" id="quiz-options-container">';
       ai.quiz.options.forEach((opt, idx) => {
-        h += '<button class="btn quiz-option" type="button" onclick="submitQuizAnswer(' + idx + ', ' + ai.quiz.correctIndex + ', \'' + quizDate + '\')">' + esc(opt) + '</button>';
+        d += '<button class="btn quiz-option" type="button" onclick="submitQuizAnswer(' + idx + ', ' + ai.quiz.correctIndex + ', \'' + quizDate + '\')">' + esc(opt) + '</button>';
       });
-      h += '</div>';
-      h += '<div id="quiz-streak-display" class="quiz-streak">Ardışık doğru yanıt: ' + streak + '</div>';
+      d += '</div>';
+      d += '<div id="quiz-streak-display" class="quiz-streak">Ardışık doğru yanıt: ' + streak + '</div>';
     }
-    h += '</div>';
+    d += '</div>';
   }
 
-  if (ai && (ai.literacyTip || ai.quiz)) h += '</details>';
-  h += calendarSection;
-  h += '<section class="report-section" id="report-evaluation"><section class="card research-card" id="researchEvaluation" aria-live="polite">Tahmin ölçümleri yükleniyor…</section></section>';
-  h += '<details class="report-extras"><summary>Ek analizler</summary><div class="card"><p class="muted">Üretim: ' + (ai ? 'kural-tabanlı teknik + yapay zeka makro/haber katmanı' : 'kural-tabanlı teknik (yapay zeka katmanı bekleniyor)') + ' · ' + relTime(base.generatedAt) + '. <b>Yatırım tavsiyesi değildir.</b></p></div></details>';
-
-  const sourceRecords = ai && ai.research && Array.isArray(ai.research.sources) ? ai.research.sources : [];
-  const sourceRows = sourceRecords.map((source) => {
-    const title = source && source.title ? String(source.title) : 'Kaynak';
-    const published = FinansResearch.sourcePublicationText(source && source.publishedAt);
-    let titleHtml = esc(title);
-    try {
-      const url = new URL(source && source.url);
-      if (['https:', 'http:'].includes(url.protocol)) {
-        titleHtml = '<a href="' + esc(url.href).replace(/"/g, '&quot;') + '" target="_blank" rel="noopener noreferrer">' + esc(title) + '</a>';
-      }
-    } catch (_) { /* keep the title and truthful unknown publication state */ }
-    return '<li><span class="source-ledger-title">' + titleHtml + '</span><span>' + esc(published) + '</span></li>';
-  }).join('');
-  const sourceLedgerMessage = sourceRecords.length ? '' : '<p class="muted">Bu raporla eşleşen doğrulanmış araştırma kaynağı yok.</p>';
-  const sourceRail = '<aside class="report-source-rail" aria-label="Rapor kaynakları"><details class="source-ledger" open><summary>Kaynak defteri <span class="source-ledger-count">' + sourceRecords.length + ' kayıt</span></summary><p class="source-ledger-footnote">Yayın saatleri İstanbul (UTC+3).</p>' + sourceLedgerMessage + (sourceRecords.length ? '<ul>' + sourceRows + '</ul>' : '') + '</details></aside>';
-  el.innerHTML = '<div class="report-layout"><article class="report-reading-flow">' + h + '</article>' + sourceRail + '</div>';
+  if (ai && (ai.literacyTip || ai.quiz)) d += '</details>';
+  d += '</div>';
+  h += '<details class="report-section brief-details" id="report-details"><summary>Ayrıntılar ve kaynaklar</summary>' + d + '</details>';
+  h += '<p class="brief-disclaimer">Yatırım tavsiyesi değildir. Puanlar ve görüşler otomatik üretilir.</p>';
+  el.innerHTML = '<article class="report-reading-flow brief">' + h + '</article>';
   bindReportReading(el, base);
   el.querySelectorAll('[data-open-model-workspace]').forEach((button) => button.addEventListener('click', () => { setView('overview'); activateOverviewTask('forecasts', true); }));
   if (window.FinansMacro && typeof window.FinansMacro.refresh === 'function') window.FinansMacro.refresh();
-  el.querySelectorAll('.report-toc a').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); const target = el.querySelector(link.getAttribute('href')); if (target) { target.tabIndex = -1; target.scrollIntoView({ behavior: reduceMotion ? 'instant' : 'smooth', block: 'start' }); target.focus({ preventScroll: true }); } }));
+  el.querySelectorAll('[data-open-signals]').forEach((button) => button.addEventListener('click', () => setView('signals')));
+  el.querySelectorAll('.report-toc a').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); const target = el.querySelector(link.getAttribute('href')); if (target) { if (target.tagName === 'DETAILS') target.open = true; target.tabIndex = -1; target.scrollIntoView({ behavior: reduceMotion ? 'instant' : 'smooth', block: 'start' }); target.focus({ preventScroll: true }); } }));
   FinansResearch.loadEvaluation($('#researchEvaluation'));
   renderEconCalendar($('#reportEconCalendar'), base, ai && ai.research);
   triggerRevealAnimations(el);
+}
+/* ---------- Günlük brif yardımcıları ---------- */
+function briefSafeLink(url, title) {
+  try {
+    const parsed = new URL(url);
+    if (['https:', 'http:'].includes(parsed.protocol)) return '<a href="' + esc(parsed.href).replace(/"/g, '&quot;') + '" target="_blank" rel="noopener noreferrer">' + esc(title || parsed.hostname) + '</a>';
+  } catch (_) { /* geçersiz bağlantı yalnız başlıkla gösterilir */ }
+  return esc(title || '');
+}
+function briefEventsHtml(research) {
+  const events = research && Array.isArray(research.events) ? research.events : [];
+  if (!events.length) return '<p class="muted">Bugün öne çıkan yeni gelişme yok.</p>';
+  const sources = new Map((research.sources || []).map((source) => [source.id, source]));
+  const scenarios = Array.isArray(research.scenarios) ? research.scenarios : [];
+  return '<div class="brief-events">' + events.map((event) => {
+    const links = (event.sourceIds || []).map((id) => sources.get(id)).filter(Boolean).slice(0, 2).map((source) => briefSafeLink(source.url, source.title)).join(' · ');
+    const scenario = scenarios.find((item) => item.eventId === event.id);
+    return '<article class="brief-event"><div class="brief-event-meta">' + esc(marketShortLabel(event.market)) + '</div><h3>' + esc(event.title || 'Gelişme') + '</h3>' +
+      (event.whatChanged ? '<p>' + esc(event.whatChanged) + '</p>' : '') +
+      (scenario && scenario.impact ? '<p class="brief-event-impact"><b>Etkisi:</b> ' + esc(scenario.impact) + '</p>' : '') +
+      (links ? '<p class="brief-event-sources">' + links + '</p>' : '') + '</article>';
+  }).join('') + '</div>';
 }
 function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function flag(c) { return { US: '🇺🇸', CN: '🇨🇳', JP: '🇯🇵', DE: '🇩🇪', GB: '🇬🇧', EU: '🇪🇺', EA: '🇪🇺', TR: '🇹🇷', FR: '🇫🇷' }[c] || c; }

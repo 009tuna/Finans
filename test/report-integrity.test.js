@@ -52,6 +52,12 @@ assert.equal(previous.integrity.researchStatus, 'previous-analysis');
 assert.equal(previous.integrity.usableResearch, true);
 assert.equal(previous.ai.runId, base.runId);
 assert.equal(previous.integrity.pricesAsOf, priorSnapshot.generatedAt);
+// A refresh that started after the report's price cut but was written after the report is newer prices.
+const raced = envelope(record, { generatedAt: '2026-09-07T11:05:00.000Z', snapshotId: '2026-09-07T11:05:00.000Z' }, NOW);
+assert.equal(raced.integrity.researchStatus, 'previous-analysis');
+assert.equal(raced.integrity.usableResearch, true);
+// An older cut than the report's own is not newer prices.
+assert.equal(envelope(record, { generatedAt: '2026-09-07T10:30:00.000Z', snapshotId: '2026-09-07T10:30:00.000Z' }, NOW).integrity.usableResearch, false);
 assert.equal(envelope({ ...record, base: { ...base, signalOverlay: { ...fresh, schemaVersion: 1 } } }, snapshot, NOW).base.signalOverlay, null);
 assert.equal(assess({}, ai, snapshot, NOW).baseStatus, 'unverified');
 assert.equal(assess(base, { ...ai, generatedAt: '2026-06-01' }, snapshot, NOW).aiStatus, 'stale');
