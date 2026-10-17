@@ -1,5 +1,15 @@
 # Finans — Karar Masası
 
+17 Ekim 2026 · sadeleştirme ve etkileşim katmanı (`public/clean.css`, en son yüklenir)
+
+- **Marka:** Vurgu renginde yuvarlatılmış kare içinde yükselen üç çubuk ve bir sinyal noktası; kenar çubuğunda ve favicon'da. Menü ikonları yerine iki harfli kısaltmalar (daraltılmış menüde de çalışır). Emoji ve süs okları kullanılmaz.
+- **Menü:** Ana (Genel bakış, Günlük brif, Sinyaller) · Piyasalar (ABD, BIST, Kripto) · Araçlar. Sayfa başlıkları menü adlarıyla aynıdır.
+- **Genel bakış:** En üstte "Bugün" şeridi (AI odağı + tıklanabilir sayaçlar: yeni long sinyali, açık işlem, uzak dur, sıradaki veri ve geri sayım, trend koruması), ardından AI piyasa görüşü (yön rozeti, üç noktalı güven ölçeği), sonra adaylar / veri takvimi / teknik değişimler sekmeleri.
+- **Etkileşim:** Basılabilir her öğe 160 ms güçlü ease-out ile %97'ye küçülür; hover yalnız ince imleçte; görünür odak halkası; katlanır bölümlerde dönen ok. Kartlar yalnız ilk açılışta 40 ms aralıkla kısa bir girişle gelir, veri yenilemelerinde tekrar oynamaz; azaltılmış hareket tercihinde kapalıdır.
+- **Sinyaller:** Koruma katmanı doluluk çubukları (%40 / %60 eşikleri), uzak dur ve izleme listeleri piyasa bazında sembol hapçıkları (dolu: dip kırılımı, çerçeveli: tepki satışı).
+- **Gizlenen:** Model portföyü, tekrar eden teknik puan grafiği, kart başına puan geçmişi ve eski bağlam takvimi sekmesi (DOM'da kalır, testler ve render fonksiyonları için).
+
+
 6 Ekim 2026: varsayılan arayüz otomatik gözlem akışıdır. Manuel not/portföy/test/projeksiyon ekranları ana menüden çıktı; verileri korunur. Sinyaller ana menüde ayrı görünür; aktif, geçmiş, başarı ve eski arşiv ayrıdır. Makro ana görünüm dört karşılaştırmalı koşulu gösterir; tekrar eden ölçümler ve yöntem/kanıt geçmişi açılır ayrıntıya taşındı. Piyasa adayları kullanıcı görevi yerine sistemin gerçek yapısal izleme nedenini açar. [Kabul ve sınırlar](docs/design-air/observer-acceptance/README.md).
 2 Ekim 2026 · güncel tasarım: Air
 
