@@ -2188,7 +2188,7 @@ function renderSelectedAssetDetail(asset) {
   const key = asset.market + ':' + asset.symbol;
   const selectedTab = assetDetailTabs[key] || 'overview';
   const bodies = {
-    overview: technicalDataNotice(asset) + decisionInsightCard(asset) + '<div class="dsummary">' + esc(technicalSummaryText(a.summary)) + '</div>' + decisionPanel(asset) + assetReviewHtml(asset),
+    overview: technicalDataNotice(asset) + decisionInsightCard(asset) + '<div class="dsummary">' + esc(technicalSummaryText(a.summary)) + '</div>' + (DATA && DATA.trendSignals ? trendSignalPanel(asset) : decisionPanel(asset)) + assetReviewHtml(asset),
     technical: technicalDataNotice(asset) + contextHelp('rsi', {value: asset.ind && asset.ind.rsi}) + '<div data-task-target="trade">' + indGrid(asset) + subBars(a.sub || {}) + reasonList(a.reasons || []) + '</div><button type="button" class="btn btn-secondary" data-learning-topic="rsi">Göstergeleri nasıl okuyabilirim?</button>',
     research: '<div data-task-target="evidence">' + assetResearchCard(asset) + assetSignalOverlayCard(asset) + '</div>' + assetLearningCard(asset),
     notes: window.FinansObserver ? window.FinansObserver.rationale(asset, JOURNAL.predictions || []) : assetThesisCard(asset) + alertRulesCard(asset)
@@ -2307,6 +2307,31 @@ function confidenceText(c) {
   const delta = Number.isFinite(c.scoreDelta) ? ' · ' + (c.scoreDelta > 0 ? '+' : '') + fmtNum(c.scoreDelta, Number.isInteger(c.scoreDelta) ? 0 : 1) + ' puan' : '';
   return (c.label || 'Bilinmiyor') + delta;
 }
+// Varlık detayında sinyal motoru v2 durumu: işlem / uzak dur / izleme, 200 günlük koruma ve varsa işlem planı.
+function trendSignalPanel(x) {
+  const view = DATA && DATA.trendSignals;
+  if (!view) return '';
+  const mine = (r) => r.market === x.market && r.symbol === x.symbol;
+  const rec = (view.open || []).concat(view.newSignals || []).find((r) => mine(r) && r.direction === 'long' && r.setup === 'breakout');
+  const asset = (view.assets || []).find(mine);
+  const state = trendStateFor(x.market, x.symbol) || { label: 'Durum bilinmiyor', detail: 'Bu varlık için sinyal verisi yok' };
+  const regime = { up: 'Yükseliş', down: 'Düşüş', neutral: 'Yatay', unknown: 'Belirsiz' }[asset && asset.regime] || '–';
+  const cells = [
+    ['Sinyal durumu', state.label, state.detail],
+    ['200 günlük ortalama', asset && asset.aboveSma200 != null ? (asset.aboveSma200 ? 'Üstünde' : 'Altında') : '–', asset && asset.aboveSma200 != null ? (asset.aboveSma200 ? 'Pozisyonda kalınabilir' : 'Nakitte bekle') : ''],
+    ['Trend rejimi', regime, '50 ve 200 günlük ortalamalara göre'],
+  ];
+  if (rec) cells.push(
+    ['Giriş', rec.entry != null ? fmtPrice(rec.entry, x.currency) : 'Ertesi açılış', rec.entryDate ? fullDate(rec.entryDate) : 'Sinyal ' + fullDate(rec.signalDate)],
+    ['Stop / hedef', fmtPrice(rec.stop != null ? rec.stop : rec.indicativePlan && rec.indicativePlan.stop, x.currency) + ' / ' + fmtPrice(rec.target != null ? rec.target : rec.indicativePlan && rec.indicativePlan.target, x.currency), '2×ATR stop, 2R hedef'],
+    ['Önerilen ağırlık', rec.sizing ? '%' + Math.round(rec.sizing.weight * 100) : '–', "Stop olursa sermayenin %1'i"]);
+  const contradictions = x.decision && Array.isArray(x.decision.contradictions) ? x.decision.contradictions : [];
+  return '<div class="signal-panel"><h4>Sinyal motoru</h4><div class="signal-grid">' +
+    cells.map(([label, value, note]) => '<div><span>' + esc(label) + '</span><b>' + esc(value) + '</b>' + (note ? '<small>' + esc(note) + '</small>' : '') + '</div>').join('') + '</div>' +
+    (contradictions.length ? '<div class="decision-alerts">' + contradictions.map((c) => '<div class="decision-alert"><b>' + esc(c.label) + '</b><span>' + esc(c.detail) + '</span></div>').join('') + '</div>' : '') +
+    '</div>';
+}
+
 function decisionPanel(x) {
   const d = x.decision;
   if (!d) return '';
@@ -2712,7 +2737,7 @@ function renderTable() {
   
   const tsEl = $('#tableTimestamp');
   if (tsEl && DATA.generatedAt) {
-    tsEl.textContent = 'Teknik skor anlık görüntüsü: ' + fullTimestamp(DATA.generatedAt) + ' · fiyat, grafik güncelleme zamanından farklı olabilir';
+    tsEl.textContent = 'Puanlar: ' + fullTimestamp(DATA.generatedAt);
   }
 
   let html = '<table><thead><tr><th>Sembol</th><th>Fiyat</th><th>Gün %</th><th>RSI</th><th>MACD</th><th>50g %</th><th>Vol</th><th>Teknik puan</th><th>Teknik sinyal</th></tr></thead><tbody>';
