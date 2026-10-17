@@ -42,3 +42,6 @@
   .brief-table td:last-child { grid-column: 1 / -1; color: var(--muted); }
 }
 .report-reading-flow.brief > *, .brief-section > * { min-width: 0; }
+.brief-details-body { grid-template-columns: minmax(0, 1fr); }
+.brief-details-body > section { min-width: 0; overflow-wrap: anywhere; }
+.brief-details-body table { display: block; overflow-x: auto; }
