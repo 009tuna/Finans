@@ -410,6 +410,23 @@
   }
   function shortWhen(iso) { return new Intl.DateTimeFormat('tr-TR', { timeZone: TZ, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)).replace(' ', ' · '); }
   function timeLabel(iso) { return new Intl.DateTimeFormat('tr-TR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }).format(new Date(iso)); }
+  // "2 sa 14 dk sonra" biçimli geri sayım; geçmişse boş.
+  function untilLabel(iso, nowMs) {
+    const diff = Date.parse(iso) - (nowMs == null ? Date.now() : nowMs);
+    if (!Number.isFinite(diff) || diff <= 0) return '';
+    const min = Math.round(diff / 60000);
+    if (min < 1) return 'birazdan';
+    if (min < 60) return min + ' dk sonra';
+    const hours = Math.floor(min / 60), rest = min % 60;
+    if (hours < 24) return hours + ' sa' + (rest ? ' ' + rest + ' dk' : '') + ' sonra';
+    const days = Math.floor(hours / 24), h = hours % 24;
+    return days + ' g' + (h ? ' ' + h + ' sa' : '') + ' sonra';
+  }
+  // Önümüzdeki ilk önemli veri (yüksek etki, yoksa AI'ın analiz ettiği veya ilk veri).
+  function nextEvent(events, nowMs) {
+    const upcoming = (events || []).filter((e) => Date.parse(e.scheduledAt) > nowMs).sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
+    return upcoming.find((e) => e.impact === 'high') || upcoming.find((e) => e.ai && e.ai.view) || upcoming[0] || null;
+  }
   const SURPRISE_TR = { above: 'Beklenti üstü', below: 'Beklenti altı', inline: 'Beklentiye paralel' };
   const MARKETS = [['us', 'ABD'], ['bist', 'BIST'], ['crypto', 'Kripto']];
 
@@ -426,7 +443,8 @@
     const realized = surprise && surprise.direction !== 'inline' ? surprise.direction : null;
     const speech = speechLabels(event);
     let h = '<article class="ec-card ec-' + event.impact + ' ec-' + status + '" data-event-id="' + esc(event.id) + '">';
-    h += '<header><div class="ec-when">' + esc(timeLabel(event.scheduledAt)) + ' · ' + esc(event.countryLabel) + '</div><h3>' + esc(event.titleTr) + '</h3>' +
+    const countdown = status === 'upcoming' ? untilLabel(event.scheduledAt, nowMs) : '';
+    h += '<header><div class="ec-when">' + esc(timeLabel(event.scheduledAt)) + ' · ' + esc(event.countryLabel) + (countdown ? ' <span class="ec-countdown" data-countdown="' + esc(event.scheduledAt) + '">' + esc(countdown) + '</span>' : '') + '</div><h3>' + esc(event.titleTr) + '</h3>' +
       (event.impact === 'high' ? '<span class="ec-impact">Yüksek etki</span>' : '<span class="ec-impact is-medium">Orta etki</span>') + '</header>';
     if (!speech) {
       h += '<dl class="ec-figures"><div><dt>Önceki</dt><dd>' + esc(fmtFigure(event.previous)) + (event.revisedPrevious ? ' <small>rev. ' + esc(fmtFigure(event.revisedPrevious)) + '</small>' : '') + '</dd></div>' +
@@ -496,6 +514,6 @@
 
   return {
     COUNTRIES, titleTr, categoryOf, parseFigure, parseLooseFigure, sameFigure, normalizeForexFactory, normalizeNasdaqDay, easternToUtc, titleTokens, attachActuals, mergeAnalysis,
-    surpriseOf, statusOf, ruleScenarios, scenariosFor, fmtFigure, fmtDiff, eventCardHtml, calendarHtml,
+    surpriseOf, statusOf, untilLabel, nextEvent, dayLabel, timeLabel, ruleScenarios, scenariosFor, fmtFigure, fmtDiff, eventCardHtml, calendarHtml,
   };
 });

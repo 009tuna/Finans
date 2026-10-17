@@ -313,7 +313,7 @@ async function testOverviewBriefingReportSuccessAndFailure() {
   };
   const common = {
     activeView: 'overview', briefingRequest: 0,
-    renderOverviewPortfolioSummary() {}, renderEconCalendar() {},
+    renderOverviewPortfolioSummary() {}, renderEconCalendar() {}, renderOverviewToday() {},
     DATA: { us: [{ symbol: 'AAPL', changePct: 1 }], bist: [], crypto: [] },
     fullTimestamp: () => '1.01.2099 13:00', fullDate: () => '1.01.2099',
     esc: (value) => String(value == null ? '' : value),

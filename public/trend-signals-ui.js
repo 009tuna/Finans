@@ -30,6 +30,8 @@
     if (!sizing || !Number.isFinite(sizing.weight)) return '–';
     return pct(sizing.weight, 0) + '<small>stop %' + (sizing.stopPct * 100).toLocaleString('tr-TR', { maximumFractionDigits: 1 }) + ' uzakta' + (sizing.capped ? ' · üst sınır' : '') + '</small>';
   }
+  // Eski (v1) biçimdeki görünümde short ve geri çekilme kayıtları işlem listelerine karışmasın.
+  const isTrade = (record) => record && record.direction === 'long' && record.setup === 'breakout';
   const inMarket = (filter) => (record) => filter === 'all' || record.market === filter;
   function table(head, rows) {
     return '<div class="ts-table-wrap"><table class="ts-table"><thead><tr>' + head.map((h) => '<th' + (h.num ? ' class="num"' : '') + '>' + esc(h.label || h) + '</th>').join('') + '</tr></thead><tbody>' + rows.join('') + '</tbody></table></div>';
@@ -40,6 +42,7 @@
     const filter = (state && state.market) || 'all';
     if (!view) return '<section class="trend-signals"><h2>Sinyaller</h2><p class="ts-empty">Sinyal verisi henüz üretilmedi; bir sonraki veri yenilemesinde oluşur.</p></section>';
     const pick = (list) => (list || []).filter(inMarket(filter));
+    const pickTrades = (list) => pick(list).filter(isTrade);
     const rules = view.rules || {};
     let h = '<section class="trend-signals"><header class="ts-head"><div><h2>Sinyaller</h2><p>İşlem sinyali yalnız trend yönündeki 55 günlük kırılım (long). Giriş ertesi seans açılışı · stop 2×ATR · hedef 2R · en fazla 40 seans. Önerilen ağırlık, stop olursa sermayenin %' +
       esc(((rules.riskPerTrade || 0.01) * 100).toLocaleString('tr-TR')) + "'ini kaybettirecek büyüklüktür (tek pozisyon en fazla %" + esc(Math.round((rules.maxWeight || 0.2) * 100)) + ', aynı anda en fazla ' + esc(rules.maxPositions || 8) + ' pozisyon). Düşüş yönündeki tetikler işlem değil, uzak dur / çık uyarısıdır.</p></div>' +
@@ -50,22 +53,23 @@
     const prot = view.protection || {};
     const protRows = Object.entries(MARKETS).filter(([m]) => filter === 'all' || filter === m).map(([m, label]) => {
       const p = prot[m] || {};
-      return '<div class="ts-prot is-' + esc(p.state || 'unknown') + '"><b>' + label + '</b><span>' + esc(PROTECTION[p.state] || 'Veri yok') + '</span><small>' + (p.total ? p.above + ' / ' + p.total + ' varlık 200 günlük ortalamanın üstünde' : 'Veri yok') + '</small></div>';
+      const share = Number.isFinite(p.share) ? Math.round(p.share * 100) : 0;
+      return '<div class="ts-prot is-' + esc(p.state || 'unknown') + '"><b>' + label + '</b><span>' + esc(PROTECTION[p.state] || 'Veri yok') + '</span><div class="ts-meter" role="img" aria-label="%' + share + '"><i style="width:' + share + '%"></i><em style="left:40%"></em><em style="left:60%"></em></div><small>' + (p.total ? p.above + ' / ' + p.total + ' varlık 200 günlük ortalamanın üstünde' : 'Veri yok') + '</small></div>';
     });
     h += '<section class="ts-block"><h3>Trend koruma katmanı</h3><div class="ts-prot-grid">' + protRows.join('') + '</div><p class="ts-note">200 günlük ortalamanın altındaki varlıkta pozisyon taşımak yerine nakitte beklemek, 10 yıllık testte en büyük düşüşü al-ve-tut\'a göre kabaca yarıya indirdi.</p></section>';
 
-    const fresh = pick(view.newSignals);
+    const fresh = pickTrades(view.newSignals);
     h += '<section class="ts-block"><h3>Yeni long sinyalleri <span>son 3 gün · ' + fresh.length + '</span></h3>' + (fresh.length ? table(['Varlık', 'Sinyal', { label: 'Kapanış', num: true }, { label: 'Stop', num: true }, { label: 'Hedef', num: true }, { label: 'Önerilen ağırlık', num: true }, 'Geçmiş testi'],
       fresh.map((x) => '<tr>' + asset(x) + '<td>Kırılım<small>' + esc(date(x.signalDate)) + (x.status === 'open' ? ' · girildi ' + esc(date(x.entryDate)) : ' · giriş ertesi açılış') + '</small></td><td class="num">' + price(x.signalClose, x.market) + '</td><td class="num">' + price(x.status === 'open' ? x.stop : x.indicativePlan && x.indicativePlan.stop, x.market) + '</td><td class="num">' + price(x.status === 'open' ? x.target : x.indicativePlan && x.indicativePlan.target, x.market) + '</td><td class="num">' + weight(x.sizing) + '</td><td>' + evidence(x.evidence) + '</td></tr>'))
       : '<p class="ts-empty">Son 3 günde yeni long kırılımı yok. Kurallar sinyal üretmek için gevşetilmez.</p>') + '</section>';
 
-    const open = pick(view.open);
+    const open = pickTrades(view.open);
     const exposure = view.exposure || {};
     h += '<section class="ts-block"><h3>Açık işlemler <span>' + open.length + (filter === 'all' && exposure.openPositions ? ' · toplam ağırlık ' + pct(exposure.weight, 0) : '') + '</span></h3>' + (open.length ? table(['Varlık', 'Giriş', { label: 'Stop', num: true }, { label: 'Hedef', num: true }, { label: 'Son', num: true }, { label: 'Ağırlık', num: true }, { label: 'Anlık', num: true }],
       open.map((x) => '<tr>' + asset(x) + '<td>' + price(x.entry, x.market) + '<small>' + esc(date(x.entryDate)) + '</small></td><td class="num">' + price(x.stop, x.market) + '</td><td class="num">' + price(x.target, x.market) + '</td><td class="num">' + price(x.lastClose, x.market) + '</td><td class="num">' + (x.sizing ? pct(x.sizing.weight, 0) : '–') + '</td><td class="num ' + (x.unrealizedR > 0 ? 'is-up' : x.unrealizedR < 0 ? 'is-down' : '') + '">' + r(x.unrealizedR) + '</td></tr>'))
       : '<p class="ts-empty">Açık işlem yok.</p>') + '</section>';
 
-    const pending = pick(view.pending).filter((x) => !(view.newSignals || []).some((n) => n.id === x.id));
+    const pending = pickTrades(view.pending).filter((x) => !(view.newSignals || []).some((n) => n.id === x.id));
     if (pending.length) h += '<p class="ts-note">' + pending.length + ' sinyal girişi bekliyor (ertesi seans açılışı).</p>';
 
     const avoid = pick(view.avoid);
@@ -76,7 +80,7 @@
     const watch = pick(view.watch);
     if (watch.length) h += '<section class="ts-block"><h3>İzlemede <span>trend içi geri çekilme · işlem açılmaz</span></h3><p class="ts-list">' + watch.map((x) => '<b>' + esc(x.symbol) + '</b> <small>' + esc(MARKETS[x.market]) + '</small>').join(' · ') + '</p></section>';
 
-    const closed = pick(view.closed);
+    const closed = pickTrades(view.closed);
     const live = view.live || {};
     const liveKeys = Object.keys(MARKETS).filter((k) => live[k] && live[k].trades && (filter === 'all' || filter === k));
     h += '<section class="ts-block"><h3>Kapanan işlemler <span>' + closed.length + '</span></h3>' +
@@ -101,7 +105,7 @@
 
   function summaryHtml(view) {
     if (!view) return '';
-    const fresh = view.newSignals || [], open = view.open || [], avoid = view.avoid || [], live = (view.live && view.live.all) || {};
+    const fresh = (view.newSignals || []).filter(isTrade), open = (view.open || []).filter(isTrade), avoid = view.avoid || [], live = (view.live && view.live.all) || {};
     return '<div class="ts-summary"><span><b>' + fresh.length + '</b> yeni long sinyali</span><span><b>' + open.length + '</b> açık işlem</span><span><b>' + avoid.length + '</b> uzak dur / çık</span>' +
       '<span>Kapanan: ' + (live.trades ? '<b>' + live.trades + '</b> işlem · ' + r(live.totalR) : 'henüz yok') + '</span><button type="button" class="btn btn-secondary" data-observer-open>Sinyallere git</button></div>';
   }

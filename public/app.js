@@ -156,6 +156,8 @@ let screenerState = { query: '', market: 'all', category: 'all', sort: 'score', 
 const $ = (s) => document.querySelector(s);
 const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 let reduceMotion = motionQuery.matches;
+// İlk açılış kademeli girişi yalnız bir kez oynar; sonraki veri yenilemeleri sabit kalır.
+if (typeof document !== 'undefined' && document.documentElement && typeof setTimeout === 'function') { document.documentElement.classList.add('first-paint'); setTimeout(() => document.documentElement.classList.remove('first-paint'), 1800); }
 motionQuery.addEventListener('change', (event) => {
   reduceMotion = event.matches;
   if (reduceMotion && window.FinansExperience && window.FinansExperience.cancelCandidateMotion) window.FinansExperience.cancelCandidateMotion();
@@ -1240,6 +1242,46 @@ async function renderEconCalendar(target, base, research) {
   target.innerHTML = window.FinansEconCalendar.calendarHtml(payload);
 }
 
+/* ---------- Bugün şeridi ---------- */
+// Günün özeti: AI odağı + tıklanabilir sayaçlar (yeni sinyal, açık işlem, uzak dur, sıradaki veri, koruma katmanı).
+async function renderOverviewToday(research, ai) {
+  const el = $('#overviewToday');
+  if (!el || !window.FinansEconCalendar) return;
+  const view = DATA && DATA.trendSignals;
+  let payload = await loadEconCalendar();
+  let events = payload && Array.isArray(payload.events) ? payload.events : [];
+  if (research) events = window.FinansEconCalendar.mergeAnalysis(events, research);
+  if (!el.isConnected) return;
+  const EC = window.FinansEconCalendar, now = Date.now();
+  const next = EC.nextEvent(events, now);
+  const prot = view && view.protection || {};
+  const protLabel = { healthy: 'sağlıklı', mixed: 'karışık', weak: 'zayıf', unknown: 'veri yok' };
+  const chip = (attrs, value, label, tone) => '<button type="button" class="today-chip' + (tone ? ' is-' + tone : '') + '" ' + attrs + '><b>' + value + '</b><span>' + label + '</span></button>';
+  const chips = [];
+  const isTrade = (record) => record.direction === 'long' && record.setup === 'breakout';
+  if (view) {
+    const fresh = (view.newSignals || []).filter(isTrade), open = (view.open || []).filter(isTrade);
+    chips.push(chip('data-today-go="signals"', String(fresh.length), 'yeni long sinyali', fresh.length ? 'up' : ''));
+    if (open.length) chips.push(chip('data-today-go="signals"', String(open.length), 'açık işlem', ''));
+    chips.push(chip('data-today-go="signals"', String((view.avoid || []).length), 'uzak dur / çık', (view.avoid || []).length ? 'down' : ''));
+  }
+  if (next) chips.push('<button type="button" class="today-chip today-next" data-today-go="calendar"><b>' + esc(next.titleTr) + '</b><span>' + esc(EC.dayLabel(next.scheduledAt, now).replace(/ · .*/, '')) + ' ' + esc(EC.timeLabel(next.scheduledAt)) + ' · <em data-countdown="' + esc(next.scheduledAt) + '">' + esc(EC.untilLabel(next.scheduledAt, now)) + '</em></span></button>');
+  if (view && view.protection) chips.push('<button type="button" class="today-chip today-protection" data-today-go="signals"><b>Trend koruması</b><span>' + ['us', 'bist', 'crypto'].map((m) => '<i class="is-' + esc((prot[m] || {}).state || 'unknown') + '">' + ({ us: 'ABD', bist: 'BIST', crypto: 'Kripto' })[m] + ' ' + esc(protLabel[(prot[m] || {}).state] || 'veri yok') + '</i>').join('') + '</span></button>');
+  const dateText = new Intl.DateTimeFormat('tr-TR', { timeZone: 'Europe/Istanbul', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
+  el.innerHTML = '<div class="today-head"><h2>Bugün</h2><span>' + esc(dateText) + '</span></div>' +
+    (ai && ai.todayFocus ? '<p class="today-focus">' + esc(ai.todayFocus) + '</p>' : '') +
+    '<div class="today-chips">' + chips.join('') + '</div>';
+  el.querySelectorAll('[data-today-go]').forEach((button) => button.addEventListener('click', () => {
+    if (button.dataset.todayGo === 'calendar') { activateOverviewTask('forecasts', true); const target = $('#econCalendar'); if (target) target.scrollIntoView({ behavior: reduceMotion ? 'instant' : 'smooth', block: 'start' }); }
+    else setView(button.dataset.todayGo);
+  }));
+}
+// Geri sayımlar dakikada iki kez yenilenir; sayfa görünür değilken çalışmaz.
+if (typeof setInterval === 'function') setInterval(() => {
+  if (typeof document === 'undefined' || document.visibilityState !== 'visible' || !window.FinansEconCalendar) return;
+  document.querySelectorAll('[data-countdown]').forEach((node) => { node.textContent = window.FinansEconCalendar.untilLabel(node.dataset.countdown) || 'şimdi'; });
+}, 30000);
+
 /* ---------- Genel bakış ---------- */
 async function renderOverviewBriefing() {
   const el = $('#overviewBriefing');
@@ -1270,6 +1312,7 @@ async function renderOverviewBriefing() {
   }
   const overviewResearch = report && report.integrity && report.integrity.usableResearch && ai ? ai.research : null;
   renderEconCalendar($('#econCalendar'), base, overviewResearch);
+  renderOverviewToday(overviewResearch, overviewResearch ? ai : null);
   const viewsEl = $('#overviewMarketViews');
   if (viewsEl) {
     const views = overviewResearch && overviewResearch.marketViews && window.FinansAnalystViews ? window.FinansAnalystViews.marketViewsHtml(overviewResearch.marketViews, null, { compact: true }) : '';
@@ -4584,10 +4627,11 @@ function trendStateFor(market, symbol) {
   const view = DATA && DATA.trendSignals;
   if (!view) return null;
   const mine = (record) => record.market === market && record.symbol === symbol;
+  const trade = (record) => mine(record) && record.direction === 'long' && record.setup === 'breakout';
   const day = (value) => value ? value.slice(8, 10) + '.' + value.slice(5, 7) : '';
-  const open = (view.open || []).find(mine);
+  const open = (view.open || []).find(trade);
   if (open) return { label: 'Açık long işlem', detail: 'Giriş ' + day(open.entryDate) + ' · anlık ' + (Number.isFinite(open.unrealizedR) ? (open.unrealizedR > 0 ? '+' : '') + open.unrealizedR.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + 'R' : '–') };
-  const fresh = (view.newSignals || []).find(mine);
+  const fresh = (view.newSignals || []).find(trade);
   if (fresh) return { label: 'Long sinyali · kırılım', detail: day(fresh.signalDate) + ' kapanışı' + (fresh.sizing ? ' · önerilen ağırlık %' + Math.round(fresh.sizing.weight * 100) : '') };
   const avoid = (view.avoid || []).find(mine);
   if (avoid) return { label: 'Uzak dur / çık', detail: day(avoid.signalDate) + ' · ' + (avoid.setup === 'breakout' ? '55 günlük dip kırıldı' : 'düşüş trendinde tepki satışı') };

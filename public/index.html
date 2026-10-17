@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="/brief.css" />
   <link rel="stylesheet" href="/trend-signals.css" />
   <link rel="stylesheet" href="/clean.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23175e63'/%3E%3Cpath d='M9 22v-4M15 22v-8M21 22v-12' stroke='%23fff' stroke-width='3.2' stroke-linecap='round'/%3E%3Ccircle cx='24.5' cy='7.5' r='2.3' fill='%237fe0c4'/%3E%3C/svg%3E" />
   <script src="vendor/chart.umd.min.js"></script>
   <script src="vendor/lightweight-charts.standalone.production.js"></script>
 </head>
@@ -35,6 +35,7 @@
     <aside class="sidebar" id="navigationPanel" aria-label="Ana menü">
       <button id="navClose" class="nav-close" type="button" aria-label="Menüyü kapat">Kapat</button>
       <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" class="brand-mark-bg"/><path d="M9 22v-4M15 22v-8M21 22v-12" class="brand-mark-bars"/><circle cx="24.5" cy="7.5" r="2.3" class="brand-mark-dot"/></svg>
         <div class="brand-text">
           <strong>Finans</strong>
           <span>Piyasa paneli</span>
@@ -97,6 +98,8 @@
         <!-- GENEL BAKIŞ -->
         <section class="view" id="view-overview">
           <div class="overview-workspace">
+            <section id="overviewToday" class="overview-span-all today-strip" aria-label="Bugün"></section>
+            <section id="overviewMarketViews" class="overview-span-all" aria-label="AI piyasa görüşü"></section>
             <div class="overview-task-toolbar overview-span-all">
               <div class="overview-task-tabs" role="tablist" aria-label="Genel bakış çalışma alanı">
                 <button id="overview-tab-decisions" class="overview-task-tab" type="button" role="tab" aria-selected="true" aria-controls="overview-panel-decisions" tabindex="0" data-overview-tab="decisions">Piyasa adayları</button>
@@ -107,7 +110,6 @@
             <div id="overviewWorkspaceStatus" class="workspace-status overview-span-all" role="status" aria-live="polite"></div>
             <div id="automaticSignalSummary" class="overview-span-all"></div>
             <div id="dailyWorkBrief" class="overview-span-all"></div>
-            <section id="overviewMarketViews" class="overview-span-all" aria-label="AI piyasa görüşü"></section>
             <div id="overviewPortfolioSummary" class="overview-portfolio-summary overview-span-all"></div>
             <section class="workspace-core" aria-label="Karar çalışma alanı">
               <section id="overview-panel-decisions" class="overview-task-panel" role="tabpanel" aria-labelledby="overview-tab-decisions" tabindex="0">

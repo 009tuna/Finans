@@ -14,3 +14,97 @@
 .candidate-card .candidate-identity { gap: 0; }
 .cfo-open, .candidate-logo { display: none !important; }
 .market-stat-open { font-size: 11px; width: auto; padding: 2px 8px; }
+
+/* ---- Marka işareti ---- */
+:root { --ease-ui: cubic-bezier(0.23, 1, 0.32, 1); }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark { width: 30px; height: 30px; flex: 0 0 30px; }
+.brand-mark-bg { fill: var(--accent); }
+.brand-mark-bars { fill: none; stroke: var(--accent-ink); stroke-width: 3.2; stroke-linecap: round; }
+.brand-mark-dot { fill: var(--green); }
+body.theme-mist .brand-mark-dot { fill: oklch(80% .12 165); }
+
+/* ---- Basılabilir öğeler: hızlı geri bildirim ---- */
+.btn, .btn-secondary, .navitem, .overview-task-tab, .overview-context-tabs button, .ts-filter button, .today-chip, .text-btn,
+.market-stat-open, .candidate-card, .theme-btn, .candidate-market-link, .workspace-focus, .panel-control {
+  transition: transform 160ms var(--ease-ui), background-color 150ms ease, color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+.btn:active, .btn-secondary:active, .navitem:active, .overview-task-tab:active, .overview-context-tabs button:active, .ts-filter button:active,
+.today-chip:active, .text-btn:active, .market-stat-open:active, .theme-btn:active, .candidate-market-link:active, .workspace-focus:active, .panel-control:active {
+  transform: scale(0.97);
+}
+.candidate-card:active { transform: scale(0.985); }
+.btn { border-radius: var(--control-radius, 7px); font-weight: 600; letter-spacing: .005em; }
+:is(button, summary, a, [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) {
+  .candidate-card:hover { box-shadow: 0 4px 14px oklch(30% .03 210 / .08); border-color: var(--border-2); }
+  .today-chip:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .ts-filter button:hover:not([aria-pressed="true"]) { color: var(--text); border-color: var(--border-2); }
+}
+
+/* ---- Katlanır bölümler: dönen ok ---- */
+:is(.brief-details, .ec-more, .ec-rule, .ts-backtest, .legacy-signals) > summary { list-style: none; display: flex; align-items: center; gap: 8px; }
+:is(.brief-details, .ec-more, .ec-rule, .ts-backtest, .legacy-signals) > summary::-webkit-details-marker { display: none; }
+:is(.brief-details, .ec-more, .ec-rule, .ts-backtest, .legacy-signals) > summary::before {
+  content: ""; width: 6px; height: 6px; flex: 0 0 6px; border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor;
+  transform: rotate(-45deg); transition: transform 180ms var(--ease-ui); margin-left: 2px;
+}
+:is(.brief-details, .ec-more, .ec-rule, .ts-backtest, .legacy-signals)[open] > summary::before { transform: rotate(45deg); }
+
+/* ---- Bugün şeridi ---- */
+.today-strip { padding: 18px 20px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); display: grid; gap: 10px; }
+.today-strip:empty { display: none; }
+.today-head { display: flex; align-items: baseline; gap: 12px; }
+.today-head h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
+.today-head span { color: var(--muted); font-size: 12.5px; }
+.today-focus { margin: 0; font-size: 14px; line-height: 1.65; max-width: 95ch; color: var(--text); }
+.today-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.today-chip { display: inline-flex; align-items: baseline; gap: 7px; min-height: 36px; padding: 7px 13px; border: 1px solid var(--border); border-radius: 999px;
+  background: var(--card-2, var(--card)); color: var(--text); font: inherit; font-size: 12.5px; cursor: pointer; text-align: left; }
+.today-chip b { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.today-chip span { color: var(--muted); }
+.today-chip.is-up b { color: var(--green); }
+.today-chip.is-down b { color: var(--red); }
+.today-next b { font-size: 12.5px; }
+.today-next em { font-style: normal; color: var(--accent); font-weight: 600; }
+.today-protection i { font-style: normal; margin-right: 8px; }
+.today-protection i.is-healthy { color: var(--green); }
+.today-protection i.is-weak { color: var(--red); }
+#view-overview #automaticSignalSummary { display: none; }
+
+/* ---- AI piyasa görüşü: yön rozeti ve güven noktaları ---- */
+.av-stance { padding: 2px 9px; border-radius: 999px; background: var(--card-2, var(--card)); border: 1px solid var(--border); }
+.av-olumlu .av-stance { background: var(--green-soft); border-color: transparent; }
+.av-olumsuz .av-stance { background: var(--red-soft); border-color: transparent; }
+.av-conviction { display: inline-flex; align-items: center; gap: 6px; }
+.av-dots { display: inline-flex; gap: 3px; }
+.av-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--border-2); }
+.av-dots i.on { background: var(--accent); }
+.av-dots-label { font-size: 11px; color: var(--muted); }
+
+/* ---- Takvim geri sayımı ---- */
+.ec-countdown { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 600; }
+
+/* ---- Koruma katmanı çubuğu ---- */
+.ts-meter { grid-column: 1 / -1; position: relative; height: 6px; margin: 4px 0 2px; border-radius: 999px; background: var(--border); overflow: hidden; }
+.ts-meter i { display: block; height: 100%; border-radius: 999px; background: var(--muted); transition: width 400ms var(--ease-ui); }
+.ts-meter em { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--card); }
+.ts-prot.is-healthy .ts-meter i { background: var(--green); }
+.ts-prot.is-mixed .ts-meter i { background: var(--yellow); }
+.ts-prot.is-weak .ts-meter i { background: var(--red); }
+
+/* ---- İlk açılışta kısa kademeli giriş (veri yenilemelerinde tekrar oynamaz) ---- */
+@keyframes cleanFadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+html.first-paint :is(.today-chip, .av-market, .candidate-card, .ec-card, .brief-event) { animation: cleanFadeUp 280ms var(--ease-ui) both; }
+html.first-paint :is(.today-chip, .av-market, .candidate-card, .ec-card, .brief-event):nth-child(2) { animation-delay: 40ms; }
+html.first-paint :is(.today-chip, .av-market, .candidate-card, .ec-card, .brief-event):nth-child(3) { animation-delay: 80ms; }
+html.first-paint :is(.today-chip, .av-market, .candidate-card, .ec-card, .brief-event):nth-child(4) { animation-delay: 120ms; }
+html.first-paint :is(.today-chip, .av-market, .candidate-card, .ec-card, .brief-event):nth-child(n+5) { animation-delay: 160ms; }
+@media (prefers-reduced-motion: reduce) {
+  html.first-paint :is(.today-chip, .av-market, .candidate-card, .ec-card, .brief-event) { animation: none; }
+  .btn:active, .navitem:active, .today-chip:active, .candidate-card:active { transform: none; }
+}
+
+/* ---- Artık işlevi kalmayan bölümler ---- */
+.card:has(#allocChart), .card:has(#topPicks), .candidate-history,
+#overview-context-tab-calendar, #overview-context-panel-calendar { display: none !important; }
