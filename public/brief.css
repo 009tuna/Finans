@@ -47,3 +47,9 @@
 .brief-details-body table { display: block; overflow-x: auto; }
 .brief-table td, .brief-table th { white-space: normal !important; overflow-wrap: anywhere; }
 .brief-table td.num { white-space: nowrap !important; }
+.brief-signal-line { margin: 0 0 6px; line-height: 1.7; }
+.brief-signal-line small { color: var(--muted); }
+.brief-prot.is-healthy { color: var(--green); }
+.brief-prot.is-weak { color: var(--red); }
+.brief-score-details { margin-top: 14px; }
+.brief-score-details > summary { cursor: pointer; font-size: 12px; color: var(--muted); padding: 4px 0; }

@@ -936,7 +936,7 @@ async function renderReport() {
     (ai ? '<span>AI analizi ' + esc(fullTimestamp(ai.generatedAt || reportTimestamp)) + '</span>' : '<span>AI analizi bekleniyor</span>') + '</p>' +
     (mismatch || loadError ? integrityHtml : previousAnalysis ? '<p class="brief-note">AI analizi ' + esc(fullTimestamp(base.snapshotId || base.generatedAt)) + ' fiyatlarına dayanıyor; fiyatlar sonradan güncellendi.</p>' : '') + '</header>';
   h += '<nav class="report-toc" aria-label="Rapor bölümleri"><a href="#report-summary">Bugün</a>' + (views || (ai && ai.commentary) ? '<a href="#report-views">Piyasa görüşü</a>' : '') +
-    '<a href="#report-expectations">Veri takvimi</a><a href="#report-developments">Gelişmeler</a><a href="#report-candidates">Adaylar</a><a href="#report-details">Ayrıntılar</a></nav>';
+    '<a href="#report-expectations">Veri takvimi</a><a href="#report-developments">Gelişmeler</a><a href="#report-candidates">Sinyaller</a><a href="#report-details">Ayrıntılar</a></nav>';
   h += '<div id="reportReadingResume"></div>';
 
   // 1. Bugün
@@ -960,14 +960,23 @@ async function renderReport() {
   // 4. Gelişmeler
   h += '<section class="report-section brief-section" id="report-developments"><h2>Gelişmeler</h2>' + briefEventsHtml(ai && ai.research) + '</section>';
 
-  // 5. Teknik adaylar ve takip listesinin bilançoları
+  // 5. Sinyaller (motor v2) ve takip listesinin bilançoları; teknik puan sıralaması açılır bölümde.
   const watchEarnings = ((base.calendar && base.calendar.earnings) || []).filter((e) => e.watch);
-  h += '<section class="report-section brief-section" id="report-candidates"><h2>Teknik adaylar</h2>' +
-    ((base.opportunities || []).length ? '<table class="brief-table"><thead><tr><th>Varlık</th><th>Piyasa</th><th>Sinyal</th><th>Gerekçe</th></tr></thead><tbody>' +
+  const tsView = typeof DATA !== 'undefined' && DATA && DATA.trendSignals ? DATA.trendSignals : null;
+  const tsFresh = tsView ? (tsView.newSignals || []).filter((r) => r.direction === 'long' && r.setup === 'breakout') : [];
+  const protTr = { healthy: 'sağlıklı', mixed: 'karışık', weak: 'zayıf', unknown: 'veri yok' };
+  const scoreTable = (base.opportunities || []).length ? '<table class="brief-table"><thead><tr><th>Varlık</th><th>Piyasa</th><th>Sinyal</th><th>Gerekçe</th></tr></thead><tbody>' +
       base.opportunities.map((o) => '<tr><td><b>' + esc(o.symbol) + '</b></td><td>' + esc(marketShortLabel(o.market)) + '</td><td class="num">' + esc(technicalSignalLabel(o.tone || o.label)) + ' · ' + esc(String(o.score == null ? '–' : o.score)) + '</td><td>' + esc(typeof technicalSummaryText === 'function' ? technicalSummaryText(o.summary) : (o.summary || '')) + '</td></tr>').join('') +
-      '</tbody></table>' : '<p class="muted">Teknik aday yok.</p>') +
-    '<p class="brief-note">Teknik puan getiri olasılığı değildir. İşlem kayıtları <button class="text-btn" type="button" data-open-signals>Sinyaller</button> ekranında.</p>' +
+      '</tbody></table>' : '<p class="muted">Teknik aday yok.</p>';
+  h += '<section class="report-section brief-section" id="report-candidates"><h2>Sinyaller</h2>' +
+    (tsView ? '<p class="brief-signal-line">' +
+      (tsFresh.length ? '<b>' + tsFresh.length + ' yeni long kırılımı:</b> ' + tsFresh.map((r) => esc(r.symbol) + (r.sizing ? ' <small>%' + Math.round(r.sizing.weight * 100) + '</small>' : '')).join(', ') : 'Son 3 günde yeni long kırılımı yok.') +
+      ' · <b>' + (tsView.avoid || []).length + '</b> uzak dur / çık uyarısı.</p>' +
+      '<p class="brief-signal-line">Trend koruması: ' + ['us', 'bist', 'crypto'].map((m) => { const p = (tsView.protection || {})[m] || {}; return '<span class="brief-prot is-' + esc(p.state || 'unknown') + '">' + marketShortLabel(m) + ' ' + esc(protTr[p.state] || 'veri yok') + (p.total ? ' (' + p.above + '/' + p.total + ')' : '') + '</span>'; }).join(' · ') + '</p>'
+      : '<p class="muted">Sinyal verisi bir sonraki yenilemede oluşur.</p>') +
+    '<p class="brief-note">Ayrıntılar, planlar ve geçmiş testi <button class="text-btn" type="button" data-open-signals>Sinyaller</button> ekranında.</p>' +
     (watchEarnings.length ? '<h3 class="brief-sub">Takip listesinde bu hafta bilanço</h3><p>' + watchEarnings.map((e) => '<b>' + esc(e.symbol) + '</b> ' + esc(new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' }).format(new Date(e.date + 'T12:00:00Z'))) + (e.hour === 'bmo' ? ' · açılış öncesi' : e.hour === 'amc' ? ' · kapanış sonrası' : '')).join(' · ') + '</p>' : '') +
+    '<details class="brief-score-details"><summary>Teknik puan sıralaması</summary>' + scoreTable + '</details>' +
     '</section>';
 
   // 6. Ayrıntılar
