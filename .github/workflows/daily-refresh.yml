@@ -15,7 +15,7 @@ jobs:
   refresh:
     name: Piyasa Verilerini Çek ve Supabase'e Yaz
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     concurrency:
       group: finans-market-publication
       cancel-in-progress: false
