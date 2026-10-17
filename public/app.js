@@ -962,7 +962,7 @@ async function renderReport() {
   const watchEarnings = ((base.calendar && base.calendar.earnings) || []).filter((e) => e.watch);
   h += '<section class="report-section brief-section" id="report-candidates"><h2>Teknik adaylar</h2>' +
     ((base.opportunities || []).length ? '<table class="brief-table"><thead><tr><th>Varlık</th><th>Piyasa</th><th>Sinyal</th><th>Gerekçe</th></tr></thead><tbody>' +
-      base.opportunities.map((o) => '<tr><td><b>' + esc(o.symbol) + '</b></td><td>' + esc(marketShortLabel(o.market)) + '</td><td class="num">' + esc(technicalSignalLabel(o.tone || o.label)) + ' · ' + esc(String(o.score == null ? '–' : o.score)) + '</td><td>' + esc(o.summary || '') + '</td></tr>').join('') +
+      base.opportunities.map((o) => '<tr><td><b>' + esc(o.symbol) + '</b></td><td>' + esc(marketShortLabel(o.market)) + '</td><td class="num">' + esc(technicalSignalLabel(o.tone || o.label)) + ' · ' + esc(String(o.score == null ? '–' : o.score)) + '</td><td>' + esc(typeof technicalSummaryText === 'function' ? technicalSummaryText(o.summary) : (o.summary || '')) + '</td></tr>').join('') +
       '</tbody></table>' : '<p class="muted">Teknik aday yok.</p>') +
     '<p class="brief-note">Teknik puan getiri olasılığı değildir. İşlem kayıtları <button class="text-btn" type="button" data-open-signals>Sinyaller</button> ekranında.</p>' +
     (watchEarnings.length ? '<h3 class="brief-sub">Takip listesinde bu hafta bilanço</h3><p>' + watchEarnings.map((e) => '<b>' + esc(e.symbol) + '</b> ' + esc(new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' }).format(new Date(e.date + 'T12:00:00Z'))) + (e.hour === 'bmo' ? ' · açılış öncesi' : e.hour === 'amc' ? ' · kapanış sonrası' : '')).join(' · ') + '</p>' : '') +

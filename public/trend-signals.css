@@ -39,3 +39,4 @@
   .ts-table { font-size: 12px; }
   .ts-table th, .ts-table td { padding-right: 8px; }
 }
+.ts-table td:not(.num) { white-space: normal !important; }
