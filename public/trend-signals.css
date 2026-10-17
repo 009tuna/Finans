@@ -49,3 +49,15 @@
 .ts-prot.is-weak span { color: var(--red); }
 .ts-prot.is-mixed span, .ts-prot.is-unknown span { color: var(--muted); }
 .ts-list small { color: var(--muted); }
+.ts-pill-groups { display: grid; gap: 10px; }
+.ts-pill-group { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 8px; align-items: start; }
+.ts-pill-group > b { font-size: 12px; padding-top: 4px; }
+.ts-pill-group > b em { font-style: normal; font-weight: 500; color: var(--muted); margin-left: 4px; }
+.ts-pill-group > div { display: flex; flex-wrap: wrap; gap: 5px; }
+.ts-pill { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 600; letter-spacing: .02em; line-height: 1.4;
+  background: var(--card-2, var(--card)); border: 1px solid var(--border); color: var(--text); cursor: default; }
+.ts-pill.is-break { background: var(--red-soft); border-color: transparent; color: var(--red); }
+.ts-pill.is-fade { background: transparent; border-color: color-mix(in oklch, var(--red), transparent 55%); color: var(--red); }
+.ts-pill.is-watch { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+.ts-note .ts-pill { font-size: 10.5px; padding: 1px 6px; }
+@media (max-width: 720px) { .ts-pill-group { grid-template-columns: 1fr; gap: 4px; } }
