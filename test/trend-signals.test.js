@@ -181,6 +181,19 @@ console.log('8. Kalıcı yazma: karşılaştırmalı kayıt, çakışmada yenide
   const evil = J.buildView({ records: [{ ...rec, symbol: '<img src=x>', signalDate: breakout.dates.at(-1) }] }, [], { now: breakout.dates.at(-1) + 'T20:00:00.000Z' });
   assert.ok(!/<img/.test(UI.dashboardHtml(evil, { market: 'all' })));
   assert.ok(UI.summaryHtml(offline.trendSignals).includes('1</b> yeni long sinyali'));
+  // Sinyali olmayan varlık da "Tüm varlıklar" listesinde görünür; yükseliş trendinde kırılıma uzaklık yazılır.
+  const quiet = J.buildView({ records: [] }, [
+    { market: 'bist', symbol: 'BIMAS', status: 'watch', regime: 'up', aboveSma200: true, toBreakout: 0.052 },
+    { market: 'bist', symbol: 'SASA', status: 'avoid', regime: 'down', aboveSma200: false, toBreakout: 0.4 },
+    { market: 'us', symbol: 'AAPL', status: 'watch', regime: 'down', aboveSma200: false, toBreakout: 0.2 },
+  ], { now: NOW });
+  const all = UI.dashboardHtml(quiet, { market: 'bist' });
+  assert.ok(all.includes('Tüm varlıklar') && all.includes('data-ts-asset="bist:BIMAS"') && all.includes('Kırılım bekleniyor') && all.includes('%5,2'));
+  assert.ok(['bimas', 'BİMAS', 'Bımas'].every((q) => all.includes('data-ts-key="' + UI.searchKey(q))), 'Arama I/ı/İ/i farkına takılmaz');
+  assert.ok(all.indexOf('BIMAS') < all.indexOf('SASA'), 'Kırılım bekleyen, uzak durulandan önce gelir');
+  assert.ok(!all.includes('AAPL'), 'Piyasa filtresi tüm varlıklar listesine de uygulanır');
+  const latestState = TS.evaluateLatest(breakout, { market: 'us' });
+  assert.ok(Number.isFinite(latestState.toBreakout) && latestState.toBreakout < 0, 'Kırılım gününde kapanış 55 günlük tepenin üstünde');
   console.log('   ✓ Görünüm, filtre ve kaçış doğru.');
   console.log('\n🎉 Tüm trend sinyal testleri geçti.');
 })().catch((e) => { console.error(e); process.exitCode = 1; });

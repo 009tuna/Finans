@@ -73,7 +73,7 @@
     if (pending.length) h += '<p class="ts-note">' + pending.length + ' sinyal girişi bekliyor (ertesi seans açılışı).</p>';
 
     const avoid = pick(view.avoid);
-    const pills = (list, cls) => list.map((x) => '<span class="ts-pill' + (cls ? ' ' + cls(x) : '') + '" title="' + esc((MARKETS[x.market] || '') + ' · ' + date(x.signalDate) + (x.setup ? ' · ' + (x.setup === 'breakout' ? '55 günlük dip kırıldı' : 'düşüş trendinde tepki satışı') : '')) + '">' + esc(x.symbol) + '</span>').join('');
+    const pills = (list, cls) => list.map((x) => '<button type="button" class="ts-pill' + (cls ? ' ' + cls(x) : '') + '" data-ts-asset="' + esc(x.market + ':' + x.symbol) + '" title="' + esc((MARKETS[x.market] || '') + (x.signalDate ? ' · ' + date(x.signalDate) : '') + (x.setup && x.status !== 'watch-pullback' ? ' · ' + (x.setup === 'breakout' ? '55 günlük dip kırıldı' : 'düşüş trendinde tepki satışı') : '') + ' · detayı aç') + '">' + esc(x.symbol) + '</button>').join('');
     const byMarket = (list) => Object.entries(MARKETS).map(([m, label]) => [label, list.filter((x) => x.market === m)]).filter(([, rows]) => rows.length);
     h += '<section class="ts-block"><h3>Uzak dur / çık <span>son 3 gün · ' + avoid.length + '</span></h3>' + (avoid.length
       ? '<div class="ts-pill-groups">' + byMarket(avoid).map(([label, rows]) => '<div class="ts-pill-group"><b>' + label + ' <em>' + rows.length + '</em></b><div>' + pills(rows, (x) => x.setup === 'breakout' ? 'is-break' : 'is-fade') + '</div></div>').join('') + '</div>' +
@@ -82,6 +82,8 @@
 
     const watch = pick(view.watch);
     if (watch.length) h += '<section class="ts-block"><h3>İzlemede <span>trend içi geri çekilme · işlem açılmaz</span></h3><div class="ts-pill-groups">' + byMarket(watch).map(([label, rows]) => '<div class="ts-pill-group"><b>' + label + ' <em>' + rows.length + '</em></b><div>' + pills(rows, () => 'is-watch') + '</div></div>').join('') + '</div></section>';
+
+    h += allAssetsHtml(pick(view.assets));
 
     const closed = pickTrades(view.closed);
     const live = view.live || {};
@@ -106,11 +108,39 @@
     return h + '</section>';
   }
 
+  // Her varlığın motor gözünden durumu: sinyal yoksa bile nerede durduğu görünsün.
+  const REGIME = { up: 'Yükseliş', neutral: 'Yatay', down: 'Düşüş', unknown: '–' };
+  function assetState(x) {
+    if (x.status === 'signal') return ['Long sinyali', 'is-up', 0];
+    if (x.status === 'watch-pullback') return ['Geri çekilme · izle', 'is-watch', 1];
+    if (x.status === 'avoid') return ['Uzak dur / çık', 'is-down', 5];
+    if (x.status === 'insufficient') return ['Veri yetersiz', '', 6];
+    if (x.regime === 'up') return ['Kırılım bekleniyor', '', 2];
+    if (x.regime === 'down') return ['Düşüş trendi · nakitte bekle', 'is-down', 4];
+    return ['Yatay · bekle', '', 3];
+  }
+  // Arama anahtarı: I/ı/İ/i farkı gözetilmez ("bimas", "BİMAS", "BIMAS" aynı sonucu verir).
+  function searchKey(text) { return String(text || '').toLocaleLowerCase('tr-TR').replace(/ı/g, 'i'); }
+  function allAssetsHtml(list) {
+    if (!list || !list.length) return '';
+    const rows = list.map((x) => ({ x, st: assetState(x) })).sort((a, b) => a.st[2] - b.st[2]
+      || (a.st[2] === 2 ? (a.x.toBreakout ?? 9) - (b.x.toBreakout ?? 9) : 0) || String(a.x.symbol).localeCompare(String(b.x.symbol)));
+    const gap = (x) => x.regime === 'up' && x.status !== 'signal' && Number.isFinite(x.toBreakout) && x.toBreakout > 0
+      ? '<span class="ts-gap"><i style="width:' + Math.max(4, Math.round(100 - Math.min(x.toBreakout, 0.25) * 400)) + '%"></i></span>%' + (x.toBreakout * 100).toLocaleString('tr-TR', { maximumFractionDigits: 1 }) : '–';
+    return '<section class="ts-block ts-all"><h3>Tüm varlıklar <span>' + list.length + ' · sinyal olmasa da her varlığın durumu</span></h3>' +
+      '<div class="ts-all-tools"><input type="search" data-ts-search placeholder="Sembol ara (ör. BIMAS)" aria-label="Varlık ara" autocomplete="off"><small data-ts-count>' + list.length + ' varlık</small></div>' +
+      '<div class="ts-table-wrap ts-all-wrap"><table class="ts-table"><thead><tr><th>Varlık</th><th>Trend</th><th>200 günlük</th><th class="num">Kırılıma uzaklık</th><th>Durum</th></tr></thead><tbody>' +
+      rows.map(({ x, st }) => '<tr data-ts-asset="' + esc(x.market + ':' + x.symbol) + '" data-ts-key="' + esc(searchKey(x.symbol + ' ' + (MARKETS[x.market] || x.market))) + '" tabindex="0">' + asset(x) +
+        '<td>' + esc(REGIME[x.regime] || '–') + '</td><td>' + (x.aboveSma200 == null ? '–' : x.aboveSma200 ? '<span class="is-up">Üstünde</span>' : '<span class="is-down">Altında</span>') + '</td>' +
+        '<td class="num">' + gap(x) + '</td><td><span class="ts-state ' + st[1] + '">' + esc(st[0]) + '</span></td></tr>').join('') +
+      '</tbody></table></div><p class="ts-note" data-ts-empty hidden>Bu aramayla eşleşen varlık yok.</p><p class="ts-note">Kırılıma uzaklık: kapanışın 55 günlük tepeye ne kadar uzak olduğu (yalnız yükseliş trendinde). Satıra tıklayınca varlık detayı açılır.</p></section>';
+  }
+
   function summaryHtml(view) {
     if (!view) return '';
     const fresh = (view.newSignals || []).filter(isTrade), open = (view.open || []).filter(isTrade), avoid = view.avoid || [], live = (view.live && view.live.all) || {};
     return '<div class="ts-summary"><span><b>' + fresh.length + '</b> yeni long sinyali</span><span><b>' + open.length + '</b> açık işlem</span><span><b>' + avoid.length + '</b> uzak dur / çık</span>' +
       '<span>Kapanan: ' + (live.trades ? '<b>' + live.trades + '</b> işlem · ' + r(live.totalR) : 'henüz yok') + '</span><button type="button" class="btn btn-secondary" data-observer-open>Sinyallere git</button></div>';
   }
-  return { dashboardHtml, summaryHtml };
+  return { dashboardHtml, summaryHtml, searchKey };
 });

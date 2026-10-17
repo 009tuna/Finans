@@ -61,3 +61,26 @@
 .ts-pill.is-watch { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
 .ts-note .ts-pill { font-size: 10.5px; padding: 1px 6px; }
 @media (max-width: 720px) { .ts-pill-group { grid-template-columns: 1fr; gap: 4px; } }
+
+/* Tıklanabilir sembol hapçıkları ve tüm varlıklar listesi */
+button.ts-pill { font: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; transition: transform 160ms var(--ease-ui, ease-out), background-color 150ms ease, border-color 150ms ease; }
+button.ts-pill:active { transform: scale(0.95); }
+@media (hover: hover) and (pointer: fine) { button.ts-pill:hover { border-color: currentColor; } }
+.ts-all-tools { display: flex; align-items: center; gap: 12px; margin: 0 0 10px; }
+.ts-all-tools input { flex: 0 1 280px; min-width: 0; height: 34px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font: inherit; font-size: 13px; }
+.ts-all-tools input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.ts-all-tools small { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.ts-all-wrap { max-height: 460px; overflow-y: auto; }
+.ts-all-wrap thead th { position: sticky; top: 0; background: var(--card); z-index: 1; }
+.ts-all tbody tr { cursor: pointer; transition: background-color 120ms ease; }
+.ts-all tbody tr:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+@media (hover: hover) and (pointer: fine) { .ts-all tbody tr:hover { background: var(--accent-soft); } }
+.ts-all .is-up { color: var(--green); }
+.ts-all .is-down { color: var(--red); }
+.ts-gap { display: inline-block; vertical-align: middle; width: 42px; height: 4px; margin-right: 8px; border-radius: 999px; background: var(--border); overflow: hidden; }
+.ts-gap i { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+.ts-state { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; background: var(--card-2, var(--border)); color: var(--muted); white-space: nowrap; }
+.ts-state.is-up { background: var(--green-soft); color: var(--green); }
+.ts-state.is-down { background: var(--red-soft); color: var(--red); }
+.ts-state.is-watch { background: var(--accent-soft); color: var(--accent); }
+@media (max-width: 720px) { .ts-all-tools input { flex: 1 1 auto; } .ts-gap { display: none; } }

@@ -188,8 +188,12 @@ function evaluateLatest(bars, { market, config = DEFAULTS } = {}) {
   if (t < config.minBars) return { strategy: STRATEGY, status: 'insufficient', reason: 'history-under-' + config.minBars, bars: ind.closes.length };
   const regime = regimeAt(ind, t);
   const trig = triggerAt(ind, t, config);
+  let high = -Infinity, low = Infinity;
+  for (let i = Math.max(0, t - config.breakoutBars); i < t; i++) { high = Math.max(high, ind.highs[i]); low = Math.min(low, ind.lows[i]); }
   const base = { strategy: STRATEGY, regime, date: ind.dates[t], close: ind.closes[t], atr: ind.atr[t], rsi: ind.rsi[t], sma50: ind.sma50[t], sma200: ind.sma200[t],
-    aboveSma200: Number.isFinite(ind.sma200[t]) ? ind.closes[t] > ind.sma200[t] : null };
+    aboveSma200: Number.isFinite(ind.sma200[t]) ? ind.closes[t] > ind.sma200[t] : null,
+    // Kırılım seviyesine uzaklık: 55 günlük tepenin kapanışa göre yüzde farkı (negatifse kırılım gerçekleşmiş).
+    toBreakout: Number.isFinite(high) ? high / ind.closes[t] - 1 : null, high55: Number.isFinite(high) ? high : null, low55: Number.isFinite(low) ? low : null };
   if (!trig) return { ...base, status: 'watch' };
   if (trig.direction === 'short') return { ...base, status: 'avoid', action: 'avoid', direction: 'short', setup: trig.setup, level: trig.level };
   if (trig.setup !== 'breakout') return { ...base, status: 'watch-pullback', action: 'watch', direction: 'long', setup: trig.setup, level: trig.level };

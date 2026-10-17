@@ -70,7 +70,7 @@ function processJournal(journal, assets, { now = new Date().toISOString(), backt
     }
     const state = evaluateLatest(asset.bars, { market: asset.market, config });
     latest.push({ market: asset.market, symbol: asset.symbol, status: state.status, regime: state.regime || null, date: state.date || null,
-      setup: state.setup || null, aboveSma200: state.aboveSma200 == null ? null : state.aboveSma200 });
+      setup: state.setup || null, aboveSma200: state.aboveSma200 == null ? null : state.aboveSma200, toBreakout: round(state.toBreakout, 4) });
     if (state.status !== 'signal' && state.status !== 'avoid') continue;
     const id = [STRATEGY, asset.market, asset.symbol, state.date, state.direction].join(':');
     if (records.some((r) => r.id === id)) continue;

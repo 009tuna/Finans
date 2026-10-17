@@ -803,7 +803,28 @@ function renderView() {
   }
 }
 
-const automaticSignalState = {tab:'auto', market:'all', limit:20, trendMarket:'all'};
+const automaticSignalState = {tab:'auto', market:'all', limit:20, trendMarket:'all', trendSearch:''};
+// Tüm varlıklar listesi: arama süzgeci ve satır/hapçık tıklamasıyla varlık detayı.
+function bindTrendAssetList(root) {
+  const search = root.querySelector('[data-ts-search]');
+  const apply = () => {
+    const q = window.FinansTrendSignals.searchKey(String(automaticSignalState.trendSearch || '').trim());
+    let shown = 0;
+    root.querySelectorAll('tr[data-ts-key]').forEach((row) => { const hit = !q || row.dataset.tsKey.includes(q); row.hidden = !hit; if (hit) shown++; });
+    const count = root.querySelector('[data-ts-count]'); if (count) count.textContent = shown + ' varlık';
+    const empty = root.querySelector('[data-ts-empty]'); if (empty) empty.hidden = shown > 0;
+  };
+  if (search) {
+    search.value = automaticSignalState.trendSearch || '';
+    search.addEventListener('input', () => { automaticSignalState.trendSearch = search.value; apply(); });
+    apply();
+  }
+  const open = (el) => { const [market, symbol] = String(el.dataset.tsAsset || '').split(':'); if (market && symbol) navigateToAsset(market, symbol); };
+  root.querySelectorAll('[data-ts-asset]').forEach((el) => {
+    el.addEventListener('click', () => open(el));
+    if (el.tagName === 'TR') el.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(el); } });
+  });
+}
 function renderAutomaticSignals() {
   if (!window.FinansObserver) return;
   const summary = $('#automaticSignalSummary'), ledger = $('#automaticSignalLedger');
@@ -818,6 +839,7 @@ function renderAutomaticSignals() {
       trend.querySelectorAll('[data-ts-market]').forEach((button) => button.addEventListener('click', () => {
         automaticSignalState.trendMarket = button.dataset.tsMarket; renderAutomaticSignals(); trend.querySelector('[data-ts-market="' + automaticSignalState.trendMarket + '"]')?.focus();
       }));
+      bindTrendAssetList(trend);
     }
   }
   if (summary) {
