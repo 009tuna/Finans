@@ -21,3 +21,8 @@ data/report/*stage*.json
 data/report/*rejected*.json
 docs/design-air/live-expectations-draft*.json
 docs/design-air/live-expectations-draft*.log
+
+# Daily generated report snapshots and local design-tool state.
+data/report/base-20*.json
+.impeccable/
+.superpowers/

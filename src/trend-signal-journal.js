@@ -113,6 +113,7 @@ function buildView(journal, latest, { now = new Date().toISOString(), backtest =
     live: liveStats(records),
     backtest: backtest ? { generatedAt: backtest.generatedAt, period: backtest.period, assets: backtest.universe && backtest.universe.assets, summary: Object.fromEntries(Object.entries(backtest.summary || {}).filter(([k]) => k.split(':').length <= 2)) } : null,
     evidence,
+    assets: latest,
     coverage: { assets: latest.length, regimes: latest.reduce((acc, x) => { const k = x.market + ':' + (x.regime || x.status); acc[k] = (acc[k] || 0) + 1; return acc; }, {}) },
     futuresUniverse: { source: universe.viopStockFutures.source, sourceDate: universe.viopStockFutures.sourceDate, count: FUTURES.size },
   };

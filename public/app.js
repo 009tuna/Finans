@@ -537,6 +537,9 @@ async function silentRefresh() {
   } catch (e) { /* sessiz */ }
 }
 function maybeAutoRefresh() {
+  // Fiyatlar bulutta (GitHub Actions) yenilenir. Panel açılışı veritabanına yazmaz: yerel ağda bir kaynak
+  // (ör. Binance) engelliyse eksik bir kesit üretimdeki veriyi ve yayınlanmış raporu geçersiz kılıyordu.
+  if (typeof window !== 'undefined' && window.FinansObserver) return;
   const ageMin = (Date.now() - new Date(DATA.generatedAt).getTime()) / 60000;
   if (ageMin > 15) silentRefresh();
 }
@@ -1032,11 +1035,11 @@ async function renderReport() {
         if (isCorrect) {
           borderStyle = 'border: 1px solid var(--green);';
           bgStyle = 'background: rgba(5, 150, 105, 0.1);';
-          icon = '🟢 ';
+          icon = '';
         } else if (isSelected) {
           borderStyle = 'border: 1px solid var(--red);';
           bgStyle = 'background: rgba(220, 38, 38, 0.1);';
-          icon = '🔴 ';
+          icon = '';
         }
         d += '<div style="padding: 10px 14px; border-radius: 6px; font-size: 13px; ' + borderStyle + ' ' + bgStyle + '">' + icon + esc(opt) + '</div>';
       });
@@ -1094,7 +1097,7 @@ function briefEventsHtml(research) {
   }).join('') + '</div>';
 }
 function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
-function flag(c) { return { US: '🇺🇸', CN: '🇨🇳', JP: '🇯🇵', DE: '🇩🇪', GB: '🇬🇧', EU: '🇪🇺', EA: '🇪🇺', TR: '🇹🇷', FR: '🇫🇷' }[c] || c; }
+function flag(c) { return { US: 'ABD', CN: 'Çin', JP: 'Japonya', DE: 'Almanya', GB: 'İngiltere', EU: 'Euro Bölgesi', EA: 'Euro Bölgesi', TR: 'Türkiye', FR: 'Fransa' }[c] || c; }
 
 // Bu haftanın katalizör takvimi + finans direktörü senaryo analizi (base = deterministik, ai = yorum)
 function reportSignalOverlayHtml(base, integrity) {
@@ -1168,7 +1171,7 @@ function weeklyHtml(base, ai) {
   if (earn.length) {
     const wlEarn = earn.filter((e) => e.watch);
     h += '<div class="rep-section"><h3>Bilanço takvimi</h3>';
-    if (wlEarn.length) h += '<p class="muted report-calendar-note">⭐ Takip listenizden: ' + wlEarn.map((e) => '<b>' + esc(e.symbol) + '</b> (' + esc(e.date) + ')').join(', ') + '</p>';
+    if (wlEarn.length) h += '<p class="muted report-calendar-note">Takip listenizden: ' + wlEarn.map((e) => '<b>' + esc(e.symbol) + '</b> (' + esc(e.date) + ')').join(', ') + '</p>';
     else h += '<p class="muted report-calendar-note">Bu hafta takip listenizden bilanço açıklayan yok.</p>';
     if (wo && wo.earningsFocus) h += '<p class="rep-macro report-calendar-note">' + esc(wo.earningsFocus) + '</p>';
     const earningsRows = (items) => items.map((e) => '<span class="chip' + (e.watch ? ' chip-watch' : '') + '">' + esc(e.symbol) + ' · ' + esc(fullDate(e.date)) + (e.epsEstimate != null ? ' · HBK ' + esc(String(e.epsEstimate)) : '') + '</span>').join('');
@@ -1329,7 +1332,7 @@ async function renderOverviewBriefing() {
 
 function renderKpis() {
   const el = $('#kpis'); if (!el) return;
-  el.innerHTML = overviewMarketStats(DATA).map((m) => '<section class="market-stat-section" aria-labelledby="market-stat-' + m.market + '"><header><h3 id="market-stat-' + m.market + '">' + m.name + '</h3><button class="market-stat-open" type="button" onclick="setView(\'' + m.market + '\')" aria-label="' + m.name + ' piyasasını aç">↗</button></header>' +
+  el.innerHTML = overviewMarketStats(DATA).map((m) => '<section class="market-stat-section" aria-labelledby="market-stat-' + m.market + '"><header><h3 id="market-stat-' + m.market + '">' + m.name + '</h3><button class="market-stat-open" type="button" onclick="setView(\'' + m.market + '\')" aria-label="' + m.name + ' piyasasını aç">Aç</button></header>' +
     (!m.total ? '<p class="market-stat-empty">Piyasa verisi yok. Kaynak durumunu piyasa ekranında kontrol edin.</p>' :
       '<dl><div><dt>Ort. teknik puan</dt><dd>' + (m.avg == null ? 'Veri yok' : m.avg + '<small> / 100</small>') + '</dd></div><div><dt>Yükselen</dt><dd>' + (m.changeCount ? m.gainers + '<small> / ' + m.changeCount + '</small>' : 'Değişim verisi yok') + '</dd></div><div><dt>Olumlu teknik sinyal</dt><dd>' + (m.scored ? m.buys + '<small> / ' + m.scored + '</small>' : 'Puan verisi yok') + '</dd></div></dl>' +
       '<p class="market-stat-coverage">' + m.scored + '/' + m.total + ' varlık puanlandı' + (m.failed ? ' · ' + m.failed + ' kaynak sorunu' : '') + (m.changeCount < m.total ? ' · ' + (m.total - m.changeCount) + ' değişim verisi eksik' : '') + '</p>') + '</section>').join('') +
@@ -1364,7 +1367,7 @@ function renderOverviewPortfolioSummary() {
       : portfolioState === 'stale'
         ? 'Son başarılı portföy verisi gösteriliyor'
         : holdings === 0 ? 'Portföy boş' : holdings + ' açık pozisyon';
-  if (status) status.textContent = 'Piyasa verisi: ' + fullTimestamp(DATA && DATA.generatedAt) + (REPORT_CACHE && REPORT_CACHE.automation ? ' · ' + FinansResearch.automationStatusSummary(REPORT_CACHE.automation) : '');
+  if (status) status.textContent = 'Fiyatlar: ' + fullTimestamp(DATA && DATA.generatedAt);
   const detail = holdings == null
     ? 'Bakiye ve risk görünümü, portföy kaynağı erişilebilir olduğunda açılır.'
     : holdings === 0
@@ -1439,7 +1442,7 @@ function renderMarketRegime() {
       '<p class="rt-advice">' + esc(r.advice) + '</p>' +
     '</div>';
   };
-  el.innerHTML = tile('🇺🇸', 'ABD', mr.us) + tile('₿', 'Kripto', mr.crypto) + tile('🇹🇷', 'BIST', mr.bist);
+  el.innerHTML = tile('', 'ABD', mr.us) + tile('', 'Kripto', mr.crypto) + tile('', 'BIST', mr.bist);
 }
 
 /* ---------- Chart renk paleti — marka aksanları (gri yerine kısıtlı, uyumlu renk) ---------- */
@@ -2309,10 +2312,10 @@ function decisionInsightCard(x) {
   const consHtml = ins.cons.length ? li(ins.cons) : '<p class="ins-empty">Bu teknik göstergelerde ek karşı sinyal saptanmadı.</p>';
   const q = ins.quality;
   const qTone = q.status === 'clean' ? 'pos' : q.status === 'caution' ? 'warn' : q.status === 'blocked' ? 'neg' : 'muted';
-  const regimeHtml = ins.regime ? '<span class="ins-regime">📊 ' + esc(ins.regime) + '</span>' : '';
+  const regimeHtml = ins.regime ? '<span class="ins-regime">' + esc(ins.regime) + '</span>' : '';
   const cg = ins.costGate;
   const costHtml = cg && cg.ratio != null
-    ? '<span class="ins-cost ' + (cg.pass ? 'ok' : 'bad') + '">' + (cg.pass ? '✓' : '✗') + ' Maliyet: hedef %' + cg.rewardPct + ' vs %' + cg.costPct + ' (×' + cg.ratio + ')</span>'
+    ? '<span class="ins-cost ' + (cg.pass ? 'ok' : 'bad') + '">' + (cg.pass ? 'Maliyet uygun' : 'Maliyet yüksek') + ': hedef %' + cg.rewardPct + ' vs %' + cg.costPct + ' (×' + cg.ratio + ')</span>'
     : '';
   const metaHtml = (regimeHtml || costHtml) ? '<div class="insight-meta">' + regimeHtml + costHtml + '</div>' : '';
   const suitHtml = ins.suitability ? '<p class="insight-suit">' + esc(ins.suitability) + '</p>' : '';
@@ -2325,8 +2328,8 @@ function decisionInsightCard(x) {
     '<p class="insight-headline">' + esc(ins.headline) + '</p>' +
     suitHtml +
     '<div class="insight-cols">' +
-      '<div class="insight-col"><span class="ins-kicker pos">✓ Lehte</span>' + prosHtml + '</div>' +
-      '<div class="insight-col"><span class="ins-kicker neg">⚠ Dikkat</span>' + consHtml + '</div>' +
+      '<div class="insight-col"><span class="ins-kicker pos">Lehte</span>' + prosHtml + '</div>' +
+      '<div class="insight-col"><span class="ins-kicker neg">Dikkat</span>' + consHtml + '</div>' +
     '</div>' +
     '<p class="insight-plan"><b>Plan:</b> ' + esc(ins.plan) + '</p>' +
     '<p class="insight-qnote">' + esc(q.note) + '</p>' +
@@ -3146,7 +3149,7 @@ function renderBacktestView() {
       const request = ++backtestRequest;
       const formStamp = inputStamp($('#backtest-form'));
       runBtn.disabled = true;
-      runBtn.innerHTML = '<span class="btn-ic">↻</span> Simüle Ediliyor...';
+      runBtn.textContent = 'Simüle ediliyor…';
       runBtn.classList.add('loading');
       formActionState(e.currentTarget, 'Test çalışıyor. Son başarılı sonuç korunuyor.');
       
@@ -3176,7 +3179,7 @@ function renderBacktestView() {
         formActionState($('#backtest-form'), 'Test tamamlanamadı: ' + (err.message || 'bağlantı hatası') + '. Girdiler ve son sonuç korunuyor; tekrar deneyin.');
       } finally {
         runBtn.disabled = false;
-        runBtn.innerHTML = '<span class="btn-ic">▶</span> Testi Çalıştır';
+        runBtn.textContent = 'Testi çalıştır';
         runBtn.classList.remove('loading');
       }
     });
@@ -4552,14 +4555,12 @@ async function renderCfoDecisionCockpit() {
     const gaps = row.evidenceGaps || row.missingEvidence;
     const nextStep = window.FinansObserver ? task.reason : row.gatingReason || (row.status === 'gated' && gaps.length ? gaps.slice(0, 2).join(' · ') + (gaps.length > 2 ? ' · +' + (gaps.length - 2) + ' eksik' : '') : row.nextAction || row.bindingReason);
     const accessibleDetail = [row.marketLabel, row.symbol, task.label, 'Teknik puan ' + row.score + '/100', row.gatingReason].filter(Boolean).join('. ');
-    const logo = window.FinansAssetIdentity ? window.FinansAssetIdentity.logoHtml(row, { className: 'candidate-logo' }) : '<span class="candidate-logo asset-logo" aria-hidden="true"><span class="asset-logo-monogram">' + esc(row.symbol.slice(0, 2)) + '</span></span>';
+    const trendState = trendStateFor(row.market, row.symbol);
     return '<button class="cfo-row candidate-card cfo-' + esc(row.status) + '" type="button" aria-label="' + esc(accessibleDetail) + '" data-market="' + esc(row.market) + '" data-symbol="' + esc(row.symbol) + '" data-panel="' + esc(task.panel) + '" data-target="' + esc(task.target || '') + '" data-field="' + esc(task.field || '') + '" onclick="navigateCandidateTask(this)">' +
-      '<span class="candidate-identity">' + logo + '<span class="cfo-symbol"><b>' + esc(row.symbol) + '</b><small>' + esc(row.name || row.symbol) + '</small></span></span>' +
+      '<span class="candidate-identity"><span class="cfo-symbol"><b>' + esc(row.symbol) + '</b><small>' + esc(row.name || row.symbol) + '</small></span></span>' +
       '<span class="cfo-score"><b>' + row.score + '<small> / 100</small></b><small>' + (delta ? esc(macroLabel) : 'Teknik puan') + '</small></span>' +
-      '<span class="cfo-decision candidate-task"><b>' + esc(task.label) + '</b><small>' + esc(nextStep) + '</small></span>' +
+      '<span class="cfo-decision candidate-task"><b>' + esc(trendState ? trendState.label : task.label) + '</b><small>' + esc(trendState ? trendState.detail : nextStep) + '</small></span>' +
       '<span class="cfo-rationale">' + esc(row.selectionReason || row.bindingReason) + '</span>' +
-      candidateTraceHtml(row) +
-      '<span class="cfo-open" aria-hidden="true">↗</span>' +
     '</button>';
   };
   const groups = cockpit.marketGroups || ['us', 'bist', 'crypto'].map((market) => ({ market, marketLabel: marketShortLabel(market), rows: cockpit.rows.filter((row) => row.market === market), counts: {} }));
@@ -4567,7 +4568,7 @@ async function renderCfoDecisionCockpit() {
     const count = (group.counts.ready || 0) + (group.counts.gated || 0);
     const rows = group.rows.length ? group.rows.map(renderRow).join('') : '<p class="market-candidates-empty">Bu piyasa için puanlanmış veri yok. Piyasa kaynaklarını kontrol edin.</p>';
     return '<section class="candidate-market" data-candidate-market="' + esc(group.market) + '" aria-labelledby="candidate-title-' + esc(group.market) + '">' +
-      '<header class="candidate-market-head"><div><h3 id="candidate-title-' + esc(group.market) + '">' + esc(group.marketLabel) + '</h3><span>' + count + ' araştırma adayı</span></div><button class="candidate-market-link" type="button" onclick="setView(\'' + group.market + '\')">Piyasayı aç <span aria-hidden="true">→</span></button></header>' +
+      '<header class="candidate-market-head"><div><h3 id="candidate-title-' + esc(group.market) + '">' + esc(group.marketLabel) + '</h3><span>' + count + ' araştırma adayı</span></div><button class="candidate-market-link" type="button" onclick="setView(\'' + group.market + '\')">Piyasayı aç</button></header>' +
       '<div class="cfo-rows">' + rows + '</div></section>';
   }).join('');
   el.innerHTML = '<div class="card reveal cfo-cockpit-card candidate-ledger">' +
@@ -4576,6 +4577,24 @@ async function renderCfoDecisionCockpit() {
     (technicalHistory && technicalHistory.length ? '<details class="candidate-history"><summary>Kayıtlı teknik puan geçmişini tabloyla incele</summary>' + groups.flatMap((group) => group.rows).map((row) => candidateTraceHtml(row, false)).join('') + '</details>' : '') +
     '</div>';
   if (window.FinansAssetIdentity) window.FinansAssetIdentity.bindLogoFallback(el);
+}
+
+// Aday kartı için yeni sinyal motorunun durumu: açık işlem, yeni sinyal veya trend rejimi.
+function trendStateFor(market, symbol) {
+  const view = DATA && DATA.trendSignals;
+  if (!view) return null;
+  const mine = (record) => record.market === market && record.symbol === symbol;
+  const side = (record) => record.action === 'reduce' ? 'Azalt / çık' : record.direction === 'long' ? 'Long' : 'Short';
+  const setup = (record) => record.setup === 'breakout' ? 'kırılım' : 'geri çekilme';
+  const day = (value) => value ? value.slice(8, 10) + '.' + value.slice(5, 7) : '';
+  const open = (view.open || []).find(mine);
+  if (open) return { label: 'Açık ' + side(open) + ' işlem', detail: 'Giriş ' + day(open.entryDate) + ' · anlık ' + (Number.isFinite(open.unrealizedR) ? (open.unrealizedR > 0 ? '+' : '') + open.unrealizedR.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + 'R' : '–') };
+  const fresh = (view.newSignals || []).concat(view.advisories || []).find(mine);
+  if (fresh) return { label: side(fresh) + ' sinyali · ' + setup(fresh), detail: day(fresh.signalDate) + ' kapanışı · ' + (fresh.evidence && fresh.evidence.status === 'proven' ? 'geçmişte çalışan kurulum' : 'zayıf geçmiş, izleme') };
+  const state = (view.assets || []).find(mine);
+  if (!state) return null;
+  const regime = { up: 'Trend yükselişte', down: 'Trend düşüşte', neutral: 'Yön belirsiz', unknown: 'Geçmiş yetersiz' }[state.regime] || 'Veri yetersiz';
+  return { label: regime, detail: state.regime === 'up' || state.regime === 'down' ? 'Kırılım veya geri çekilme bekleniyor' : 'Sinyal koşulu yok' };
 }
 
 function renderPredictionScorecard() {

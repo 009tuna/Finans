@@ -1,0 +1,16 @@
+/* Sadeleştirme katmanı: süs ikonları yerine metin kısaltmaları, sakin menü. Diğer stil dosyalarından sonra yüklenir. */
+.brand { padding-left: 4px; }
+.brand-text strong { font-size: 15px; letter-spacing: -.01em; }
+.brand-text span { font-size: 11px; color: var(--muted); }
+.nav-sep { text-transform: uppercase; }
+.navitem .ni { width: 24px; height: auto; flex: 0 0 24px; display: inline-flex; justify-content: center; background: none; border-radius: 0; box-shadow: none;
+  font-size: 9.5px; font-weight: 650; letter-spacing: .05em; color: var(--muted-2); font-variant-numeric: tabular-nums; }
+.navitem.active .ni { color: var(--accent); }
+.navitem:hover .ni { color: var(--text); transform: none; }
+.navitem.active::before { display: none; }
+.sidebar-foot .src.dim { font-size: 11px; }
+
+/* Aday kartları: logo ve puan izi kaldırıldı; satır metin ağırlıklı. */
+.candidate-card .candidate-identity { gap: 0; }
+.cfo-open, .candidate-logo { display: none !important; }
+.market-stat-open { font-size: 11px; width: auto; padding: 2px 8px; }

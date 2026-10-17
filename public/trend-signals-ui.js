@@ -89,7 +89,7 @@
     const fresh = view.newSignals || [], open = view.open || [], live = (view.live && view.live.all) || {};
     const longs = fresh.filter((x) => x.direction === 'long').length, shorts = fresh.length - longs;
     return '<div class="ts-summary"><span><b>' + fresh.length + '</b> yeni sinyal' + (fresh.length ? ' (' + longs + ' long, ' + shorts + ' short)' : '') + '</span><span><b>' + open.length + '</b> açık işlem</span>' +
-      '<span>Kapanan: ' + (live.trades ? '<b>' + live.trades + '</b> işlem · ' + r(live.totalR) : 'henüz yok') + '</span><button type="button" class="btn btn-secondary" data-observer-open>Sinyallere git →</button></div>';
+      '<span>Kapanan: ' + (live.trades ? '<b>' + live.trades + '</b> işlem · ' + r(live.totalR) : 'henüz yok') + '</span><button type="button" class="btn btn-secondary" data-observer-open>Sinyallere git</button></div>';
   }
   return { dashboardHtml, summaryHtml };
 });
