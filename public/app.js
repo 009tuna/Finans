@@ -911,12 +911,14 @@ async function renderReport() {
   // Günlük brif: okunan akış kısa; denetim, kaynak ve teknik ayrıntılar tek açılır bölümde.
   const views = ai && ai.research && ai.research.marketViews && window.FinansAnalystViews ? ai.research.marketViews : null;
   const reportTimestamp = integrity.analysisAsOf || base.generatedAt;
-  const mismatch = integrity.baseStatus && integrity.baseStatus !== 'current';
+  // Fiyatlar analizden sonra yenilendiyse (olağan durum) tek satır not; analiz kullanılamıyorsa tam uyarı.
+  const previousAnalysis = integrity.researchStatus === 'previous-analysis' && !loadError;
+  const mismatch = integrity.baseStatus && integrity.baseStatus !== 'current' && !previousAnalysis;
   const integrityHtml = FinansResearch.reportIntegrityHtml({ integrity, hasResearch: !!ai, partial: !!(base.quality && base.quality.status === 'partial'), loadError });
   const briefDate = new Intl.DateTimeFormat('tr-TR', { timeZone: 'Europe/Istanbul', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(base.generatedAt));
   let h = '<header class="brief-head"><h2>Günlük brif</h2><p class="brief-meta"><span>' + esc(briefDate) + '</span><span>Fiyat verisi ' + esc(fullTimestamp(base.snapshotId || base.generatedAt)) + '</span>' +
     (ai ? '<span>AI analizi ' + esc(fullTimestamp(ai.generatedAt || reportTimestamp)) + '</span>' : '<span>AI analizi bekleniyor</span>') + '</p>' +
-    (mismatch || loadError ? integrityHtml : '') + '</header>';
+    (mismatch || loadError ? integrityHtml : previousAnalysis ? '<p class="brief-note">AI analizi ' + esc(fullTimestamp(base.snapshotId || base.generatedAt)) + ' fiyatlarına dayanıyor; fiyatlar sonradan güncellendi.</p>' : '') + '</header>';
   h += '<nav class="report-toc" aria-label="Rapor bölümleri"><a href="#report-summary">Bugün</a>' + (views || (ai && ai.commentary) ? '<a href="#report-views">Piyasa görüşü</a>' : '') +
     '<a href="#report-expectations">Veri takvimi</a><a href="#report-developments">Gelişmeler</a><a href="#report-candidates">Adaylar</a><a href="#report-details">Ayrıntılar</a></nav>';
   h += '<div id="reportReadingResume"></div>';
