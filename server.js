@@ -22,6 +22,7 @@ const { getReportPayload } = require('./src/report-api');
 const { handleResearch } = require('./src/research-api');
 const { handleIntelligence } = require('./src/intelligence-api');
 const { handleLearning } = require('./src/learning-api');
+const { handleCalendar } = require('./src/econ-calendar-source');
 
 const ROOT = __dirname;
 
@@ -69,6 +70,11 @@ const server = http.createServer(async (req, res) => {
   try {
     if (p === '/api/report' && url.searchParams.get('resource') === 'learning') {
       const result = await handleLearning(req);
+      res.writeHead(result.status, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
+      return res.end(JSON.stringify(result.body));
+    }
+    if (p === '/api/report' && url.searchParams.get('resource') === 'calendar') {
+      const result = await handleCalendar(req);
       res.writeHead(result.status, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
       return res.end(JSON.stringify(result.body));
     }

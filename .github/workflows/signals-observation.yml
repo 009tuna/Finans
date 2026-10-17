@@ -21,6 +21,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: Ekonomik veri takvimini ve gerçekleşenleri yenile
+        run: node scripts/refresh-econ-calendar.js
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       - name: Kaynakları gözle ve sabit sanal işlemleri ilerlet
         run: node src/fetch-all.js
         env:

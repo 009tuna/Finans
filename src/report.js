@@ -7,7 +7,8 @@ const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
 const { isFresh, snapshotId } = require('../public/report-integrity');
-const { fetchEconomic, fetchEarnings, fetchCompanyNews } = require('./calendar');
+const { fetchEarnings, fetchCompanyNews } = require('./calendar');
+const { getEconomicCalendar, legacyEconomicRows } = require('./econ-calendar-source');
 const { getLatestSnapshot } = require('./db');
 const { buildMacroSignalOverlay } = require('./signal-overlay');
 const { buildLearningSummary } = require('./decision-auditor');
@@ -88,8 +89,9 @@ async function buildBaseReport({ onSnapshot, snapshot: suppliedSnapshot } = {}) 
 
   const newsFrom = ymd(new Date(today.getTime() - 3 * 86400000));
   const calendar = { weekFrom: from, weekTo: to, newsFrom, newsTo: from, economic: [], earnings: [], companyNews: [], coverage: {} };
+  const economicCalendar = await getEconomicCalendar({ fresh: true }).catch(() => null);
   const results = await Promise.allSettled([
-      fetchEconomic(token, from, to),
+      economicCalendar && economicCalendar.events.length ? Promise.resolve(legacyEconomicRows(economicCalendar.events, from, to)) : Promise.reject(new Error('Ekonomik takvim kaynagi kullanilamiyor')),
       fetchEarnings(token, from, to, cfg.watchlists.us),
       fetchCompanyNews(token, newsSymbols, newsFrom, from),
     ]);
@@ -103,6 +105,10 @@ async function buildBaseReport({ onSnapshot, snapshot: suppliedSnapshot } = {}) 
   const impRank = { high: 0, medium: 1, low: 2 };
   calendar.economic = calendar.economic.slice().sort((a, b) => (impRank[a.impact] ?? 3) - (impRank[b.impact] ?? 3) || a.date.localeCompare(b.date)).slice(0, 40);
   calendar.earnings = calendar.earnings.slice(0, 18);
+  // Yeni veri takvimi: önceki 7 gün + önümüzdeki 7 gün, beklenti/önceki/gerçekleşen ile.
+  const eventsFrom = Date.parse(from) - 7 * 86400000, eventsTo = Date.parse(to) + 86400000;
+  calendar.events = economicCalendar ? economicCalendar.events.filter((event) => { const at = Date.parse(event.scheduledAt); return at >= eventsFrom && at <= eventsTo; }) : [];
+  calendar.eventsCoverage = economicCalendar ? economicCalendar.coverage : { status: 'unavailable' };
 
   const generatedAt = new Date().toISOString();
 

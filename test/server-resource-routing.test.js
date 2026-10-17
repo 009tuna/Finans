@@ -32,6 +32,7 @@ const modules = {
   './src/research-api': { handleResearch: async () => ({ status: 200, body: { forecasts: [] } }) },
   './src/intelligence-api': { handleIntelligence: (req, options) => handleIntelligence(req, { ...options, database }) },
   './src/learning-api': { handleLearning: req => handleLearning(req, { database, asOf: '2026-10-05T00:00:00Z' }) },
+  './src/econ-calendar-source': { handleCalendar: async req => req.method === 'GET' ? { status: 200, body: { events: [{ id: 'US:cpi' }], coverage: { status: 'available' } } } : { status: 405, body: { error: 'Method not allowed' } } },
 };
 const portfolioContext = vm.createContext({ module: { exports: {} }, console: { error() {} }, require: name => {
   if (name === '../src/db') return modules['./src/db'];
@@ -65,6 +66,7 @@ modules['./api/portfolio'] = portfolioContext.module.exports;
       if (name === '../src/intelligence-api') return modules['./src/intelligence-api'];
       if (name === '../src/report-api') return modules['./src/report-api'];
       if (name === '../src/research-api') return modules['./src/research-api'];
+      if (name === '../src/econ-calendar-source') return modules['./src/econ-calendar-source'];
       throw Error('Unexpected Vercel dependency ' + name);
     } });
     vm.runInContext(fs.readFileSync(path.join(root, 'api/report.js'), 'utf8'), vercelContext);
@@ -84,6 +86,16 @@ modules['./api/portfolio'] = portfolioContext.module.exports;
       assert.deepEqual(Object.keys(data).sort(), Object.keys(direct).sort());
       assert.equal((await fetch(base + '/api/report?resource=' + resource, { method: 'POST' })).status, 405);
     }
+    const calendar = await fetch(base + '/api/report?resource=calendar');
+    assert.equal(calendar.status, 200);
+    assert.equal(calendar.headers.get('cache-control'), 'no-store');
+    assert.equal((await calendar.json()).events[0].id, 'US:cpi');
+    assert.equal((await fetch(base + '/api/report?resource=calendar', { method: 'POST' })).status, 405);
+    let vercelCalendar;
+    await vercelContext.module.exports({ method: 'GET', query: { resource: 'calendar' } }, {
+      setHeader() {}, status(code) { assert.equal(code, 200); return this; }, json(value) { vercelCalendar = value; },
+    });
+    assert.equal(vercelCalendar.events[0].id, 'US:cpi');
     const research = await (await fetch(base + '/api/report?resource=research')).json();
     assert.ok(Array.isArray(research.forecasts));
     assert.equal(reportReads, 0, 'rewritten intelligence/research requests never invoke report projection');

@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="/macro.css" />
   <link rel="stylesheet" href="/workspace.css" />
+  <link rel="stylesheet" href="/econ-calendar.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>" />
   <script src="vendor/chart.umd.min.js"></script>
   <script src="vendor/lightweight-charts.standalone.production.js"></script>
@@ -238,7 +239,7 @@
             <div class="overview-task-toolbar overview-span-all">
               <div class="overview-task-tabs" role="tablist" aria-label="Genel bakış çalışma alanı">
                 <button id="overview-tab-decisions" class="overview-task-tab" type="button" role="tab" aria-selected="true" aria-controls="overview-panel-decisions" tabindex="0" data-overview-tab="decisions">Piyasa adayları</button>
-                <button id="overview-tab-forecasts" class="overview-task-tab" type="button" role="tab" aria-selected="false" aria-controls="overview-panel-forecasts" tabindex="-1" data-overview-tab="forecasts">Açıklama beklentileri</button>
+                <button id="overview-tab-forecasts" class="overview-task-tab" type="button" role="tab" aria-selected="false" aria-controls="overview-panel-forecasts" tabindex="-1" data-overview-tab="forecasts">Veri takvimi</button>
                 <button id="overview-tab-signals" class="overview-task-tab" type="button" role="tab" aria-selected="false" aria-controls="overview-panel-signals" tabindex="-1" data-overview-tab="signals">Teknik değişimler</button>
               </div>
             </div>
@@ -256,7 +257,8 @@
                 </details>
               </section>
               <section id="overview-panel-forecasts" class="overview-task-panel macro-context" role="tabpanel" aria-labelledby="overview-tab-forecasts" tabindex="0" hidden>
-                <div id="morningExpectations"></div>
+                <div id="econCalendar" role="region" aria-label="Ekonomik veri takvimi">Takvim yükleniyor…</div>
+                <details class="observer-macro-details"><summary>Önceki model tahmin kayıtları</summary><div id="morningExpectations"></div></details>
                 <details class="observer-macro-details"><summary>Aylık verilerin tahmin geçmişi, yöntemleri ve kaynak kontrolleri</summary><div id="macroWorkspace" class="macro-workspace" role="status" aria-live="polite">Makro çalışma alanı yükleniyor…</div></details>
               </section>
               <section id="overview-panel-signals" class="overview-task-panel" role="tabpanel" aria-labelledby="overview-tab-signals" tabindex="0" hidden>
@@ -1051,6 +1053,7 @@
   <script src="action-layer.js"></script>
   <script src="report-integrity.js"></script>
   <script src="expectation-scenarios.js"></script>
+  <script src="econ-calendar.js"></script>
   <script src="research.js"></script>
   <script src="experience.js"></script>
   <script src="asset-identity.js"></script>

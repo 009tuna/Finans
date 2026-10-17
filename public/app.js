@@ -917,9 +917,9 @@ async function renderReport() {
   h += '<header class="report-masthead"><div><h2>Günün araştırma notu</h2><div class="report-meta"><span>' + esc(fullTimestamp(reportTimestamp)) + '</span><span>' + esc(String(s.total == null ? '–' : s.total)) + ' varlık</span><span>' + esc(String(s.buys == null ? '–' : s.buys)) + ' olumlu teknik sinyal</span><span>' + esc(String(s.gainers == null ? '–' : s.gainers)) + ' yükselen</span></div></div><div class="report-badges">' + aiBadge + '<span class="sent-pill ' + sc + '">' + esc(s.label || 'Duyarlılık bilinmiyor') + ' · ' + esc(String(s.avg == null ? '–' : s.avg)) + '/100</span></div></header>' +
     FinansResearch.reportIntegrityHtml({ integrity, hasResearch: !!ai, partial: !!(base.quality && base.quality.status === 'partial'), loadError }) +
     FinansResearch.automationHtml(data.automation);
-  h += '<nav class="report-toc" aria-label="Rapor bölümleri"><a href="#report-summary">Özet</a><a href="#report-expectations">Veri beklentileri</a><a href="#report-developments">Gelişmeler</a><a href="#report-impact">Piyasa etkileri</a><a href="#report-calendar">Takvim</a><a href="#researchEvaluation">Tahmin sonuçları</a></nav>';
+  h += '<nav class="report-toc" aria-label="Rapor bölümleri"><a href="#report-summary">Özet</a><a href="#report-expectations">Veri takvimi</a><a href="#report-developments">Gelişmeler</a><a href="#report-impact">Piyasa etkileri</a><a href="#report-calendar">Takvim</a><a href="#researchEvaluation">Tahmin sonuçları</a></nav>';
   h += '<div id="reportReadingResume"></div><section class="report-section" id="report-summary"><div class="report-reader-card"><div class="card-head"><h2>Özet</h2><span class="card-sub">Model yorumu ayrı okunur</span></div><p>' + FinansResearch.proseHtml(ai && ai.todayFocus ? ai.todayFocus : 'Teknik skor, piyasa genişliği ve takvimi birlikte değerlendirin.') + '</p>' + (ai ? FinansResearch.modelContextHtml(integrity, true) : '') + (ai && (ai.literacyTip || ai.quiz) ? '<button type="button" class="btn btn-secondary" data-open-report-learning>Bu raporun öğrenme notunu' + (ai.quiz ? ' ve sorusunu' : '') + ' aç</button>' : '') + '</div>';
-  h += '</section><section class="report-section" id="report-expectations">' + FinansResearch.expectationsHtml(ai && ai.research, { storedOpinions }) + '</section><section class="report-section" id="report-developments"><h2>Gelişmeler</h2>' +
+  h += '</section><section class="report-section" id="report-expectations"><h2>Veri takvimi</h2><div id="reportEconCalendar" role="region" aria-label="Ekonomik veri takvimi">Takvim yükleniyor…</div><details class="report-secondary"><summary>Önceki model tahmin kayıtları</summary>' + FinansResearch.expectationsHtml(ai && ai.research, { storedOpinions }) + '</details></section><section class="report-section" id="report-developments"><h2>Gelişmeler</h2>' +
     '<div id="marketNewsWorkspace" class="market-news-report" role="region" aria-label="Kaynaklı piyasa haberleri">Haber akışı yükleniyor…</div>';
   if (ai && ai.macroSummary) h += '<div class="report-reader-card"><div class="card-head"><h2>Makro görünüm</h2><span class="ai-badge">Yapay zeka yorumu</span></div><p class="rep-macro">' + FinansResearch.proseHtml(ai.macroSummary) + '</p></div>';
   h += FinansResearch.researchHtml(ai && ai.research) || '<div class="card"><p class="muted">Doğrulanmış araştırma gelişmesi henüz yok.</p></div>';
@@ -1075,6 +1075,7 @@ async function renderReport() {
   if (window.FinansMacro && typeof window.FinansMacro.refresh === 'function') window.FinansMacro.refresh();
   el.querySelectorAll('.report-toc a').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); const target = el.querySelector(link.getAttribute('href')); if (target) { target.tabIndex = -1; target.scrollIntoView({ behavior: reduceMotion ? 'instant' : 'smooth', block: 'start' }); target.focus({ preventScroll: true }); } }));
   FinansResearch.loadEvaluation($('#researchEvaluation'));
+  renderEconCalendar($('#reportEconCalendar'), base);
   triggerRevealAnimations(el);
 }
 function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
@@ -1148,23 +1149,6 @@ function weeklyHtml(base, ai) {
     h += '</div></div>';
   }
 
-  // Ham ekonomik takvim (gün gün)
-  if (econ.length) {
-    h += '<div class="rep-section"><h3>Ekonomik takvim · ' + esc(cal.weekFrom || '') + ' → ' + esc(cal.weekTo || '') + '</h3><div class="cal-list">';
-    const byDate = {};
-    econ.forEach((e) => { (byDate[e.date] = byDate[e.date] || []).push(e); });
-    Object.keys(byDate).sort().forEach((d) => {
-      h += '<div class="cal-day"><div class="cal-date">' + d + '</div>';
-      byDate[d].forEach((e) => {
-        h += '<div class="cal-ev"><span class="cal-flag">' + flag(e.country) + '</span><span class="cal-name">' + esc(e.event) + '</span>' +
-          '<span class="cal-num">bekl. ' + (e.estimate != null ? esc(String(e.estimate)) : '–') + ' · önc. ' + (e.prev != null ? esc(String(e.prev)) : '–') + '</span>' +
-          (e.impact === 'high' ? '<span class="news-impact imp-neg">yüksek</span>' : '') + '</div>';
-      });
-      h += '</div>';
-    });
-    h += '</div></div>';
-  }
-
   // Bilanço takvimi
   if (earn.length) {
     const wlEarn = earn.filter((e) => e.watch);
@@ -1211,6 +1195,30 @@ function currentList() {
   });
 }
 
+/* ---------- Ekonomik veri takvimi ---------- */
+let econCalendarState = null;
+let econCalendarRequest = null;
+async function loadEconCalendar() {
+  if (econCalendarState && Date.now() - econCalendarState.at < 5 * 60 * 1000) return econCalendarState.payload;
+  if (!econCalendarRequest) {
+    econCalendarRequest = fetch('/api/report?resource=calendar', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .catch(() => null)
+      .finally(() => { econCalendarRequest = null; });
+  }
+  const payload = await econCalendarRequest;
+  if (payload && Array.isArray(payload.events)) econCalendarState = { at: Date.now(), payload };
+  return payload;
+}
+async function renderEconCalendar(target, base) {
+  if (!target || !window.FinansEconCalendar) return;
+  let payload = await loadEconCalendar();
+  const stored = base && base.calendar && Array.isArray(base.calendar.events) ? base.calendar : null;
+  if ((!payload || !payload.events || !payload.events.length) && stored && stored.events.length) payload = { events: stored.events, coverage: stored.eventsCoverage };
+  if (!target.isConnected) return;
+  target.innerHTML = window.FinansEconCalendar.calendarHtml(payload || { events: [], coverage: { status: 'unavailable' } });
+}
+
 /* ---------- Genel bakış ---------- */
 async function renderOverviewBriefing() {
   const el = $('#overviewBriefing');
@@ -1239,6 +1247,7 @@ async function renderOverviewBriefing() {
     expectations.innerHTML = FinansResearch.expectationsHtml(research, { compact: true, storedOpinions });
     expectations.querySelectorAll('[data-open-expectation-report]').forEach((button) => button.addEventListener('click', () => setView('report')));
   }
+  renderEconCalendar($('#econCalendar'), base);
 
   const matchesSnapshot = base && window.FinansReportIntegrity.assess(base, ai, DATA).baseStatus === 'current';
   const s = matchesSnapshot && base.sentiment ? base.sentiment : null;

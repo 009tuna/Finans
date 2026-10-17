@@ -272,7 +272,7 @@ async function testReportContentSurvivesLayoutChange() {
     fullTimestamp: research.timestamp, relTime: () => 'önce',
     reportSignalOverlayHtml: () => '', weeklyHtml: () => '<h2>Takvim kaydı</h2>', triggerRevealAnimations() {}, reduceMotion: true,
     // This harness checks report content. Optional experience helpers have their own behavioral tests.
-    workBriefHtml: () => '', bindReportReading() {},
+    workBriefHtml: () => '', bindReportReading() {}, renderEconCalendar() {},
     technicalSignalLabel: require('../public/insights').technicalSignalLabel,
   }, { '#reportContent': report });
   evaluate(appSource.slice(appSource.indexOf('function marketShortLabel('), appSource.indexOf('function catalystPressureLabel(')), ctx);
@@ -313,7 +313,7 @@ async function testOverviewBriefingReportSuccessAndFailure() {
   };
   const common = {
     activeView: 'overview', briefingRequest: 0,
-    renderOverviewPortfolioSummary() {},
+    renderOverviewPortfolioSummary() {}, renderEconCalendar() {},
     DATA: { us: [{ symbol: 'AAPL', changePct: 1 }], bist: [], crypto: [] },
     fullTimestamp: () => '1.01.2099 13:00', fullDate: () => '1.01.2099',
     esc: (value) => String(value == null ? '' : value),

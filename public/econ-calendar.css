@@ -1,0 +1,56 @@
+/* Ekonomik veri takvimi — düz okuma akışı, ayırıcı çizgiler, tablo rakamları. */
+.econ-calendar { display:grid; gap:28px; font-size:13px; color:var(--text); }
+.econ-calendar .num, .ec-figures dd, .ec-when, .ec-table td { font-variant-numeric:tabular-nums; }
+.ec-empty { margin:0; color:var(--muted); }
+.ec-day { display:grid; gap:0; }
+.ec-day-title { margin:0 0 4px; font-size:12px; font-weight:600; color:var(--muted); letter-spacing:.02em; }
+
+.ec-card { display:grid; gap:14px; padding:18px 0 20px; border-top:1px solid var(--border); }
+.ec-card > header { display:grid; grid-template-columns:auto 1fr auto; align-items:baseline; gap:4px 14px; }
+.ec-when { color:var(--muted); font-size:12px; white-space:nowrap; }
+.ec-card h3 { margin:0; font-size:15px; font-weight:650; line-height:1.35; }
+.ec-impact { font-size:11px; color:var(--muted); white-space:nowrap; }
+.ec-high .ec-impact { color:var(--text); font-weight:600; }
+
+.ec-figures { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:12px 20px; margin:0; max-width:760px; }
+.ec-figures div { min-width:0; }
+.ec-figures dt { font-size:11px; color:var(--muted); margin-bottom:2px; }
+.ec-figures dd { margin:0; font-size:18px; font-weight:600; line-height:1.3; }
+.ec-figures dd small { font-size:11px; font-weight:400; color:var(--muted); }
+.ec-actual dd { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px; }
+.ec-awaiting .ec-actual dd, .ec-upcoming .ec-actual dd { color:var(--muted); font-weight:400; font-size:14px; }
+.ec-surprise { font-size:12px; font-weight:600; white-space:nowrap; }
+.ec-surprise.is-inline { color:var(--muted); font-weight:500; }
+.ec-surprise.is-above, .ec-surprise.is-below { color:var(--accent); }
+
+.ec-view { margin:0; max-width:80ch; line-height:1.7; }
+.ec-note, .ec-source { margin:0; color:var(--muted); font-size:12px; line-height:1.6; }
+
+.ec-scenarios { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:0 28px; }
+.ec-scn { padding:10px 12px 12px; border-radius:var(--control-radius, 6px); }
+.ec-scn h4 { margin:0 0 8px; font-size:12px; font-weight:600; }
+.ec-scn h4 span { margin-left:6px; color:var(--accent); font-weight:600; }
+.ec-scn dl { display:grid; gap:6px; margin:0; }
+.ec-scn dl div { display:grid; grid-template-columns:52px minmax(0, 1fr); gap:10px; }
+.ec-scn dt { color:var(--muted); font-size:12px; }
+.ec-scn dd { margin:0; line-height:1.6; font-size:12.5px; }
+.ec-scn.is-realized { background:var(--accent-soft); }
+.ec-card.ec-released .ec-scn:not(.is-realized) { opacity:.6; }
+
+.ec-rule > summary { cursor:pointer; font-size:12px; color:var(--muted); padding:4px 0; }
+.ec-rule[open] > summary { margin-bottom:8px; }
+.ec-more > summary, .ec-recent > h3 { cursor:pointer; font-size:12px; color:var(--muted); padding:8px 0; }
+.ec-recent > h3 { cursor:default; margin:0; font-weight:600; }
+.ec-table { width:100%; border-collapse:collapse; font-size:12.5px; }
+.ec-table th { text-align:left; font-weight:500; color:var(--muted); font-size:11px; padding:6px 10px 6px 0; border-bottom:1px solid var(--border); }
+.ec-table td { padding:8px 10px 8px 0; border-bottom:1px solid var(--border); vertical-align:top; }
+.ec-table .num { text-align:right; white-space:nowrap; }
+.ec-recent, .ec-more { overflow-x:auto; }
+
+@media (max-width: 720px) {
+  .ec-card > header { grid-template-columns:1fr auto; }
+  .ec-card h3 { grid-column:1 / -1; grid-row:2; }
+  .ec-figures { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+  .ec-scenarios { grid-template-columns:1fr; gap:8px; }
+  .ec-table { font-size:12px; }
+}
