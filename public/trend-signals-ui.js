@@ -73,12 +73,15 @@
     if (pending.length) h += '<p class="ts-note">' + pending.length + ' sinyal girişi bekliyor (ertesi seans açılışı).</p>';
 
     const avoid = pick(view.avoid);
+    const pills = (list, cls) => list.map((x) => '<span class="ts-pill' + (cls ? ' ' + cls(x) : '') + '" title="' + esc((MARKETS[x.market] || '') + ' · ' + date(x.signalDate) + (x.setup ? ' · ' + (x.setup === 'breakout' ? '55 günlük dip kırıldı' : 'düşüş trendinde tepki satışı') : '')) + '">' + esc(x.symbol) + '</span>').join('');
+    const byMarket = (list) => Object.entries(MARKETS).map(([m, label]) => [label, list.filter((x) => x.market === m)]).filter(([, rows]) => rows.length);
     h += '<section class="ts-block"><h3>Uzak dur / çık <span>son 3 gün · ' + avoid.length + '</span></h3>' + (avoid.length
-      ? '<p class="ts-list">' + avoid.map((x) => '<b>' + esc(x.symbol) + '</b> <small>' + esc(MARKETS[x.market]) + ' · ' + esc(date(x.signalDate)) + ' · ' + esc(x.setup === 'breakout' ? '55 günlük dip kırıldı' : 'düşüş trendinde tepki satışı') + '</small>').join(' · ') + '</p><p class="ts-note">Bu varlıkları elinde tutuyorsan çıkışı değerlendir; yeni alım yapma. Short işlem önerisi değildir: 10 yıllık testte short\'lar her piyasada sonucu kötüleştirdi.</p>'
+      ? '<div class="ts-pill-groups">' + byMarket(avoid).map(([label, rows]) => '<div class="ts-pill-group"><b>' + label + ' <em>' + rows.length + '</em></b><div>' + pills(rows, (x) => x.setup === 'breakout' ? 'is-break' : 'is-fade') + '</div></div>').join('') + '</div>' +
+        '<p class="ts-note"><span class="ts-pill is-break">dolu</span> 55 günlük dip kırıldı · <span class="ts-pill is-fade">çerçeveli</span> düşüş trendinde tepki satışı. Elinde tutuyorsan çıkışı değerlendir, yeni alım yapma. Short önerisi değildir: 10 yıllık testte short’lar her piyasada sonucu kötüleştirdi.</p>'
       : '<p class="ts-empty">Son 3 günde yeni düşüş tetiği yok.</p>') + '</section>';
 
     const watch = pick(view.watch);
-    if (watch.length) h += '<section class="ts-block"><h3>İzlemede <span>trend içi geri çekilme · işlem açılmaz</span></h3><p class="ts-list">' + watch.map((x) => '<b>' + esc(x.symbol) + '</b> <small>' + esc(MARKETS[x.market]) + '</small>').join(' · ') + '</p></section>';
+    if (watch.length) h += '<section class="ts-block"><h3>İzlemede <span>trend içi geri çekilme · işlem açılmaz</span></h3><div class="ts-pill-groups">' + byMarket(watch).map(([label, rows]) => '<div class="ts-pill-group"><b>' + label + ' <em>' + rows.length + '</em></b><div>' + pills(rows, () => 'is-watch') + '</div></div>').join('') + '</div></section>';
 
     const closed = pickTrades(view.closed);
     const live = view.live || {};
