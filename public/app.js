@@ -798,14 +798,25 @@ function renderView() {
   }
 }
 
-const automaticSignalState = {tab:'auto', market:'all', limit:20};
+const automaticSignalState = {tab:'auto', market:'all', limit:20, trendMarket:'all'};
 function renderAutomaticSignals() {
   if (!window.FinansObserver) return;
   const summary = $('#automaticSignalSummary'), ledger = $('#automaticSignalLedger');
   // Keep the last accepted reading visible while an automatic reread is in flight.
   if (journalState === 'loading' && validJournalPayload(JOURNAL) && ledger?.dataset.renderKey) return;
+  const trend = $('#trendSignals');
+  if (trend && window.FinansTrendSignals) {
+    const trendKey = JSON.stringify([DATA?.generatedAt, automaticSignalState.trendMarket]);
+    if (trend.dataset.renderKey !== trendKey) {
+      trend.dataset.renderKey = trendKey;
+      trend.innerHTML = window.FinansTrendSignals.dashboardHtml(DATA?.trendSignals || null, { market: automaticSignalState.trendMarket });
+      trend.querySelectorAll('[data-ts-market]').forEach((button) => button.addEventListener('click', () => {
+        automaticSignalState.trendMarket = button.dataset.tsMarket; renderAutomaticSignals(); trend.querySelector('[data-ts-market="' + automaticSignalState.trendMarket + '"]')?.focus();
+      }));
+    }
+  }
   if (summary) {
-    summary.innerHTML = window.FinansObserver.summary(JOURNAL.predictions || [], JOURNAL_READY, DATA);
+    summary.innerHTML = DATA?.trendSignals && window.FinansTrendSignals ? window.FinansTrendSignals.summaryHtml(DATA.trendSignals) : window.FinansObserver.summary(JOURNAL.predictions || [], JOURNAL_READY, DATA);
     summary.querySelector('[data-observer-open]')?.addEventListener('click', () => setView('signals'));
   }
   if (!ledger) return;

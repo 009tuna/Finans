@@ -1,0 +1,14 @@
+{
+  "bist30": {
+    "source": "https://www.getmidas.com/canli-borsa/xu030-bist-30-hisseleri",
+    "checkedAt": "2026-10-17",
+    "symbols": ["AEFES","AKBNK","ASELS","ASTOR","BIMAS","EKGYO","ENKAI","EREGL","FROTO","GARAN","GUBRF","ISCTR","KCHOL","KRDMD","MGROS","PETKM","PGSUS","SAHOL","SASA","SISE","TAVHL","TCELL","THYAO","TOASO","TRALT","TRMET","TTKOM","TUPRS","VAKBN","YKBNK"]
+  },
+  "viopStockFutures": {
+    "note": "Borsa İstanbul VİOP pay vadeli işlem sözleşmesi bulunan paylar; short sinyali yalnız bu paylarda işlem olarak verilir.",
+    "source": "https://cdn.gedik.com/media/media/zskj0n0i/viop_bulten_24042026.pdf",
+    "sourceDate": "2026-04-24",
+    "checkedAt": "2026-10-17",
+    "symbols": ["AEFES","AKBNK","AKSEN","ALARK","ARCLK","ASELS","ASTOR","BIMAS","BRSAN","CIMSA","DOAS","DOHOL","EKGYO","ENJSA","ENKAI","EREGL","FROTO","GARAN","GUBRF","HALKB","HEKTS","ISCTR","KCHOL","KONTR","KRDMD","MGROS","ODAS","OYAKC","PETKM","PGSUS","SAHOL","SASA","SISE","SOKM","TAVHL","TCELL","THYAO","TKFEN","TOASO","TRALT","TRMET","TSKB","TTKOM","TUPRS","ULKER","VAKBN","VESTL","YKBNK"]
+  }
+}

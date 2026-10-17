@@ -228,6 +228,15 @@ async function runAll() {
 
   await processStructuralObservations(snapshot,sourceSeriesByKey);
 
+  // İki yönlü trend sinyalleri ve sanal işlem defteri (yalnız tamamlanmış günler).
+  const trendAssets = Object.entries(sourceSeriesByKey).map(([key, series]) => {
+    const [market, symbol] = key.split(':');
+    try { return { market, symbol, bars: (market === 'crypto' ? completedCryptoHistory : completedYahooHistory)(series, Date.parse(generationCutoffAt)).series }; }
+    catch (_) { return null; }
+  }).filter(Boolean);
+  try { await require('./trend-signal-journal').processTrendSignals(snapshot, trendAssets, { now: generationCutoffAt }); }
+  catch (error) { snapshot.errors.push('Trend sinyalleri: ' + error.message); }
+
   // Supabase'e yaz (latest + history)
   await saveSnapshot(snapshot);
   await appendHistory(snapshot);

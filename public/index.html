@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/workspace.css" />
   <link rel="stylesheet" href="/econ-calendar.css" />
   <link rel="stylesheet" href="/brief.css" />
+  <link rel="stylesheet" href="/trend-signals.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>" />
   <script src="vendor/chart.umd.min.js"></script>
   <script src="vendor/lightweight-charts.standalone.production.js"></script>
@@ -323,7 +324,8 @@
 
         <!-- PAZAR GÖRÜNÜMÜ (us/bist/crypto) -->
         <section class="view" id="view-signals" hidden>
-          <div id="automaticSignalLedger" aria-live="polite"></div>
+          <div id="trendSignals" aria-live="polite"></div>
+          <details class="legacy-signals"><summary>Eski yapısal sistem kayıtları</summary><div id="automaticSignalLedger" aria-live="polite"></div></details>
         </section>
         <section class="view" id="view-market" hidden>
           <header class="market-workspace-head reveal">
@@ -1057,6 +1059,7 @@
   <script src="expectation-scenarios.js"></script>
   <script src="econ-calendar.js"></script>
   <script src="analyst-views.js"></script>
+  <script src="trend-signals-ui.js"></script>
   <script src="research.js"></script>
   <script src="experience.js"></script>
   <script src="asset-identity.js"></script>

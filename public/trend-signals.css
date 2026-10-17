@@ -1,0 +1,34 @@
+/* Long / short sinyal paneli */
+.trend-signals { display: grid; gap: 22px; font-size: 13px; }
+.ts-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px 24px; }
+.ts-head h2 { margin: 0 0 4px; font-size: 18px; font-weight: 650; }
+.ts-head p { margin: 0; max-width: 90ch; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.ts-filter { display: flex; gap: 4px; }
+.ts-filter button { font: inherit; font-size: 12px; border: 1px solid var(--border); background: transparent; color: var(--muted); min-height: 32px; padding: 4px 12px; border-radius: var(--control-radius, 6px); cursor: pointer; }
+.ts-filter button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: transparent; font-weight: 600; }
+.ts-block > h3, .ts-backtest > summary { margin: 0 0 8px; font-size: 14px; font-weight: 650; }
+.ts-block > h3 span { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--muted); }
+.ts-backtest > summary { cursor: pointer; }
+.ts-table-wrap { overflow-x: auto; }
+.ts-table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.ts-table th { text-align: left; font-weight: 500; font-size: 11px; color: var(--muted); padding: 6px 12px 6px 0; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.ts-table td { padding: 8px 12px 8px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+.ts-table .num { text-align: right; white-space: nowrap; }
+.ts-table small { display: block; margin-top: 2px; font-size: 11px; color: var(--muted); }
+.ts-side { font-size: 11px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; }
+.ts-long { color: var(--green); }
+.ts-short { color: var(--red); }
+.ts-reduce { color: var(--muted); }
+.is-up { color: var(--green); }
+.is-down { color: var(--red); }
+.ts-evidence { font-size: 12px; }
+.ts-evidence small { display: block; font-size: 11px; color: var(--muted); }
+.ts-evidence.is-proven { color: var(--text); font-weight: 600; }
+.ts-evidence.is-weak, .ts-evidence.is-untested { color: var(--muted); }
+.ts-empty, .ts-note, .ts-stats, .ts-list { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.ts-stats { margin-bottom: 8px; color: var(--text); }
+.ts-list b { color: var(--text); }
+.ts-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; padding: 12px 0; border-block: 1px solid var(--border); font-size: 12.5px; }
+.ts-summary .btn { margin-left: auto; }
+.legacy-signals { margin-top: 28px; }
+.legacy-signals > summary { cursor: pointer; font-size: 12px; color: var(--muted); padding: 8px 0; }
