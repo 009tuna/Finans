@@ -11,9 +11,9 @@
 .ts-backtest > summary { cursor: pointer; }
 .ts-table-wrap { overflow-x: auto; }
 .ts-table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
-.ts-table th { text-align: left; font-weight: 500; font-size: 11px; color: var(--muted); padding: 6px 12px 6px 0; border-bottom: 1px solid var(--border); white-space: nowrap; }
-.ts-table td { padding: 8px 12px 8px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
-.ts-table .num { text-align: right; white-space: nowrap; }
+.ts-table th { text-align: left !important; font-weight: 500; font-size: 11px; color: var(--muted); padding: 6px 12px 6px 0; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.ts-table td { padding: 8px 12px 8px 0; border-bottom: 1px solid var(--border); vertical-align: top; text-align: left !important; }
+.ts-table .num, .ts-table th.num { text-align: right !important; white-space: nowrap; }
 .ts-table small { display: block; margin-top: 2px; font-size: 11px; color: var(--muted); }
 .ts-side { font-size: 11px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; }
 .ts-long { color: var(--green); }
