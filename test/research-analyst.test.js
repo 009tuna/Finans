@@ -1,6 +1,7 @@
 // AI analist katmanı: takvim girdisi, çıktı temizliği, takvimle birleşme ve piyasa görüşü görünümü.
 'use strict';
 const assert = require('assert');
+const { mock } = require('node:test');
 const EC = require('../public/econ-calendar');
 const { marketViewsHtml } = require('../public/analyst-views');
 const { buildDataCalendar, sanitizeAnalystLayer } = require('../src/research-analyst');
@@ -26,9 +27,23 @@ assert.strictEqual(cpiRow.forecast, '0.6%');
 assert.strictEqual(cpiRow.actual, '0.6%');
 assert.strictEqual(cpiRow.surprise.direction, 'inline');
 assert.ok(!buildDataCalendar({ events }, '2026-10-30T00:00:00Z').length, '3 günden eski açıklamalar girdiye girmez');
-const context = buildContext({ runId: 'r', snapshotId: NOW, markets: {}, quality: {}, calendar: { economic: [], events, eventsCoverage: { status: 'available' } } }, {}, {});
+const contextBase = { runId: 'r', snapshotId: NOW, markets: {}, quality: {}, calendar: { economic: [], events, eventsCoverage: { status: 'available' } } };
+// The fixture calendar must use its own clock. Scheduled workflows run this
+// suite every day, after these October events have left the analysis window.
+let context;
+mock.timers.enable({ apis: ['Date'], now: new Date(NOW) });
+try { context = buildContext(contextBase, {}, {}); }
+finally { mock.timers.reset(); }
+assert.strictEqual(context.analysisAsOf, NOW);
 assert.ok(Array.isArray(context.dataCalendar) && context.dataCalendar.length);
+assert.deepStrictEqual(context.dataCalendar, calendar);
 assert.strictEqual(context.calendar.events, undefined, 'Takvim olayları girdide iki kez yer almaz');
+mock.timers.enable({ apis: ['Date'], now: new Date('2030-01-01T12:00:00.000Z') });
+try {
+  const laterContext = buildContext(contextBase, {}, {});
+  assert.strictEqual(laterContext.analysisAsOf, '2030-01-01T12:00:00.000Z');
+  assert.deepStrictEqual(laterContext.dataCalendar, [], 'Eski örnek olaylar araştırma gününe göre elenir; snapshot tarihi güncel zaman yerine geçmez');
+} finally { mock.timers.reset(); }
 console.log('   ✓ dataCalendar önceki/beklenti/gerçekleşen/sürpriz taşıyor.');
 
 console.log('2. Şema: yeni alanlar zorunlu üretim şemasında, eski çalışmalar geçerli...');
